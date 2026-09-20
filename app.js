@@ -1,93 +1,164 @@
 const API_URL = "https://fortnite-api.com/v2/shop?language=fr";
+const COSMETIC_API_URL =
+    "https://fortnite-api.com/v2/cosmetics/br/search/ids?language=fr&id=";
 
 const shopContainer = document.getElementById("shop");
 const status = document.getElementById("status");
 const dateElement = document.getElementById("date");
+
 
 // =========================================================
 // DATE
 // =========================================================
 
 function displayDate() {
+
     const today = new Date();
 
-    dateElement.textContent = today.toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    });
+    dateElement.textContent =
+        today.toLocaleDateString("fr-FR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+
 }
+
 
 // =========================================================
 // MODAL
 // =========================================================
 
-const itemModal = document.getElementById("item-modal");
-const modalClose = document.getElementById("modal-close");
-const modalBackdrop = document.querySelector(".modal-backdrop");
+const itemModal =
+    document.getElementById("item-modal");
 
-const modalImage = document.getElementById("modal-image");
-const modalVideo = document.getElementById("modal-video");
+const modalClose =
+    document.getElementById("modal-close");
 
-const modalName = document.getElementById("modal-name");
-const modalPrice = document.getElementById("modal-price");
-const modalDescription = document.getElementById("modal-description");
+const modalBackdrop =
+    document.querySelector(".modal-backdrop");
 
-const previewStatus = document.getElementById("preview-status");
+const modalImage =
+    document.getElementById("modal-image");
+
+const modalVideo =
+    document.getElementById("modal-video");
+
+const modalName =
+    document.getElementById("modal-name");
+
+const modalPrice =
+    document.getElementById("modal-price");
+
+const modalDescription =
+    document.getElementById("modal-description");
+
+const previewStatus =
+    document.getElementById("preview-status");
+
+const modalExtraInfo =
+    document.getElementById("modal-extra-info");
+
 
 // =========================================================
-// UTILITAIRES
+// V-BUCKS
 // =========================================================
 
 function getVbucksIcon() {
+
     return "https://firedrifytb.github.io/fortnite-shop/IMG_2258.png";
+
 }
 
 
-// Cherche une URL vidéo dans plusieurs formats possibles.
-// Cela permet de rester compatible si la structure de l'API change.
+// =========================================================
+// ECHAPPE HTML
+// =========================================================
+
+function escapeHTML(value) {
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+// =========================================================
+// RECHERCHE VIDEO
+// =========================================================
 
 function findVideoUrl(item, entry) {
 
     const possibleValues = [
 
-        // Objet
+        // Objet cosmétique
         item?.showcaseVideoUrl,
-        item?.showcaseVideo?.url,
-        item?.showcaseVideo,
-        item?.video,
-        item?.videoUrl,
+        item?.showcase_video_url,
 
-        // Collections éventuelles
+        item?.showcaseVideo?.url,
+        item?.showcase_video?.url,
+
+        item?.videoUrl,
+        item?.video_url,
+
+        item?.video,
+
+        // Vidéos éventuelles
         item?.videos?.showcase,
         item?.videos?.showcase?.url,
-        item?.videos?.featured,
-        item?.videos?.featured?.url,
+
         item?.videos?.preview,
         item?.videos?.preview?.url,
 
+        item?.videos?.featured,
+        item?.videos?.featured?.url,
+
         // Entrée du shop
         entry?.showcaseVideoUrl,
+        entry?.showcase_video_url,
+
         entry?.showcaseVideo?.url,
-        entry?.showcaseVideo,
-        entry?.video,
+        entry?.showcase_video?.url,
+
         entry?.videoUrl,
+        entry?.video_url,
+
+        entry?.video,
+
         entry?.videos?.showcase,
         entry?.videos?.showcase?.url,
+
         entry?.videos?.preview,
         entry?.videos?.preview?.url
+
     ];
+
 
     for (const value of possibleValues) {
 
-        if (typeof value === "string" && value.startsWith("http")) {
+        if (
+            typeof value === "string" &&
+            value.startsWith("http")
+        ) {
+
             return value;
+
         }
 
     }
 
+
     return null;
+
 }
 
 
@@ -95,7 +166,7 @@ function findVideoUrl(item, entry) {
 // RESET VIDEO
 // =========================================================
 
-function resetModalVideo() {
+function resetVideo() {
 
     if (!modalVideo) return;
 
@@ -109,6 +180,7 @@ function resetModalVideo() {
 
     modalVideo.onloadeddata = null;
     modalVideo.onerror = null;
+
 }
 
 
@@ -116,65 +188,254 @@ function resetModalVideo() {
 // IMAGE DE SECOURS
 // =========================================================
 
-function showFallbackImage() {
+function showImagePreview() {
 
-    resetModalVideo();
+    resetVideo();
 
     modalImage.classList.remove("hidden");
 
-    previewStatus.textContent = "APERÇU DE L'OBJET";
+    previewStatus.textContent =
+        "APERÇU DE L'OBJET";
+
 }
 
 
 // =========================================================
-// VIDÉO
+// CHARGER VIDEO
 // =========================================================
 
-function loadPreviewVideo(videoUrl) {
+function loadVideo(videoUrl) {
 
-    if (!videoUrl || !modalVideo) {
-        showFallbackImage();
+    if (
+        !videoUrl ||
+        !modalVideo
+    ) {
+
+        showImagePreview();
+
         return;
+
     }
 
-    resetModalVideo();
 
-    modalVideo.src = videoUrl;
+    resetVideo();
 
-    modalVideo.muted = true;
-    modalVideo.loop = true;
-    modalVideo.autoplay = true;
-    modalVideo.playsInline = true;
 
-    modalVideo.controls = true;
+    modalVideo.src =
+        videoUrl;
 
-    modalVideo.onloadeddata = () => {
+    modalVideo.muted =
+        true;
 
-        modalImage.classList.add("hidden");
+    modalVideo.loop =
+        true;
 
-        modalVideo.classList.add("visible");
+    modalVideo.autoplay =
+        true;
 
-        previewStatus.textContent = "APERÇU ANIMÉ";
+    modalVideo.playsInline =
+        true;
 
-        modalVideo.play().catch(() => {
-            // Le navigateur peut bloquer autoplay.
-            // Les contrôles restent disponibles.
-        });
+    modalVideo.controls =
+        true;
 
-    };
 
-    modalVideo.onerror = () => {
+    modalVideo.onloadeddata =
+        () => {
 
-        console.warn(
-            "Impossible de charger la vidéo :",
-            videoUrl
-        );
+            modalImage.classList.add(
+                "hidden"
+            );
 
-        showFallbackImage();
+            modalVideo.classList.add(
+                "visible"
+            );
 
-    };
+            previewStatus.textContent =
+                "APERÇU ANIMÉ";
+
+
+            modalVideo
+                .play()
+                .catch(() => {});
+
+        };
+
+
+    modalVideo.onerror =
+        () => {
+
+            console.warn(
+                "Vidéo impossible à charger :",
+                videoUrl
+            );
+
+            showImagePreview();
+
+        };
+
 
     modalVideo.load();
+
+}
+
+
+// =========================================================
+// RECUPERATION FICHE COSMETIQUE
+// =========================================================
+
+async function getCompleteCosmetic(item) {
+
+    const id =
+        item?.id;
+
+    if (!id) {
+
+        return item;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                COSMETIC_API_URL +
+                encodeURIComponent(id)
+            );
+
+
+        if (!response.ok) {
+
+            console.warn(
+                "Impossible de récupérer le cosmétique :",
+                response.status
+            );
+
+            return item;
+
+        }
+
+
+        const result =
+            await response.json();
+
+
+        const cosmetics =
+            result.data;
+
+
+        if (
+            Array.isArray(cosmetics) &&
+            cosmetics.length > 0
+        ) {
+
+            return cosmetics[0];
+
+        }
+
+
+        return item;
+
+    }
+
+    catch (error) {
+
+        console.warn(
+            "Erreur récupération cosmétique :",
+            error
+        );
+
+        return item;
+
+    }
+
+}
+
+
+// =========================================================
+// INFOS SUPPLEMENTAIRES
+// =========================================================
+
+function updateExtraInfo(item) {
+
+    if (!modalExtraInfo) return;
+
+
+    modalExtraInfo.innerHTML = "";
+
+
+    const infos = [];
+
+
+    const type =
+        item?.type?.displayValue ||
+        item?.type?.value ||
+        item?.displayType;
+
+
+    const rarity =
+        item?.rarity?.displayValue ||
+        item?.rarity?.value ||
+        item?.displayRarity;
+
+
+    const series =
+        item?.series?.name ||
+        item?.series?.displayValue ||
+        item?.series?.value;
+
+
+    const set =
+        item?.set?.text ||
+        item?.set?.name ||
+        item?.set?.value;
+
+
+    if (type) {
+
+        infos.push(type);
+
+    }
+
+
+    if (rarity) {
+
+        infos.push(rarity);
+
+    }
+
+
+    if (series) {
+
+        infos.push(series);
+
+    }
+
+
+    if (set) {
+
+        infos.push(set);
+
+    }
+
+
+    infos.forEach(info => {
+
+        const pill =
+            document.createElement("span");
+
+        pill.className =
+            "info-pill";
+
+        pill.textContent =
+            info;
+
+        modalExtraInfo.appendChild(
+            pill
+        );
+
+    });
 
 }
 
@@ -183,51 +444,104 @@ function loadPreviewVideo(videoUrl) {
 // OUVRIR MODAL
 // =========================================================
 
-function openItemModal(item, price, entry) {
+async function openItemModal(
+    item,
+    price,
+    entry
+) {
 
-    if (!itemModal || !item) return;
+    if (
+        !itemModal ||
+        !item
+    ) {
+
+        return;
+
+    }
+
 
     const image =
         item.images?.featured ||
         item.images?.icon;
 
+
     if (!image) return;
 
 
     // -----------------------------------------------------
-    // IMAGE
+    // AFFICHAGE IMMEDIAT
     // -----------------------------------------------------
 
-    modalImage.src = image;
+    modalImage.src =
+        image;
 
-    modalImage.alt = item.name || "Objet Fortnite";
+    modalImage.alt =
+        item.name ||
+        "Objet Fortnite";
 
-    modalImage.classList.remove("hidden");
+    modalImage.classList.remove(
+        "hidden"
+    );
 
-
-    // -----------------------------------------------------
-    // NOM
-    // -----------------------------------------------------
 
     modalName.textContent =
-        item.name || "Objet Fortnite";
+        item.name ||
+        "Objet Fortnite";
 
-
-    // -----------------------------------------------------
-    // PRIX
-    // -----------------------------------------------------
 
     modalPrice.innerHTML = `
+
         <img
             class="vbucks-icon"
             src="${getVbucksIcon()}"
             alt="V-Bucks"
         >
 
-        <span>${price}</span>
+        <span>
+            ${escapeHTML(price)}
+        </span>
 
-        <span>V-Bucks</span>
+        <span>
+            V-Bucks
+        </span>
+
     `;
+
+
+    modalDescription.textContent =
+        "Chargement des informations...";
+
+
+    modalDescription.classList.remove(
+        "empty"
+    );
+
+
+    updateExtraInfo(item);
+
+    showImagePreview();
+
+
+    itemModal.classList.add(
+        "active"
+    );
+
+    itemModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    // -----------------------------------------------------
+    // RECUPERATION COMPLETE
+    // -----------------------------------------------------
+
+    const completeItem =
+        await getCompleteCosmetic(item);
 
 
     // -----------------------------------------------------
@@ -235,9 +549,10 @@ function openItemModal(item, price, entry) {
     // -----------------------------------------------------
 
     const description =
-        item.description ||
-        item.introduction?.text ||
+        completeItem?.description ||
+        completeItem?.introduction?.text ||
         "";
+
 
     if (description) {
 
@@ -263,88 +578,38 @@ function openItemModal(item, price, entry) {
 
 
     // -----------------------------------------------------
-    // INFOS SUPPLÉMENTAIRES
+    // INFOS
     // -----------------------------------------------------
 
-    const rarity =
-        item.rarity?.displayValue ||
-        item.displayRarity ||
-        "";
-
-    const type =
-        item.type?.displayValue ||
-        item.displayType ||
-        "";
-
-
-    const extraInfo =
-        document.getElementById("modal-extra-info");
-
-
-    if (extraInfo) {
-
-        extraInfo.innerHTML = "";
-
-
-        if (type) {
-
-            extraInfo.innerHTML += `
-                <span class="info-pill">
-                    ${type}
-                </span>
-            `;
-
-        }
-
-
-        if (rarity) {
-
-            extraInfo.innerHTML += `
-                <span class="info-pill">
-                    ${rarity}
-                </span>
-            `;
-
-        }
-
-    }
+    updateExtraInfo(
+        completeItem
+    );
 
 
     // -----------------------------------------------------
-    // VIDÉO
+    // VIDEO
     // -----------------------------------------------------
 
     const videoUrl =
-        findVideoUrl(item, entry);
+        findVideoUrl(
+            completeItem,
+            entry
+        );
 
 
     if (videoUrl) {
 
-        loadPreviewVideo(videoUrl);
+        loadVideo(
+            videoUrl
+        );
 
     }
 
     else {
 
-        showFallbackImage();
+        showImagePreview();
 
     }
-
-
-    // -----------------------------------------------------
-    // AFFICHAGE
-    // -----------------------------------------------------
-
-    itemModal.classList.add("active");
-
-    itemModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-    document.body.classList.add(
-        "modal-open"
-    );
 
 }
 
@@ -357,18 +622,24 @@ function closeItemModal() {
 
     if (!itemModal) return;
 
-    itemModal.classList.remove("active");
+
+    itemModal.classList.remove(
+        "active"
+    );
+
 
     itemModal.setAttribute(
         "aria-hidden",
         "true"
     );
 
+
     document.body.classList.remove(
         "modal-open"
     );
 
-    resetModalVideo();
+
+    resetVideo();
 
 }
 
@@ -401,7 +672,9 @@ document.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Escape") {
+        if (
+            event.key === "Escape"
+        ) {
 
             closeItemModal();
 
@@ -418,6 +691,7 @@ document.addEventListener(
 async function loadShop() {
 
     status.innerHTML = `
+
         <div class="loading-container">
 
             <div class="loading-spinner"></div>
@@ -427,16 +701,20 @@ async function loadShop() {
             </span>
 
         </div>
+
     `;
 
 
-    shopContainer.innerHTML = "";
+    shopContainer.innerHTML =
+        "";
 
 
     try {
 
         const response =
-            await fetch(API_URL);
+            await fetch(
+                API_URL
+            );
 
 
         if (!response.ok) {
@@ -453,7 +731,8 @@ async function loadShop() {
 
 
         const entries =
-            result.data?.entries || [];
+            result.data?.entries ||
+            [];
 
 
         const displayedItems =
@@ -475,7 +754,9 @@ async function loadShop() {
 
 
                 if (
-                    displayedItems.has(name)
+                    displayedItems.has(
+                        name
+                    )
                 ) {
 
                     return;
@@ -483,7 +764,9 @@ async function loadShop() {
                 }
 
 
-                displayedItems.add(name);
+                displayedItems.add(
+                    name
+                );
 
 
                 const image =
@@ -495,7 +778,8 @@ async function loadShop() {
 
 
                 const price =
-                    entry.finalPrice ?? "?";
+                    entry.finalPrice ??
+                    "?";
 
 
                 // -------------------------------------------------
@@ -503,7 +787,9 @@ async function loadShop() {
                 // -------------------------------------------------
 
                 const card =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
 
 
                 card.className =
@@ -523,21 +809,25 @@ async function loadShop() {
 
                         <img
                             src="${image}"
-                            alt="${name}"
+                            alt="${escapeHTML(name)}"
                             loading="lazy"
                         >
 
-                        <span class="card-preview-badge">
+                        <span
+                            class="card-preview-badge"
+                        >
                             APERÇU
                         </span>
 
                     </div>
 
+
                     <div class="card-info">
 
                         <h2>
-                            ${name}
+                            ${escapeHTML(name)}
                         </h2>
+
 
                         <div class="price">
 
@@ -548,7 +838,7 @@ async function loadShop() {
                             >
 
                             <span>
-                                ${price}
+                                ${escapeHTML(price)}
                             </span>
 
                         </div>
@@ -585,6 +875,7 @@ async function loadShop() {
                     "0"
                 );
 
+
                 card.setAttribute(
                     "role",
                     "button"
@@ -596,11 +887,14 @@ async function loadShop() {
                     event => {
 
                         if (
-                            event.key === "Enter" ||
-                            event.key === " "
+                            event.key ===
+                                "Enter" ||
+                            event.key ===
+                                " "
                         ) {
 
                             event.preventDefault();
+
 
                             openItemModal(
                                 item,
@@ -627,7 +921,8 @@ async function loadShop() {
         // -----------------------------------------------------
 
         if (
-            shopContainer.children.length === 0
+            shopContainer.children.length ===
+            0
         ) {
 
             status.textContent =
@@ -674,7 +969,9 @@ loadShop();
 // SERVICE WORKER
 // =========================================================
 
-if ("serviceWorker" in navigator) {
+if (
+    "serviceWorker" in navigator
+) {
 
     window.addEventListener(
         "load",
