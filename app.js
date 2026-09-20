@@ -1,8 +1,15 @@
-const API_URL = "https://fortnite-api.com/v2/shop?language=fr";
+const API_URL =
+    "https://fortnite-api.com/v2/shop?language=fr";
 
-const shopContainer = document.getElementById("shop");
-const status = document.getElementById("status");
-const dateElement = document.getElementById("date");
+
+const shopContainer =
+    document.getElementById("shop");
+
+const status =
+    document.getElementById("status");
+
+const dateElement =
+    document.getElementById("date");
 
 
 // =========================================================
@@ -11,15 +18,66 @@ const dateElement = document.getElementById("date");
 
 function displayDate() {
 
-    const today = new Date();
+    const today =
+        new Date();
 
     dateElement.textContent =
-        today.toLocaleDateString("fr-FR", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-        });
+        today.toLocaleDateString(
+            "fr-FR",
+            {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            }
+        );
+
+}
+
+
+// =========================================================
+// OUTILS
+// =========================================================
+
+function escapeHtml(value) {
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function getDisplayValue(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    if (typeof value === "string") {
+        return value;
+    }
+
+    if (typeof value === "object") {
+
+        return (
+            value.displayValue ||
+            value.name ||
+            value.text ||
+            value.value ||
+            ""
+        );
+
+    }
+
+    return String(value);
 
 }
 
@@ -49,17 +107,175 @@ const modalName =
 const modalPrice =
     document.getElementById("modal-price");
 
+const modalRarity =
+    document.getElementById("modal-rarity");
+
+const modalTags =
+    document.getElementById("modal-tags");
+
+const modalDescription =
+    document.getElementById("modal-description");
+
+const modalIntroduction =
+    document.getElementById("modal-introduction");
+
+const modalSet =
+    document.getElementById("modal-set");
+
 const previewStatus =
     document.getElementById("preview-status");
 
+const videoOverlay =
+    document.getElementById("video-overlay");
+
+const videoSound =
+    document.getElementById("video-sound");
+
+const videoFullscreen =
+    document.getElementById("video-fullscreen");
+
+const videoLoading =
+    document.getElementById("video-loading");
+
 
 // =========================================================
-// OUVRIR OBJET
+// TROUVER UNE VIDÉO
+// =========================================================
+
+function findVideoUrl(item) {
+
+    const possibleValues = [
+
+        item?.showcaseVideoUrl,
+
+        item?.showcaseVideo,
+
+        item?.videos?.showcase,
+
+        item?.video,
+
+        item?.videoUrl,
+
+        item?.videos?.video,
+
+        item?.previewVideo,
+
+        item?.previewVideoUrl
+
+    ];
+
+
+    for (const value of possibleValues) {
+
+        if (!value) {
+            continue;
+        }
+
+
+        if (typeof value === "string") {
+
+            if (
+                value.startsWith("http://") ||
+                value.startsWith("https://")
+            ) {
+
+                return value;
+
+            }
+
+        }
+
+
+        if (
+            typeof value === "object"
+        ) {
+
+            const url =
+                value.url ||
+                value.videoUrl ||
+                value.src ||
+                value.uri;
+
+
+            if (
+                typeof url === "string" &&
+                (
+                    url.startsWith("http://") ||
+                    url.startsWith("https://")
+                )
+            ) {
+
+                return url;
+
+            }
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+// =========================================================
+// RARETÉ
+// =========================================================
+
+function getRarity(item) {
+
+    return (
+        item?.rarity?.displayValue ||
+        item?.rarity?.value ||
+        item?.rarity ||
+        ""
+    );
+
+}
+
+
+// =========================================================
+// TYPE
+// =========================================================
+
+function getItemType(item) {
+
+    return (
+        item?.type?.displayValue ||
+        item?.type?.value ||
+        item?.type?.name ||
+        ""
+    );
+
+}
+
+
+// =========================================================
+// ENSEMBLE
+// =========================================================
+
+function getItemSet(item) {
+
+    return (
+        item?.set?.text ||
+        item?.set?.name ||
+        item?.set?.value ||
+        ""
+    );
+
+}
+
+
+// =========================================================
+// OUVRIR LE MODAL
 // =========================================================
 
 function openItemModal(item, price) {
 
-    if (!itemModal) return;
+    if (!itemModal) {
+        return;
+    }
 
 
     const image =
@@ -67,82 +283,306 @@ function openItemModal(item, price) {
         item.images?.icon;
 
 
-    if (!image) return;
+    if (!image) {
+        return;
+    }
 
 
-    // Image
-    modalImage.src = image;
+    // =====================================================
+    // IMAGE
+    // =====================================================
+
+    modalImage.src =
+        image;
 
     modalImage.alt =
-        item.name;
+        item.name || "Objet Fortnite";
 
 
-    // Nom
+    modalImage.classList.remove(
+        "hidden"
+    );
+
+
+    // =====================================================
+    // NOM
+    // =====================================================
+
     modalName.textContent =
-        item.name;
+        item.name || "Objet Fortnite";
 
 
-    // Prix
+    // =====================================================
+    // PRIX
+    // =====================================================
+
     modalPrice.innerHTML = `
+
         <img
             class="vbucks-icon"
             src="https://firedrifytb.github.io/fortnite-shop/IMG_2258.png"
             alt="V-Bucks"
         >
 
-        <span>${price}</span>
+        <strong>
+            ${escapeHtml(price)}
+        </strong>
 
-        <span>V-Bucks</span>
+        <span>
+            V-Bucks
+        </span>
+
     `;
 
 
     // =====================================================
-    // RECHERCHE DE VIDÉO
+    // RARETÉ
     // =====================================================
 
-    let videoUrl = null;
+    const rarity =
+        getRarity(item);
 
 
-    /*
-        Fortnite-API peut fournir différentes
-        propriétés selon le cosmétique.
+    if (rarity) {
 
-        On teste plusieurs formats possibles
-        sans empêcher le fonctionnement
-        du shop si aucune vidéo n'existe.
-    */
+        modalRarity.textContent =
+            rarity;
 
-    if (item.showcaseVideoUrl) {
+        modalRarity.classList.add(
+            "visible"
+        );
 
-        videoUrl =
-            item.showcaseVideoUrl;
-
-    }
-
-    else if (
-        item.showcaseVideo?.url
-    ) {
-
-        videoUrl =
-            item.showcaseVideo.url;
+        modalRarity.dataset.rarity =
+            rarity
+                .toLowerCase()
+                .replace(/\s+/g, "-");
 
     }
 
-    else if (
-        item.videos?.showcase
-    ) {
+    else {
 
-        videoUrl =
-            item.videos.showcase;
+        modalRarity.textContent =
+            "";
+
+        modalRarity.classList.remove(
+            "visible"
+        );
 
     }
 
 
     // =====================================================
-    // VIDÉO DISPONIBLE
+    // TAGS
+    // =====================================================
+
+    const type =
+        getItemType(item);
+
+    const set =
+        getItemSet(item);
+
+
+    const tags = [];
+
+
+    if (type) {
+        tags.push(type);
+    }
+
+
+    if (
+        item.introduction?.text
+    ) {
+
+        tags.push(
+            item.introduction.text
+        );
+
+    }
+
+
+    modalTags.innerHTML =
+        tags
+            .filter(Boolean)
+            .map(
+                tag => `
+                    <span class="info-tag">
+                        ${escapeHtml(tag)}
+                    </span>
+                `
+            )
+            .join("");
+
+
+    // =====================================================
+    // DESCRIPTION
+    // =====================================================
+
+    const description =
+        item.description ||
+        item.shortDescription ||
+        "";
+
+
+    if (description) {
+
+        modalDescription.innerHTML = `
+
+            <span class="info-title">
+                DESCRIPTION
+            </span>
+
+            <p>
+                ${escapeHtml(description)}
+            </p>
+
+        `;
+
+        modalDescription.classList.add(
+            "visible"
+        );
+
+    }
+
+    else {
+
+        modalDescription.innerHTML =
+            "";
+
+        modalDescription.classList.remove(
+            "visible"
+        );
+
+    }
+
+
+    // =====================================================
+    // INTRODUCTION
+    // =====================================================
+
+    const introduction =
+        item.introduction?.text ||
+        "";
+
+
+    if (introduction) {
+
+        modalIntroduction.innerHTML = `
+
+            <span class="info-title">
+                INTRODUCTION
+            </span>
+
+            <p>
+                ${escapeHtml(introduction)}
+            </p>
+
+        `;
+
+        modalIntroduction.classList.add(
+            "visible"
+        );
+
+    }
+
+    else {
+
+        modalIntroduction.innerHTML =
+            "";
+
+        modalIntroduction.classList.remove(
+            "visible"
+        );
+
+    }
+
+
+    // =====================================================
+    // ENSEMBLE
+    // =====================================================
+
+    if (set) {
+
+        modalSet.innerHTML = `
+
+            <span class="info-title">
+                ENSEMBLE
+            </span>
+
+            <strong>
+                ${escapeHtml(set)}
+            </strong>
+
+        `;
+
+        modalSet.classList.add(
+            "visible"
+        );
+
+    }
+
+    else {
+
+        modalSet.innerHTML =
+            "";
+
+        modalSet.classList.remove(
+            "visible"
+        );
+
+    }
+
+
+    // =====================================================
+    // VIDÉO
+    // =====================================================
+
+    const videoUrl =
+        findVideoUrl(item);
+
+
+    // Réinitialisation
+
+    modalVideo.pause();
+
+    modalVideo.removeAttribute(
+        "src"
+    );
+
+    modalVideo.load();
+
+    modalVideo.classList.remove(
+        "visible"
+    );
+
+    videoOverlay.classList.remove(
+        "visible"
+    );
+
+    videoLoading.classList.remove(
+        "visible"
+    );
+
+
+    // Son coupé par défaut
+
+    modalVideo.muted =
+        true;
+
+    videoSound.textContent =
+        "🔇";
+
+
+    // =====================================================
+    // SI VIDÉO
     // =====================================================
 
     if (videoUrl) {
+
+        videoLoading.classList.add(
+            "visible"
+        );
+
 
         modalVideo.src =
             videoUrl;
@@ -159,30 +599,26 @@ function openItemModal(item, price) {
 
 
         previewStatus.textContent =
-            "APERÇU ANIMÉ";
+            "APERÇU VIDÉO";
+
+
+        videoOverlay.classList.add(
+            "visible"
+        );
 
 
         modalVideo
             .play()
             .catch(() => {});
 
-    }
 
+    }
 
     // =====================================================
     // PAS DE VIDÉO
     // =====================================================
 
     else {
-
-        modalVideo.pause();
-
-        modalVideo.removeAttribute(
-            "src"
-        );
-
-        modalVideo.load();
-
 
         modalVideo.classList.remove(
             "visible"
@@ -223,12 +659,146 @@ function openItemModal(item, price) {
 
 
 // =========================================================
+// VIDÉO CHARGÉE
+// =========================================================
+
+modalVideo.addEventListener(
+    "loadeddata",
+    () => {
+
+        videoLoading.classList.remove(
+            "visible"
+        );
+
+    }
+);
+
+
+// =========================================================
+// VIDÉO ERREUR
+// =========================================================
+
+modalVideo.addEventListener(
+    "error",
+    () => {
+
+        videoLoading.classList.remove(
+            "visible"
+        );
+
+
+        videoOverlay.classList.remove(
+            "visible"
+        );
+
+
+        modalVideo.classList.remove(
+            "visible"
+        );
+
+
+        modalImage.classList.remove(
+            "hidden"
+        );
+
+
+        previewStatus.textContent =
+            "APERÇU DE L'OBJET";
+
+    }
+);
+
+
+// =========================================================
+// SON
+// =========================================================
+
+if (videoSound) {
+
+    videoSound.addEventListener(
+        "click",
+        () => {
+
+            modalVideo.muted =
+                !modalVideo.muted;
+
+
+            videoSound.textContent =
+                modalVideo.muted
+                    ? "🔇"
+                    : "🔊";
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// PLEIN ÉCRAN
+// =========================================================
+
+if (videoFullscreen) {
+
+    videoFullscreen.addEventListener(
+        "click",
+        async () => {
+
+            try {
+
+                if (
+                    document.fullscreenElement
+                ) {
+
+                    await document.exitFullscreen();
+
+                    return;
+
+                }
+
+
+                if (
+                    modalVideo.requestFullscreen
+                ) {
+
+                    await modalVideo.requestFullscreen();
+
+                }
+
+                else if (
+                    modalVideo.webkitEnterFullscreen
+                ) {
+
+                    modalVideo.webkitEnterFullscreen();
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Fullscreen :",
+                    error
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+// =========================================================
 // FERMER
 // =========================================================
 
 function closeItemModal() {
 
-    if (!itemModal) return;
+    if (!itemModal) {
+        return;
+    }
 
 
     itemModal.classList.remove(
@@ -309,6 +879,7 @@ document.addEventListener(
 async function loadShop() {
 
     status.innerHTML = `
+
         <div class="loading-container">
 
             <div class="loading-spinner"></div>
@@ -318,10 +889,12 @@ async function loadShop() {
             </span>
 
         </div>
+
     `;
 
 
-    shopContainer.innerHTML = "";
+    shopContainer.innerHTML =
+        "";
 
 
     try {
@@ -358,7 +931,9 @@ async function loadShop() {
                     entry.brItems?.[0];
 
 
-                if (!item) return;
+                if (!item) {
+                    return;
+                }
 
 
                 const name =
@@ -366,9 +941,7 @@ async function loadShop() {
 
 
                 if (
-                    displayedItems.has(
-                        name
-                    )
+                    displayedItems.has(name)
                 ) {
 
                     return;
@@ -386,7 +959,9 @@ async function loadShop() {
                     item.images?.icon;
 
 
-                if (!image) return;
+                if (!image) {
+                    return;
+                }
 
 
                 const price =
@@ -417,15 +992,15 @@ async function loadShop() {
                 card.innerHTML = `
 
                     <img
-                        src="${image}"
-                        alt="${name}"
+                        src="${escapeHtml(image)}"
+                        alt="${escapeHtml(name)}"
                         loading="lazy"
                     >
 
                     <div class="card-info">
 
                         <h2>
-                            ${name}
+                            ${escapeHtml(name)}
                         </h2>
 
                         <div class="price">
@@ -437,7 +1012,7 @@ async function loadShop() {
                             >
 
                             <span>
-                                ${price}
+                                ${escapeHtml(price)}
                             </span>
 
                         </div>
@@ -485,11 +1060,8 @@ async function loadShop() {
                     (event) => {
 
                         if (
-                            event.key ===
-                                "Enter" ||
-
-                            event.key ===
-                                " "
+                            event.key === "Enter" ||
+                            event.key === " "
                         ) {
 
                             event.preventDefault();
@@ -532,7 +1104,6 @@ async function loadShop() {
                 "";
 
         }
-
 
     }
 
