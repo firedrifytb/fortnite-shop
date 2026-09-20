@@ -68,14 +68,6 @@ let currentItem = null;
 
 let currentSlide = 0;
 
-/*
- * IMPORTANT :
- * Le carousel possède TOUJOURS 2 slides.
- *
- * Slide 0 = image
- * Slide 1 = vidéo / fallback
- */
-
 let hasVideo = false;
 
 let currentVideoUrl = null;
@@ -90,14 +82,17 @@ let swipeDirectionLocked = false;
 let activePointerId = null;
 
 // =========================================================
-// ORDRE DES SLIDES
+// ORGANISATION DES SLIDES
 // =========================================================
 
 /*
- * Ton HTML avait initialement la vidéo avant l'image.
+ * IMPORTANT :
  *
- * On remet automatiquement l'image en premier
- * et la vidéo en deuxième sans modifier ton HTML.
+ * Slide 0 = PHOTO DE L'OBJET
+ * Slide 1 = VIDÉO / FALLBACK
+ *
+ * On place réellement les éléments dans les
+ * bons conteneurs afin de garantir l'ordre.
  */
 
 function setupSlideOrder() {
@@ -107,10 +102,8 @@ function setupSlideOrder() {
     }
 
     const slides =
-        Array.from(
-            previewTrack.querySelectorAll(
-                ".preview-slide"
-            )
+        previewTrack.querySelectorAll(
+            ".preview-slide"
         );
 
     if (slides.length < 2) {
@@ -118,28 +111,41 @@ function setupSlideOrder() {
     }
 
     const imageSlide =
-        slides.find(
-            slide =>
-                slide.contains(modalImage)
-        );
+        slides[0];
 
     const videoSlide =
-        slides.find(
-            slide =>
-                slide.contains(modalVideo)
+        slides[1];
+
+    // -----------------------------------------------------
+    // IMAGE = PREMIÈRE SLIDE
+    // -----------------------------------------------------
+
+    if (modalImage) {
+
+        imageSlide.appendChild(
+            modalImage
         );
+    }
 
-    if (
-        imageSlide &&
-        videoSlide
-    ) {
+    // -----------------------------------------------------
+    // VIDÉO = DEUXIÈME SLIDE
+    // -----------------------------------------------------
 
-        previewTrack.appendChild(
-            imageSlide
+    if (modalVideo) {
+
+        videoSlide.appendChild(
+            modalVideo
         );
+    }
 
-        previewTrack.appendChild(
-            videoSlide
+    // -----------------------------------------------------
+    // FALLBACK = DEUXIÈME SLIDE
+    // -----------------------------------------------------
+
+    if (videoFallback) {
+
+        videoSlide.appendChild(
+            videoFallback
         );
     }
 }
@@ -356,11 +362,10 @@ function extractShopItem(entry) {
 
         itemCategory =
             "item";
+    }
 
-    } else {
-
-        item =
-            null;
+    if (!item) {
+        return null;
     }
 
     // =====================================================
@@ -519,7 +524,6 @@ function normalizeItemType(rawType) {
         value.includes("jam track") ||
         value.includes("track")
     ) {
-
         return "Musique";
     }
 
@@ -527,7 +531,6 @@ function normalizeItemType(rawType) {
         value === "outfit" ||
         value.includes("tenue")
     ) {
-
         return "Tenue";
     }
 
@@ -536,7 +539,6 @@ function normalizeItemType(rawType) {
         value.includes("pioche") ||
         value.includes("harvesting tool")
     ) {
-
         return "Pioche";
     }
 
@@ -544,7 +546,6 @@ function normalizeItemType(rawType) {
         value === "glider" ||
         value.includes("planeur")
     ) {
-
         return "Planeur";
     }
 
@@ -553,7 +554,6 @@ function normalizeItemType(rawType) {
         value.includes("emote") ||
         value.includes("danse")
     ) {
-
         return "Emote";
     }
 
@@ -562,7 +562,6 @@ function normalizeItemType(rawType) {
         value.includes("wrap") ||
         value.includes("revêtement")
     ) {
-
         return "Revêtement";
     }
 
@@ -571,7 +570,6 @@ function normalizeItemType(rawType) {
         value === "back bling" ||
         value.includes("dos")
     ) {
-
         return "Dos";
     }
 
@@ -579,7 +577,6 @@ function normalizeItemType(rawType) {
         value.includes("spray") ||
         value.includes("graffiti")
     ) {
-
         return "Aérosol";
     }
 
@@ -587,7 +584,6 @@ function normalizeItemType(rawType) {
         value.includes("loading screen") ||
         value.includes("écran de chargement")
     ) {
-
         return "Écran de chargement";
     }
 
@@ -595,7 +591,6 @@ function normalizeItemType(rawType) {
         value.includes("banner") ||
         value.includes("bannière")
     ) {
-
         return "Bannière";
     }
 
@@ -757,10 +752,6 @@ async function openModal(item) {
     currentItem =
         item;
 
-    /*
-     * Toujours commencer sur l'image.
-     */
-
     currentSlide =
         0;
 
@@ -792,6 +783,10 @@ async function openModal(item) {
         "false"
     );
 
+    // =====================================================
+    // INFORMATIONS
+    // =====================================================
+
     modalName.textContent =
         item.name;
 
@@ -820,17 +815,24 @@ async function openModal(item) {
     modalExtraInfo.textContent =
         extraParts.join(" • ");
 
+    // =====================================================
+    // PHOTO DE L'OBJET
+    // =====================================================
+
     modalImage.src =
         item.image || "";
 
     modalImage.alt =
         item.name;
 
-    resetVideo();
-
     /*
-     * Les deux points existent toujours.
+     * On s'assure que la photo est bien dans
+     * la PREMIÈRE slide à chaque ouverture.
      */
+
+    setupSlideOrder();
+
+    resetVideo();
 
     createDots();
 
@@ -839,6 +841,10 @@ async function openModal(item) {
         false
     );
 
+    // =====================================================
+    // PAS D'ID
+    // =====================================================
+
     if (!item.id) {
 
         showVideoFallback();
@@ -846,10 +852,9 @@ async function openModal(item) {
         return;
     }
 
-    /*
-     * Les tracks et instruments ne passent
-     * pas par l'endpoint BR.
-     */
+    // =====================================================
+    // TRACK / INSTRUMENT
+    // =====================================================
 
     if (
         item.category === "track" ||
@@ -860,6 +865,10 @@ async function openModal(item) {
 
         return;
     }
+
+    // =====================================================
+    // RECHERCHE VIDÉO
+    // =====================================================
 
     try {
 
@@ -892,16 +901,10 @@ async function openModal(item) {
                 videoUrl
             );
 
-            previewStatus.textContent =
-                "IMAGE";
-
         } else {
 
             hasVideo =
                 false;
-
-            previewStatus.textContent =
-                "IMAGE";
 
             resetVideo();
 
@@ -909,7 +912,8 @@ async function openModal(item) {
         }
 
         /*
-         * On garde toujours deux slides.
+         * Même sans vidéo :
+         * on garde les 2 slides.
          */
 
         createDots();
@@ -932,9 +936,6 @@ async function openModal(item) {
         resetVideo();
 
         showVideoFallback();
-
-        previewStatus.textContent =
-            "IMAGE";
 
         createDots();
 
@@ -1197,7 +1198,7 @@ function showVideoFallback() {
 }
 
 // =========================================================
-// POINTS
+// POINTS DU CAROUSEL
 // =========================================================
 
 function createDots() {
@@ -1206,10 +1207,10 @@ function createDots() {
         "";
 
     /*
-     * TOUJOURS 2 points.
+     * TOUJOURS 2 POINTS
      *
-     * 0 = image
-     * 1 = vidéo / fallback
+     * Point 1 = image
+     * Point 2 = vidéo / fallback
      */
 
     for (
@@ -1264,10 +1265,6 @@ function createDots() {
 
 function goToSlide(index) {
 
-    /*
-     * Le carousel possède toujours deux positions.
-     */
-
     currentSlide =
         Math.max(
             0,
@@ -1293,10 +1290,8 @@ function updateSlide(
 ) {
 
     /*
-     * Toujours deux slides :
-     *
-     * 0 = IMAGE
-     * 1 = VIDEO
+     * 0 = PHOTO
+     * 1 = VIDÉO / FALLBACK
      */
 
     index =
@@ -1334,9 +1329,9 @@ function updateSlide(
         }
     );
 
-    /*
-     * SLIDE 0 = IMAGE
-     */
+    // =====================================================
+    // SLIDE 1 : PHOTO
+    // =====================================================
 
     if (index === 0) {
 
@@ -1358,20 +1353,20 @@ function updateSlide(
         return;
     }
 
-    /*
-     * SLIDE 1 = VIDEO
-     */
+    // =====================================================
+    // SLIDE 2 : VIDÉO
+    // =====================================================
 
     modalImage.style.display =
         "none";
-
-    previewStatus.textContent =
-        "APERÇU ANIMÉ";
 
     if (
         hasVideo &&
         currentVideoUrl
     ) {
+
+        previewStatus.textContent =
+            "APERÇU ANIMÉ";
 
         modalVideo.style.display =
             "block";
@@ -1386,8 +1381,11 @@ function updateSlide(
 
         /*
          * Pas de vidéo :
-         * la deuxième slide existe quand même.
+         * le swipe existe quand même.
          */
+
+        previewStatus.textContent =
+            "VIDÉO";
 
         modalVideo.style.display =
             "none";
@@ -1459,10 +1457,8 @@ function handlePointerDown(event) {
     }
 
     /*
-     * On accepte doigt et stylet.
-     *
-     * La souris reste utilisable pour les points
-     * et les flèches clavier.
+     * On utilise le swipe tactile uniquement
+     * pour doigt / stylet.
      */
 
     if (
@@ -1527,9 +1523,9 @@ function handlePointerMove(event) {
         event.clientY -
         pointerStartY;
 
-    /*
-     * Détection direction.
-     */
+    // -----------------------------------------------------
+    // DÉTERMINER LA DIRECTION
+    // -----------------------------------------------------
 
     if (
         !swipeDirectionLocked
@@ -1539,14 +1535,8 @@ function handlePointerMove(event) {
             Math.abs(deltaX) < 8 &&
             Math.abs(deltaY) < 8
         ) {
-
             return;
         }
-
-        /*
-         * Si le mouvement est surtout vertical,
-         * on laisse le navigateur gérer le scroll.
-         */
 
         if (
             Math.abs(deltaY) >
@@ -1596,9 +1586,9 @@ function handlePointerMove(event) {
     let position =
         basePosition - movementPercent;
 
-    /*
-     * Résistance à gauche.
-     */
+    // -----------------------------------------------------
+    // RÉSISTANCE GAUCHE
+    // -----------------------------------------------------
 
     if (
         position < 0
@@ -1608,9 +1598,9 @@ function handlePointerMove(event) {
             position * 0.18;
     }
 
-    /*
-     * Résistance à droite.
-     */
+    // -----------------------------------------------------
+    // RÉSISTANCE DROITE
+    // -----------------------------------------------------
 
     if (
         position > 50
@@ -1657,11 +1647,9 @@ function handlePointerUp(event) {
     activePointerId =
         null;
 
-    /*
-     * Swipe gauche :
-     *
-     * IMAGE -> VIDEO
-     */
+    // -----------------------------------------------------
+    // IMAGE -> VIDÉO
+    // -----------------------------------------------------
 
     if (
         deltaX < -threshold &&
@@ -1673,11 +1661,9 @@ function handlePointerUp(event) {
         return;
     }
 
-    /*
-     * Swipe droite :
-     *
-     * VIDEO -> IMAGE
-     */
+    // -----------------------------------------------------
+    // VIDÉO -> IMAGE
+    // -----------------------------------------------------
 
     if (
         deltaX > threshold &&
@@ -1689,10 +1675,9 @@ function handlePointerUp(event) {
         return;
     }
 
-    /*
-     * Mouvement insuffisant :
-     * retour à la position actuelle.
-     */
+    // -----------------------------------------------------
+    // PAS ASSEZ DE MOUVEMENT
+    // -----------------------------------------------------
 
     updateSlide(
         currentSlide,
@@ -1791,13 +1776,9 @@ document.addEventListener(
     handleKeyDown
 );
 
-/*
- * Système de swipe Pointer Events.
- *
- * IMPORTANT :
- * On ne teste PLUS hasVideo ici.
- * Le swipe fonctionne toujours.
- */
+// =========================================================
+// SWIPE POINTER EVENTS
+// =========================================================
 
 modalMedia.addEventListener(
     "pointerdown",
@@ -1852,7 +1833,7 @@ modalVideo.addEventListener(
             showVideoFallback();
 
             previewStatus.textContent =
-                "APERÇU ANIMÉ";
+                "VIDÉO";
         }
     }
 );
