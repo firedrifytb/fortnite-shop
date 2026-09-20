@@ -101,7 +101,7 @@ async function loadShop() {
 
                         <img
                             class="vbucks-icon"
-                            src="https://fortnite.gg/assets?id=326"
+                            src="./IMG_2558.png"
                             alt="V-Bucks"
                         >
 
