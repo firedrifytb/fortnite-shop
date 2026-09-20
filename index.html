@@ -5,13 +5,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- SEO -->
+    <title>Fortnite Shop – Boutique Fortnite quotidienne</title>
+
+    <meta
+        name="description"
+        content="Découvrez la boutique Fortnite du jour : skins, accessoires, pioches, emotes et autres objets disponibles dans Fortnite."
+    >
+
+    <meta name="robots" content="index, follow">
+
+    <link rel="canonical" href="https://fortnite-shop.fr/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fortnite-shop.fr/">
+    <meta property="og:title" content="Fortnite Shop – Boutique Fortnite quotidienne">
+    <meta
+        property="og:description"
+        content="Découvrez les objets disponibles aujourd'hui dans la boutique Fortnite."
+    >
+    <meta
+        property="og:image"
+        content="https://fortnite-shop.fr/IMG_2234.jpeg"
+    >
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- Partage -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta
+        name="twitter:title"
+        content="Fortnite Shop – Boutique Fortnite quotidienne"
+    >
+    <meta
+        name="twitter:description"
+        content="Découvrez les objets disponibles aujourd'hui dans la boutique Fortnite."
+    >
+    <meta
+        name="twitter:image"
+        content="https://fortnite-shop.fr/IMG_2234.jpeg"
+    >
+
+    <!-- PWA -->
     <meta name="theme-color" content="#070b18">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+    >
 
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="IMG_2234.jpeg">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Données structurées -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Fortnite Shop",
+        "url": "https://fortnite-shop.fr/",
+        "description": "Boutique Fortnite quotidienne permettant de découvrir les objets disponibles dans Fortnite.",
+        "inLanguage": "fr-FR"
+    }
+    </script>
 
     <title>Fortnite Shop</title>
 </head>
@@ -107,10 +169,6 @@
 
     </main>
 
-    <!-- =====================================================
-         MODALE
-         ===================================================== -->
-
     <div
         id="item-modal"
         class="item-modal"
@@ -135,44 +193,17 @@
                 ×
             </button>
 
-            <!-- =================================================
-                 MEDIA
-                 ================================================= -->
-
             <div
-                id="modal-media"
                 class="modal-media"
+                id="modal-media"
             >
 
                 <div
-                    id="preview-track"
                     class="preview-track"
+                    id="preview-track"
                 >
 
-                    <!-- =============================================
-                         SLIDE 1 : IMAGE
-                         ============================================= -->
-
-                    <div
-                        class="preview-slide preview-image-slide"
-                    >
-
-                        <img
-                            id="modal-image"
-                            class="modal-image"
-                            src=""
-                            alt=""
-                        >
-
-                    </div>
-
-                    <!-- =============================================
-                         SLIDE 2 : VIDÉO
-                         ============================================= -->
-
-                    <div
-                        class="preview-slide preview-video-slide"
-                    >
+                    <div class="preview-slide preview-video-slide">
 
                         <video
                             id="modal-video"
@@ -188,7 +219,6 @@
                             id="video-fallback"
                             class="video-fallback"
                         >
-
                             <div class="fallback-icon">
                                 ◌
                             </div>
@@ -196,8 +226,18 @@
                             <span>
                                 Aperçu vidéo indisponible
                             </span>
-
                         </div>
+
+                    </div>
+
+                    <div class="preview-slide preview-image-slide">
+
+                        <img
+                            id="modal-image"
+                            class="modal-image"
+                            src=""
+                            alt=""
+                        >
 
                     </div>
 
@@ -209,7 +249,7 @@
                     id="preview-status"
                     class="preview-status"
                 >
-                    IMAGE
+                    APERÇU ANIMÉ
                 </div>
 
                 <div
@@ -218,10 +258,6 @@
                 ></div>
 
             </div>
-
-            <!-- =================================================
-                 INFORMATIONS
-                 ================================================= -->
 
             <div class="modal-info">
 
