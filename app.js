@@ -8,6 +8,7 @@ const SHOP_API =
 const COSMETIC_API =
     "https://fortnite-api.com/v2/cosmetics/br/search/ids";
 
+
 // =========================================================
 // DOM
 // =========================================================
@@ -60,6 +61,7 @@ const carouselDots =
 const videoFallback =
     document.getElementById("video-fallback");
 
+
 // =========================================================
 // ÉTAT
 // =========================================================
@@ -72,83 +74,23 @@ let hasVideo = false;
 
 let currentVideoUrl = null;
 
-// Swipe / pointer
+
+// =========================================================
+// SWIPE
+// =========================================================
+
 let pointerStartX = 0;
 let pointerStartY = 0;
+
 let pointerCurrentX = 0;
+let pointerCurrentY = 0;
 
 let isDragging = false;
+
 let swipeDirectionLocked = false;
+
 let activePointerId = null;
 
-// =========================================================
-// ORGANISATION DES SLIDES
-// =========================================================
-
-/*
- * IMPORTANT :
- *
- * Slide 0 = PHOTO DE L'OBJET
- * Slide 1 = VIDÉO / FALLBACK
- *
- * On place réellement les éléments dans les
- * bons conteneurs afin de garantir l'ordre.
- */
-
-function setupSlideOrder() {
-
-    if (!previewTrack) {
-        return;
-    }
-
-    const slides =
-        previewTrack.querySelectorAll(
-            ".preview-slide"
-        );
-
-    if (slides.length < 2) {
-        return;
-    }
-
-    const imageSlide =
-        slides[0];
-
-    const videoSlide =
-        slides[1];
-
-    // -----------------------------------------------------
-    // IMAGE = PREMIÈRE SLIDE
-    // -----------------------------------------------------
-
-    if (modalImage) {
-
-        imageSlide.appendChild(
-            modalImage
-        );
-    }
-
-    // -----------------------------------------------------
-    // VIDÉO = DEUXIÈME SLIDE
-    // -----------------------------------------------------
-
-    if (modalVideo) {
-
-        videoSlide.appendChild(
-            modalVideo
-        );
-    }
-
-    // -----------------------------------------------------
-    // FALLBACK = DEUXIÈME SLIDE
-    // -----------------------------------------------------
-
-    if (videoFallback) {
-
-        videoSlide.appendChild(
-            videoFallback
-        );
-    }
-}
 
 // =========================================================
 // DATE
@@ -168,6 +110,7 @@ function updateDate() {
             }
         );
 }
+
 
 // =========================================================
 // CHARGER LA BOUTIQUE
@@ -254,6 +197,7 @@ async function loadShop() {
     }
 }
 
+
 // =========================================================
 // RENDU SHOP
 // =========================================================
@@ -283,6 +227,7 @@ function renderShop(entries) {
     );
 }
 
+
 // =========================================================
 // EXTRACTION OBJET
 // =========================================================
@@ -296,6 +241,7 @@ function extractShopItem(entry) {
     let item = null;
 
     let itemCategory = "";
+
 
     if (
         Array.isArray(entry.brItems) &&
@@ -364,9 +310,11 @@ function extractShopItem(entry) {
             "item";
     }
 
+
     if (!item) {
         return null;
     }
+
 
     // =====================================================
     // ID
@@ -377,6 +325,7 @@ function extractShopItem(entry) {
         entry?.id ||
         entry?.offerId ||
         null;
+
 
     // =====================================================
     // NOM
@@ -389,6 +338,7 @@ function extractShopItem(entry) {
         entry?.name ||
         "Objet Fortnite";
 
+
     // =====================================================
     // DESCRIPTION
     // =====================================================
@@ -397,6 +347,7 @@ function extractShopItem(entry) {
         item?.description ||
         entry?.description ||
         "";
+
 
     // =====================================================
     // IMAGE
@@ -416,6 +367,7 @@ function extractShopItem(entry) {
         entry?.tracks?.[0]?.images?.icon ||
         null;
 
+
     // =====================================================
     // PRIX
     // =====================================================
@@ -427,6 +379,7 @@ function extractShopItem(entry) {
         item?.price ??
         0;
 
+
     // =====================================================
     // RARETÉ
     // =====================================================
@@ -437,6 +390,7 @@ function extractShopItem(entry) {
         entry?.rarity?.displayValue ||
         entry?.rarity?.value ||
         "";
+
 
     // =====================================================
     // TYPE
@@ -479,6 +433,7 @@ function extractShopItem(entry) {
             );
     }
 
+
     // =====================================================
     // SÉRIE
     // =====================================================
@@ -487,6 +442,7 @@ function extractShopItem(entry) {
         item?.series?.name ||
         item?.series?.value ||
         "";
+
 
     return {
         id,
@@ -503,6 +459,7 @@ function extractShopItem(entry) {
     };
 }
 
+
 // =========================================================
 // NORMALISER LE TYPE
 // =========================================================
@@ -518,84 +475,106 @@ function normalizeItemType(rawType) {
             .trim()
             .toLowerCase();
 
+
     if (
         value.includes("music") ||
         value.includes("musique") ||
         value.includes("jam track") ||
         value.includes("track")
     ) {
+
         return "Musique";
     }
+
 
     if (
         value === "outfit" ||
         value.includes("tenue")
     ) {
+
         return "Tenue";
     }
+
 
     if (
         value === "pickaxe" ||
         value.includes("pioche") ||
         value.includes("harvesting tool")
     ) {
+
         return "Pioche";
     }
+
 
     if (
         value === "glider" ||
         value.includes("planeur")
     ) {
+
         return "Planeur";
     }
+
 
     if (
         value === "emote" ||
         value.includes("emote") ||
         value.includes("danse")
     ) {
+
         return "Emote";
     }
+
 
     if (
         value === "wrap" ||
         value.includes("wrap") ||
         value.includes("revêtement")
     ) {
+
         return "Revêtement";
     }
+
 
     if (
         value === "backpack" ||
         value === "back bling" ||
         value.includes("dos")
     ) {
+
         return "Dos";
     }
+
 
     if (
         value.includes("spray") ||
         value.includes("graffiti")
     ) {
+
         return "Aérosol";
     }
+
 
     if (
         value.includes("loading screen") ||
         value.includes("écran de chargement")
     ) {
+
         return "Écran de chargement";
     }
+
 
     if (
         value.includes("banner") ||
         value.includes("bannière")
     ) {
+
         return "Bannière";
     }
 
+
     return rawType;
 }
+
 
 // =========================================================
 // CARTE
@@ -612,11 +591,13 @@ function createCard(item, index) {
     card.style.animationDelay =
         `${Math.min(index * 35, 500)}ms`;
 
+
     const imageContainer =
         document.createElement("div");
 
     imageContainer.className =
         "card-image";
+
 
     if (item.image) {
 
@@ -635,6 +616,7 @@ function createCard(item, index) {
         image.decoding =
             "async";
 
+
         image.onerror = () => {
 
             console.warn(
@@ -645,10 +627,12 @@ function createCard(item, index) {
             image.remove();
         };
 
+
         imageContainer.appendChild(
             image
         );
     }
+
 
     const overlay =
         document.createElement("div");
@@ -656,11 +640,13 @@ function createCard(item, index) {
     overlay.className =
         "card-overlay";
 
+
     const info =
         document.createElement("div");
 
     info.className =
         "card-info";
+
 
     const name =
         document.createElement("h3");
@@ -668,11 +654,13 @@ function createCard(item, index) {
     name.textContent =
         item.name;
 
+
     const bottom =
         document.createElement("div");
 
     bottom.className =
         "card-bottom";
+
 
     const price =
         document.createElement("div");
@@ -684,6 +672,7 @@ function createCard(item, index) {
         ${formatPrice(item.price)}
         <span class="vbucks-symbol">V</span>
     `;
+
 
     bottom.appendChild(
         price
@@ -709,13 +698,16 @@ function createCard(item, index) {
         imageContainer
     );
 
+
     card.addEventListener(
         "click",
         () => openModal(item)
     );
 
+
     return card;
 }
+
 
 // =========================================================
 // PRIX
@@ -728,20 +720,28 @@ function formatPrice(price) {
         price === undefined ||
         price === ""
     ) {
+
         return "—";
     }
+
 
     const number =
         Number(price);
 
-    if (Number.isNaN(number)) {
+
+    if (
+        Number.isNaN(number)
+    ) {
+
         return String(price);
     }
+
 
     return number.toLocaleString(
         "fr-FR"
     );
 }
+
 
 // =========================================================
 // OUVRIR MODALE
@@ -770,6 +770,7 @@ async function openModal(item) {
     activePointerId =
         null;
 
+
     document.body.classList.add(
         "modal-open"
     );
@@ -783,6 +784,7 @@ async function openModal(item) {
         "false"
     );
 
+
     // =====================================================
     // INFORMATIONS
     // =====================================================
@@ -790,15 +792,19 @@ async function openModal(item) {
     modalName.textContent =
         item.name;
 
+
     modalPrice.innerHTML = `
         ${formatPrice(item.price)}
         <span class="vbucks-symbol">V</span>
     `;
 
+
     modalDescription.textContent =
         item.description || "";
 
+
     const extraParts = [];
+
 
     if (item.type) {
         extraParts.push(item.type);
@@ -812,12 +818,17 @@ async function openModal(item) {
         extraParts.push(item.series);
     }
 
+
     modalExtraInfo.textContent =
         extraParts.join(" • ");
 
+
     // =====================================================
-    // PHOTO DE L'OBJET
+    // IMAGE
     // =====================================================
+
+    modalImage.style.display =
+        "block";
 
     modalImage.src =
         item.image || "";
@@ -825,21 +836,30 @@ async function openModal(item) {
     modalImage.alt =
         item.name;
 
-    /*
-     * On s'assure que la photo est bien dans
-     * la PREMIÈRE slide à chaque ouverture.
-     */
 
-    setupSlideOrder();
+    // =====================================================
+    // RESET VIDÉO
+    // =====================================================
 
     resetVideo();
 
+
+    // =====================================================
+    // POINTS
+    // =====================================================
+
     createDots();
+
+
+    // =====================================================
+    // TOUJOURS COMMENCER SUR L'IMAGE
+    // =====================================================
 
     updateSlide(
         0,
         false
     );
+
 
     // =====================================================
     // PAS D'ID
@@ -851,6 +871,7 @@ async function openModal(item) {
 
         return;
     }
+
 
     // =====================================================
     // TRACK / INSTRUMENT
@@ -866,6 +887,7 @@ async function openModal(item) {
         return;
     }
 
+
     // =====================================================
     // RECHERCHE VIDÉO
     // =====================================================
@@ -877,17 +899,21 @@ async function openModal(item) {
                 item.id
             );
 
+
         if (
             currentItem !== item ||
             !modal.classList.contains("open")
         ) {
+
             return;
         }
+
 
         const videoUrl =
             findDirectVideo(
                 cosmetic
             );
+
 
         if (videoUrl) {
 
@@ -911,17 +937,15 @@ async function openModal(item) {
             showVideoFallback();
         }
 
-        /*
-         * Même sans vidéo :
-         * on garde les 2 slides.
-         */
 
         createDots();
+
 
         updateSlide(
             currentSlide,
             false
         );
+
 
     } catch (error) {
 
@@ -930,6 +954,7 @@ async function openModal(item) {
             error
         );
 
+
         hasVideo =
             false;
 
@@ -937,7 +962,9 @@ async function openModal(item) {
 
         showVideoFallback();
 
+
         createDots();
+
 
         updateSlide(
             0,
@@ -946,8 +973,9 @@ async function openModal(item) {
     }
 }
 
+
 // =========================================================
-// FERMER
+// FERMER MODALE
 // =========================================================
 
 function closeModal() {
@@ -965,10 +993,15 @@ function closeModal() {
         "modal-open"
     );
 
+
     resetVideo();
+
 
     currentItem =
         null;
+
+    currentSlide =
+        0;
 
     isDragging =
         false;
@@ -977,13 +1010,24 @@ function closeModal() {
         null;
 }
 
+
 // =========================================================
 // RESET VIDÉO
 // =========================================================
 
 function resetVideo() {
 
-    modalVideo.pause();
+    if (!modalVideo) {
+        return;
+    }
+
+
+    try {
+        modalVideo.pause();
+    } catch {
+        // Rien
+    }
+
 
     modalVideo.removeAttribute(
         "src"
@@ -991,16 +1035,20 @@ function resetVideo() {
 
     modalVideo.load();
 
+
     modalVideo.style.display =
         "none";
+
 
     videoFallback.classList.remove(
         "visible"
     );
 
+
     currentVideoUrl =
         null;
 }
+
 
 // =========================================================
 // RÉCUPÉRATION COSMÉTIQUE
@@ -1011,6 +1059,7 @@ async function fetchCosmetic(id) {
     const url =
         `${COSMETIC_API}?language=fr&id=${encodeURIComponent(id)}`;
 
+
     const response =
         await fetch(
             url,
@@ -1019,6 +1068,7 @@ async function fetchCosmetic(id) {
             }
         );
 
+
     if (!response.ok) {
 
         throw new Error(
@@ -1026,8 +1076,10 @@ async function fetchCosmetic(id) {
         );
     }
 
+
     const data =
         await response.json();
+
 
     return (
         data?.data?.[0] ||
@@ -1035,6 +1087,7 @@ async function fetchCosmetic(id) {
         null
     );
 }
+
 
 // =========================================================
 // TROUVER UNE VRAIE VIDÉO DIRECTE
@@ -1045,6 +1098,7 @@ function findDirectVideo(cosmetic) {
     if (!cosmetic) {
         return null;
     }
+
 
     const candidates = [
 
@@ -1058,20 +1112,27 @@ function findDirectVideo(cosmetic) {
 
     ];
 
-    for (const candidate of candidates) {
+
+    for (
+        const candidate of candidates
+    ) {
 
         if (
             typeof candidate !== "string"
         ) {
+
             continue;
         }
+
 
         const value =
             candidate.trim();
 
+
         if (!value) {
             continue;
         }
+
 
         if (
             isDirectVideoUrl(value)
@@ -1081,8 +1142,10 @@ function findDirectVideo(cosmetic) {
         }
     }
 
+
     return null;
 }
+
 
 // =========================================================
 // VÉRIFIER URL VIDÉO
@@ -1095,15 +1158,19 @@ function isDirectVideoUrl(value) {
         const url =
             new URL(value);
 
+
         if (
             url.protocol !== "https:" &&
             url.protocol !== "http:"
         ) {
+
             return false;
         }
 
+
         const pathname =
             url.pathname.toLowerCase();
+
 
         const extensions = [
             ".mp4",
@@ -1113,16 +1180,19 @@ function isDirectVideoUrl(value) {
             ".ogv"
         ];
 
+
         return extensions.some(
             extension =>
                 pathname.endsWith(extension)
         );
+
 
     } catch {
 
         return false;
     }
 }
+
 
 // =========================================================
 // CHARGER VIDÉO DIRECTE
@@ -1132,17 +1202,22 @@ function loadDirectVideo(url) {
 
     resetVideo();
 
+
     if (
         !isDirectVideoUrl(url)
     ) {
+
         return;
     }
+
 
     currentVideoUrl =
         url;
 
+
     modalVideo.style.display =
         "block";
+
 
     modalVideo.muted =
         true;
@@ -1156,13 +1231,17 @@ function loadDirectVideo(url) {
     modalVideo.playsInline =
         true;
 
+
     modalVideo.src =
         url;
 
+
     modalVideo.load();
+
 
     const playPromise =
         modalVideo.play();
+
 
     if (
         playPromise &&
@@ -1183,8 +1262,9 @@ function loadDirectVideo(url) {
     }
 }
 
+
 // =========================================================
-// FALLBACK VIDÉO
+// FALLBACK
 // =========================================================
 
 function showVideoFallback() {
@@ -1197,8 +1277,9 @@ function showVideoFallback() {
     );
 }
 
+
 // =========================================================
-// POINTS DU CAROUSEL
+// POINTS
 // =========================================================
 
 function createDots() {
@@ -1206,12 +1287,14 @@ function createDots() {
     carouselDots.innerHTML =
         "";
 
+
     /*
-     * TOUJOURS 2 POINTS
+     * TOUJOURS DEUX POINTS :
      *
-     * Point 1 = image
-     * Point 2 = vidéo / fallback
+     * 1 = IMAGE
+     * 2 = VIDÉO / FALLBACK
      */
+
 
     for (
         let i = 0;
@@ -1224,8 +1307,14 @@ function createDots() {
                 "button"
             );
 
+
+        dot.type =
+            "button";
+
+
         dot.className =
             "carousel-dot";
+
 
         if (
             i === currentSlide
@@ -1236,12 +1325,14 @@ function createDots() {
             );
         }
 
+
         dot.setAttribute(
             "aria-label",
             i === 0
                 ? "Afficher l'image"
                 : "Afficher la vidéo"
         );
+
 
         dot.addEventListener(
             "click",
@@ -1253,11 +1344,13 @@ function createDots() {
             }
         );
 
+
         carouselDots.appendChild(
             dot
         );
     }
 }
+
 
 // =========================================================
 // CHANGER SLIDE
@@ -1265,7 +1358,7 @@ function createDots() {
 
 function goToSlide(index) {
 
-    currentSlide =
+    const nextSlide =
         Math.max(
             0,
             Math.min(
@@ -1274,11 +1367,17 @@ function goToSlide(index) {
             )
         );
 
+
+    currentSlide =
+        nextSlide;
+
+
     updateSlide(
-        currentSlide,
+        nextSlide,
         true
     );
 }
+
 
 // =========================================================
 // UPDATE SLIDE
@@ -1289,11 +1388,6 @@ function updateSlide(
     animate = true
 ) {
 
-    /*
-     * 0 = PHOTO
-     * 1 = VIDÉO / FALLBACK
-     */
-
     index =
         Math.max(
             0,
@@ -1303,21 +1397,37 @@ function updateSlide(
             )
         );
 
+
     currentSlide =
         index;
+
 
     previewTrack.style.transition =
         animate
             ? "transform 0.35s cubic-bezier(.22,.61,.36,1)"
             : "none";
 
+
+    /*
+     * Le track fait 200%.
+     *
+     * 0%  = image
+     * 50% = vidéo
+     */
+
     previewTrack.style.transform =
         `translate3d(-${index * 50}%, 0, 0)`;
+
+
+    // =====================================================
+    // POINT ACTIF
+    // =====================================================
 
     const dots =
         carouselDots.querySelectorAll(
             ".carousel-dot"
         );
+
 
     dots.forEach(
         (dot, dotIndex) => {
@@ -1329,36 +1439,46 @@ function updateSlide(
         }
     );
 
+
     // =====================================================
-    // SLIDE 1 : PHOTO
+    // IMAGE
     // =====================================================
 
-    if (index === 0) {
+    if (
+        index === 0
+    ) {
 
         modalImage.style.display =
             "block";
 
+
         modalVideo.style.display =
             "none";
+
 
         videoFallback.classList.remove(
             "visible"
         );
 
+
         previewStatus.textContent =
             "IMAGE";
 
+
         pauseCurrentVideo();
+
 
         return;
     }
 
+
     // =====================================================
-    // SLIDE 2 : VIDÉO
+    // VIDÉO / FALLBACK
     // =====================================================
 
     modalImage.style.display =
         "none";
+
 
     if (
         hasVideo &&
@@ -1368,33 +1488,40 @@ function updateSlide(
         previewStatus.textContent =
             "APERÇU ANIMÉ";
 
+
         modalVideo.style.display =
             "block";
+
 
         videoFallback.classList.remove(
             "visible"
         );
 
+
         playCurrentVideo();
+
 
     } else {
 
         /*
-         * Pas de vidéo :
-         * le swipe existe quand même.
+         * Même sans vidéo réelle,
+         * la deuxième slide existe.
          */
 
         previewStatus.textContent =
             "VIDÉO";
 
+
         modalVideo.style.display =
             "none";
+
 
         videoFallback.classList.add(
             "visible"
         );
     }
 }
+
 
 // =========================================================
 // PLAY VIDÉO
@@ -1406,17 +1533,22 @@ function playCurrentVideo() {
         !hasVideo ||
         !currentVideoUrl
     ) {
+
         return;
     }
+
 
     modalVideo.style.display =
         "block";
 
+
     modalVideo.muted =
         true;
 
+
     const promise =
         modalVideo.play();
+
 
     if (
         promise &&
@@ -1428,6 +1560,7 @@ function playCurrentVideo() {
         );
     }
 }
+
 
 // =========================================================
 // PAUSE VIDÉO
@@ -1444,6 +1577,7 @@ function pauseCurrentVideo() {
     }
 }
 
+
 // =========================================================
 // POINTER DOWN
 // =========================================================
@@ -1453,22 +1587,27 @@ function handlePointerDown(event) {
     if (
         !modal.classList.contains("open")
     ) {
+
         return;
     }
 
+
     /*
-     * On utilise le swipe tactile uniquement
-     * pour doigt / stylet.
+     * Le swipe est prévu pour tactile
+     * et stylet.
      */
 
     if (
         event.pointerType === "mouse"
     ) {
+
         return;
     }
 
+
     activePointerId =
         event.pointerId;
+
 
     pointerStartX =
         event.clientX;
@@ -1476,17 +1615,25 @@ function handlePointerDown(event) {
     pointerStartY =
         event.clientY;
 
+
     pointerCurrentX =
         event.clientX;
+
+    pointerCurrentY =
+        event.clientY;
+
 
     isDragging =
         true;
 
+
     swipeDirectionLocked =
         false;
 
+
     previewTrack.style.transition =
         "none";
+
 
     try {
 
@@ -1499,6 +1646,7 @@ function handlePointerDown(event) {
     }
 }
 
+
 // =========================================================
 // POINTER MOVE
 // =========================================================
@@ -1509,23 +1657,31 @@ function handlePointerMove(event) {
         !isDragging ||
         event.pointerId !== activePointerId
     ) {
+
         return;
     }
 
+
     pointerCurrentX =
         event.clientX;
+
+    pointerCurrentY =
+        event.clientY;
+
 
     const deltaX =
         pointerCurrentX -
         pointerStartX;
 
+
     const deltaY =
-        event.clientY -
+        pointerCurrentY -
         pointerStartY;
 
-    // -----------------------------------------------------
-    // DÉTERMINER LA DIRECTION
-    // -----------------------------------------------------
+
+    // =====================================================
+    // VERROUILLAGE DIRECTION
+    // =====================================================
 
     if (
         !swipeDirectionLocked
@@ -1535,8 +1691,16 @@ function handlePointerMove(event) {
             Math.abs(deltaX) < 8 &&
             Math.abs(deltaY) < 8
         ) {
+
             return;
         }
+
+
+        /*
+         * Si le mouvement est principalement
+         * vertical, on laisse le navigateur
+         * gérer le geste.
+         */
 
         if (
             Math.abs(deltaY) >
@@ -1549,46 +1713,60 @@ function handlePointerMove(event) {
             isDragging =
                 false;
 
+
             previewTrack.style.transition =
                 "transform 0.25s ease";
+
 
             previewTrack.style.transform =
                 `translate3d(-${currentSlide * 50}%, 0, 0)`;
 
+
             return;
         }
+
 
         swipeDirectionLocked =
             true;
     }
 
+
     event.preventDefault();
+
 
     const width =
         modalMedia.clientWidth;
 
+
     if (
         width <= 0
     ) {
+
         return;
     }
 
+
     /*
-     * Une slide représente 50% du track.
+     * Une slide correspond à 50%
+     * du track complet.
      */
 
     const movementPercent =
         (deltaX / width) * 50;
 
+
     const basePosition =
         currentSlide * 50;
 
-    let position =
-        basePosition - movementPercent;
 
-    // -----------------------------------------------------
-    // RÉSISTANCE GAUCHE
-    // -----------------------------------------------------
+    let position =
+        basePosition -
+        movementPercent;
+
+
+    // =====================================================
+    // RÉSISTANCE À GAUCHE
+    // =====================================================
 
     if (
         position < 0
@@ -1598,9 +1776,10 @@ function handlePointerMove(event) {
             position * 0.18;
     }
 
-    // -----------------------------------------------------
-    // RÉSISTANCE DROITE
-    // -----------------------------------------------------
+
+    // =====================================================
+    // RÉSISTANCE À DROITE
+    // =====================================================
 
     if (
         position > 50
@@ -1611,9 +1790,11 @@ function handlePointerMove(event) {
             (position - 50) * 0.18;
     }
 
+
     previewTrack.style.transform =
         `translate3d(-${position}%, 0, 0)`;
 }
+
 
 // =========================================================
 // POINTER UP
@@ -1625,15 +1806,19 @@ function handlePointerUp(event) {
         !isDragging ||
         event.pointerId !== activePointerId
     ) {
+
         return;
     }
+
 
     const deltaX =
         pointerCurrentX -
         pointerStartX;
 
+
     const width =
         modalMedia.clientWidth;
+
 
     const threshold =
         Math.max(
@@ -1641,15 +1826,18 @@ function handlePointerUp(event) {
             width * 0.15
         );
 
+
     isDragging =
         false;
+
 
     activePointerId =
         null;
 
-    // -----------------------------------------------------
+
+    // =====================================================
     // IMAGE -> VIDÉO
-    // -----------------------------------------------------
+    // =====================================================
 
     if (
         deltaX < -threshold &&
@@ -1661,9 +1849,10 @@ function handlePointerUp(event) {
         return;
     }
 
-    // -----------------------------------------------------
+
+    // =====================================================
     // VIDÉO -> IMAGE
-    // -----------------------------------------------------
+    // =====================================================
 
     if (
         deltaX > threshold &&
@@ -1675,15 +1864,17 @@ function handlePointerUp(event) {
         return;
     }
 
-    // -----------------------------------------------------
-    // PAS ASSEZ DE MOUVEMENT
-    // -----------------------------------------------------
+
+    // =====================================================
+    // MOUVEMENT INSUFFISANT
+    // =====================================================
 
     updateSlide(
         currentSlide,
         true
     );
 }
+
 
 // =========================================================
 // POINTER CANCEL
@@ -1694,20 +1885,25 @@ function handlePointerCancel(event) {
     if (
         event.pointerId !== activePointerId
     ) {
+
         return;
     }
+
 
     isDragging =
         false;
 
+
     activePointerId =
         null;
+
 
     updateSlide(
         currentSlide,
         true
     );
 }
+
 
 // =========================================================
 // CLAVIER
@@ -1718,8 +1914,10 @@ function handleKeyDown(event) {
     if (
         !modal.classList.contains("open")
     ) {
+
         return;
     }
+
 
     if (
         event.key === "Escape"
@@ -1730,6 +1928,7 @@ function handleKeyDown(event) {
         return;
     }
 
+
     if (
         event.key === "ArrowLeft"
     ) {
@@ -1737,7 +1936,10 @@ function handleKeyDown(event) {
         goToSlide(
             currentSlide - 1
         );
+
+        return;
     }
+
 
     if (
         event.key === "ArrowRight"
@@ -1749,6 +1951,7 @@ function handleKeyDown(event) {
     }
 }
 
+
 // =========================================================
 // ÉVÉNEMENTS
 // =========================================================
@@ -1758,10 +1961,12 @@ modalClose.addEventListener(
     closeModal
 );
 
+
 const modalBackdrop =
     document.querySelector(
         ".modal-backdrop"
     );
+
 
 if (modalBackdrop) {
 
@@ -1771,10 +1976,12 @@ if (modalBackdrop) {
     );
 }
 
+
 document.addEventListener(
     "keydown",
     handleKeyDown
 );
+
 
 // =========================================================
 // SWIPE POINTER EVENTS
@@ -1788,6 +1995,7 @@ modalMedia.addEventListener(
     }
 );
 
+
 modalMedia.addEventListener(
     "pointermove",
     handlePointerMove,
@@ -1795,6 +2003,7 @@ modalMedia.addEventListener(
         passive: false
     }
 );
+
 
 modalMedia.addEventListener(
     "pointerup",
@@ -1804,6 +2013,7 @@ modalMedia.addEventListener(
     }
 );
 
+
 modalMedia.addEventListener(
     "pointercancel",
     handlePointerCancel,
@@ -1811,6 +2021,7 @@ modalMedia.addEventListener(
         passive: true
     }
 );
+
 
 // =========================================================
 // ERREUR VIDÉO
@@ -1826,17 +2037,20 @@ modalVideo.addEventListener(
         currentVideoUrl =
             null;
 
+
         if (
             currentSlide === 1
         ) {
 
             showVideoFallback();
 
+
             previewStatus.textContent =
                 "VIDÉO";
         }
     }
 );
+
 
 // =========================================================
 // VIDÉO CHARGÉE
@@ -1855,11 +2069,10 @@ modalVideo.addEventListener(
     }
 );
 
+
 // =========================================================
 // INITIALISATION
 // =========================================================
-
-setupSlideOrder();
 
 updateDate();
 
