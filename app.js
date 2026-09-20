@@ -80,6 +80,8 @@ let touchCurrentX = 0;
 
 let isDragging = false;
 
+let swipeCancelled = false;
+
 // =========================================================
 // DATE
 // =========================================================
@@ -173,7 +175,10 @@ async function loadShop() {
             <div class="error-status">
                 Impossible de charger la boutique.
 
-                <button onclick="loadShop()">
+                <button
+                    type="button"
+                    onclick="loadShop()"
+                >
                     Réessayer
                 </button>
             </div>
@@ -247,6 +252,10 @@ function extractShopItem(entry) {
         item?.description ||
         "";
 
+    // =====================================================
+    // IMAGE
+    // =====================================================
+
     const image =
         item?.images?.featured ||
         item?.images?.icon ||
@@ -258,6 +267,10 @@ function extractShopItem(entry) {
         entry?.tracks?.[0]?.albumArt ||
         null;
 
+    // =====================================================
+    // PRIX
+    // =====================================================
+
     const price =
         entry?.finalPrice ??
         entry?.regularPrice ??
@@ -265,15 +278,36 @@ function extractShopItem(entry) {
         item?.price ??
         0;
 
+    // =====================================================
+    // RARETÉ
+    // =====================================================
+
     const rarity =
         item?.rarity?.displayValue ||
         item?.rarity?.value ||
         "";
 
-    const type =
+    // =====================================================
+    // TYPE
+    // =====================================================
+
+    const rawType =
         item?.type?.displayValue ||
         item?.type?.value ||
+        entry?.type?.displayValue ||
+        entry?.type?.value ||
         "";
+
+    const type =
+        normalizeItemType(
+            rawType,
+            item,
+            entry
+        );
+
+    // =====================================================
+    // SÉRIE
+    // =====================================================
 
     const series =
         item?.series?.name ||
@@ -292,6 +326,173 @@ function extractShopItem(entry) {
         raw: entry,
         cosmetic: item
     };
+}
+
+// =========================================================
+// NORMALISER LE TYPE
+// =========================================================
+
+function normalizeItemType(
+    rawType,
+    item,
+    entry
+) {
+
+    const value =
+        String(rawType || "")
+            .trim()
+            .toLowerCase();
+
+    // -----------------------------------------------------
+    // MUSIQUE
+    // -----------------------------------------------------
+
+    if (
+        value.includes("music") ||
+        value.includes("musique") ||
+        value.includes("jam track") ||
+        value.includes("piste musicale") ||
+        item?.type?.value === "music"
+    ) {
+
+        return "Musique";
+    }
+
+    // -----------------------------------------------------
+    // TENUE
+    // -----------------------------------------------------
+
+    if (
+        value === "outfit" ||
+        value.includes("tenue")
+    ) {
+
+        return "Tenue";
+    }
+
+    // -----------------------------------------------------
+    // PIoche
+    // -----------------------------------------------------
+
+    if (
+        value === "pickaxe" ||
+        value.includes("pioche")
+    ) {
+
+        return "Pioche";
+    }
+
+    // -----------------------------------------------------
+    // PLANEUR
+    // -----------------------------------------------------
+
+    if (
+        value === "glider" ||
+        value.includes("planeur")
+    ) {
+
+        return "Planeur";
+    }
+
+    // -----------------------------------------------------
+    // EMOTE
+    // -----------------------------------------------------
+
+    if (
+        value === "emote" ||
+        value.includes("emote") ||
+        value.includes("danse")
+    ) {
+
+        return "Emote";
+    }
+
+    // -----------------------------------------------------
+    // REVÊTEMENT
+    // -----------------------------------------------------
+
+    if (
+        value === "wrap" ||
+        value.includes("revêtement") ||
+        value.includes("revêtement")
+    ) {
+
+        return "Revêtement";
+    }
+
+    // -----------------------------------------------------
+    // DOS
+    // -----------------------------------------------------
+
+    if (
+        value === "backpack" ||
+        value === "back bling" ||
+        value.includes("dos")
+    ) {
+
+        return "Dos";
+    }
+
+    // -----------------------------------------------------
+    // AÉROSPRAY / GRAFFITI
+    // -----------------------------------------------------
+
+    if (
+        value.includes("spray") ||
+        value.includes("graffiti")
+    ) {
+
+        return "Aérosol";
+    }
+
+    // -----------------------------------------------------
+    // ÉCRAN DE CHARGEMENT
+    // -----------------------------------------------------
+
+    if (
+        value.includes("loading screen") ||
+        value.includes("écran de chargement")
+    ) {
+
+        return "Écran de chargement";
+    }
+
+    // -----------------------------------------------------
+    // BANNIÈRE
+    // -----------------------------------------------------
+
+    if (
+        value.includes("banner") ||
+        value.includes("bannière")
+    ) {
+
+        return "Bannière";
+    }
+
+    // -----------------------------------------------------
+    // OUTIL DE COLLECTE
+    // -----------------------------------------------------
+
+    if (
+        value.includes("harvesting tool")
+    ) {
+
+        return "Pioche";
+    }
+
+    // -----------------------------------------------------
+    // SI LE TYPE EST DÉJÀ CORRECT
+    // -----------------------------------------------------
+
+    if (rawType) {
+        return rawType;
+    }
+
+    // -----------------------------------------------------
+    // FALLBACK
+    // -----------------------------------------------------
+
+    return "";
 }
 
 // =========================================================
@@ -333,7 +534,9 @@ function createCard(item, index) {
             "async";
 
         image.onerror = () => {
+
             image.remove();
+
         };
 
         imageContainer.appendChild(
@@ -451,6 +654,12 @@ async function openModal(item) {
 
     currentVideoUrl =
         null;
+
+    isDragging =
+        false;
+
+    swipeCancelled =
+        false;
 
     document.body.classList.add(
         "modal-open"
@@ -611,6 +820,9 @@ function closeModal() {
 
     currentItem =
         null;
+
+    isDragging =
+        false;
 }
 
 // =========================================================
@@ -930,6 +1142,19 @@ function updateSlide(
     animate = true
 ) {
 
+    if (!hasVideo) {
+        index = 0;
+    }
+
+    index =
+        Math.max(
+            0,
+            Math.min(
+                hasVideo ? 1 : 0,
+                index
+            )
+        );
+
     currentSlide =
         index;
 
@@ -939,7 +1164,7 @@ function updateSlide(
             : "none";
 
     previewTrack.style.transform =
-        `translateX(-${index * 50}%)`;
+        `translate3d(-${index * 50}%, 0, 0)`;
 
     const dots =
         carouselDots.querySelectorAll(
@@ -1023,8 +1248,13 @@ function pauseCurrentVideo() {
 function handleTouchStart(event) {
 
     if (
-        !modal.classList.contains("open")
+        !modal.classList.contains("open") ||
+        !hasVideo
     ) {
+        return;
+    }
+
+    if (!event.touches.length) {
         return;
     }
 
@@ -1043,6 +1273,9 @@ function handleTouchStart(event) {
     isDragging =
         true;
 
+    swipeCancelled =
+        false;
+
     previewTrack.style.transition =
         "none";
 }
@@ -1053,7 +1286,14 @@ function handleTouchStart(event) {
 
 function handleTouchMove(event) {
 
-    if (!isDragging) {
+    if (
+        !isDragging ||
+        swipeCancelled
+    ) {
+        return;
+    }
+
+    if (!event.touches.length) {
         return;
     }
 
@@ -1071,12 +1311,25 @@ function handleTouchMove(event) {
         touch.clientY -
         touchStartY;
 
+    // -----------------------------------------------------
+    // Si le geste est vertical, on laisse le scroll naturel
+    // -----------------------------------------------------
+
     if (
         Math.abs(deltaY) >
         Math.abs(deltaX)
     ) {
 
-        isDragging = false;
+        isDragging =
+            false;
+
+        swipeCancelled =
+            true;
+
+        updateSlide(
+            currentSlide,
+            true
+        );
 
         return;
     }
@@ -1090,29 +1343,35 @@ function handleTouchMove(event) {
         return;
     }
 
-    const deltaPercent =
+    // Une largeur d'écran = 50% du track
+    const movement =
         (deltaX / width) * 50;
 
-    const basePercent =
+    const basePosition =
         currentSlide * 50;
 
     let position =
-        basePercent - deltaPercent;
+        basePosition - movement;
+
+    // -----------------------------------------------------
+    // Résistance aux extrémités
+    // -----------------------------------------------------
 
     if (position < 0) {
 
-        position *= 0.25;
+        position =
+            position * 0.20;
     }
 
     if (position > 50) {
 
         position =
             50 +
-            (position - 50) * 0.25;
+            (position - 50) * 0.20;
     }
 
     previewTrack.style.transform =
-        `translateX(-${position}%)`;
+        `translate3d(-${position}%, 0, 0)`;
 }
 
 // =========================================================
@@ -1121,7 +1380,14 @@ function handleTouchMove(event) {
 
 function handleTouchEnd() {
 
-    if (!isDragging) {
+    if (
+        !isDragging ||
+        swipeCancelled
+    ) {
+
+        isDragging =
+            false;
+
         return;
     }
 
@@ -1132,30 +1398,75 @@ function handleTouchEnd() {
         touchCurrentX -
         touchStartX;
 
+    const deltaY =
+        Math.abs(
+            touchCurrentX -
+            touchStartX
+        );
+
     const threshold =
-        60;
+        Math.max(
+            50,
+            modalMedia.clientWidth * 0.15
+        );
+
+    // -----------------------------------------------------
+    // SWIPE VERS LA GAUCHE
+    // -----------------------------------------------------
 
     if (
-        hasVideo &&
-        Math.abs(deltaX) >= threshold
+        deltaX < -threshold
     ) {
 
-        if (deltaX < 0) {
-
-            goToSlide(1);
-
-        } else {
-
-            goToSlide(0);
-        }
-
-    } else {
-
-        updateSlide(
-            currentSlide,
-            true
+        goToSlide(
+            currentSlide + 1
         );
+
+        return;
     }
+
+    // -----------------------------------------------------
+    // SWIPE VERS LA DROITE
+    // -----------------------------------------------------
+
+    if (
+        deltaX > threshold
+    ) {
+
+        goToSlide(
+            currentSlide - 1
+        );
+
+        return;
+    }
+
+    // -----------------------------------------------------
+    // PAS ASSEZ LOIN :
+    // RETOUR À LA SLIDE ACTUELLE
+    // -----------------------------------------------------
+
+    updateSlide(
+        currentSlide,
+        true
+    );
+}
+
+// =========================================================
+// TOUCH CANCEL
+// =========================================================
+
+function handleTouchCancel() {
+
+    isDragging =
+        false;
+
+    swipeCancelled =
+        false;
+
+    updateSlide(
+        currentSlide,
+        true
+    );
 }
 
 // =========================================================
@@ -1183,15 +1494,18 @@ function handleKeyDown(event) {
         event.key === "ArrowLeft"
     ) {
 
-        goToSlide(0);
+        goToSlide(
+            currentSlide - 1
+        );
     }
 
     if (
-        event.key === "ArrowRight" &&
-        hasVideo
+        event.key === "ArrowRight"
     ) {
 
-        goToSlide(1);
+        goToSlide(
+            currentSlide + 1
+        );
     }
 }
 
@@ -1235,6 +1549,14 @@ modalMedia.addEventListener(
 modalMedia.addEventListener(
     "touchend",
     handleTouchEnd,
+    {
+        passive: true
+    }
+);
+
+modalMedia.addEventListener(
+    "touchcancel",
+    handleTouchCancel,
     {
         passive: true
     }
