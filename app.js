@@ -6,19 +6,6 @@ const dateElement = document.getElementById("date");
 
 
 // =========================================================
-// MODAL
-// =========================================================
-
-const itemModal = document.getElementById("item-modal");
-const modalBackdrop = document.querySelector(".modal-backdrop");
-const modalClose = document.getElementById("modal-close");
-
-const modalImage = document.getElementById("modal-image");
-const modalName = document.getElementById("modal-name");
-const modalPrice = document.getElementById("modal-price");
-
-
-// =========================================================
 // DATE
 // =========================================================
 
@@ -42,6 +29,16 @@ function displayDate() {
 
 function openItemModal(item, price) {
 
+    const modal = document.getElementById("item-modal");
+    const modalImage = document.getElementById("modal-image");
+    const modalName = document.getElementById("modal-name");
+    const modalPrice = document.getElementById("modal-price");
+
+    if (!modal || !modalImage || !modalName || !modalPrice) {
+        console.error("Modal introuvable.");
+        return;
+    }
+
     const image =
         item.images?.featured ||
         item.images?.icon;
@@ -63,11 +60,10 @@ function openItemModal(item, price) {
         <span>V-Bucks</span>
     `;
 
-    itemModal.classList.add("active");
-    itemModal.setAttribute("aria-hidden", "false");
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden", "false");
 
     document.body.classList.add("modal-open");
-
 }
 
 
@@ -77,39 +73,68 @@ function openItemModal(item, price) {
 
 function closeItemModal() {
 
-    itemModal.classList.remove("active");
-    itemModal.setAttribute("aria-hidden", "true");
+    const modal = document.getElementById("item-modal");
+
+    if (!modal) return;
+
+    modal.classList.remove("active");
+    modal.setAttribute("aria-hidden", "true");
 
     document.body.classList.remove("modal-open");
-
 }
 
 
 // =========================================================
-// BOUTON FERMER
+// INITIALISATION DU MODAL
 // =========================================================
 
-modalClose.addEventListener("click", closeItemModal);
+function setupModal() {
 
+    const modal = document.getElementById("item-modal");
 
-// =========================================================
-// CLIQUER SUR LE FOND
-// =========================================================
-
-modalBackdrop.addEventListener("click", closeItemModal);
-
-
-// =========================================================
-// TOUCHE ÉCHAP
-// =========================================================
-
-document.addEventListener("keydown", (event) => {
-
-    if (event.key === "Escape") {
-        closeItemModal();
+    if (!modal) {
+        console.warn("Modal non trouvable.");
+        return;
     }
 
-});
+    const closeButton =
+        document.getElementById("modal-close");
+
+    const backdrop =
+        modal.querySelector(".modal-backdrop");
+
+
+    if (closeButton) {
+
+        closeButton.addEventListener(
+            "click",
+            closeItemModal
+        );
+
+    }
+
+
+    if (backdrop) {
+
+        backdrop.addEventListener(
+            "click",
+            closeItemModal
+        );
+
+    }
+
+
+    document.addEventListener("keydown", (event) => {
+
+        if (event.key === "Escape") {
+
+            closeItemModal();
+
+        }
+
+    });
+
+}
 
 
 // =========================================================
@@ -127,30 +152,55 @@ async function loadShop() {
 
     shopContainer.innerHTML = "";
 
+
     try {
+
+        console.log("Chargement de la boutique...");
+
 
         const response = await fetch(API_URL);
 
+
         if (!response.ok) {
-            throw new Error("Erreur API");
+
+            throw new Error(
+                `Erreur API : ${response.status}`
+            );
+
         }
+
 
         const result = await response.json();
 
-        const entries = result.data.entries || [];
 
-        const displayedItems = new Set();
+        console.log("Boutique reçue :", result);
+
+
+        const entries =
+            result.data?.entries || [];
+
+
+        const displayedItems =
+            new Set();
 
 
         entries.forEach((entry, index) => {
 
-            const item = entry.brItems?.[0];
+            const item =
+                entry.brItems?.[0];
+
 
             if (!item) return;
 
-            const name = item.name;
 
-            if (displayedItems.has(name)) return;
+            const name =
+                item.name;
+
+
+            if (displayedItems.has(name)) {
+                return;
+            }
+
 
             displayedItems.add(name);
 
@@ -159,19 +209,25 @@ async function loadShop() {
                 item.images?.featured ||
                 item.images?.icon;
 
+
             if (!image) return;
 
 
-            const price = entry.finalPrice ?? "?";
+            const price =
+                entry.finalPrice ?? "?";
 
 
             // =================================================
             // CARD
             // =================================================
 
-            const card = document.createElement("div");
+            const card =
+                document.createElement("div");
 
-            card.className = "card";
+
+            card.className =
+                "card";
+
 
             card.style.animationDelay =
                 `${Math.min(index * 0.045, 0.8)}s`;
@@ -205,36 +261,54 @@ async function loadShop() {
 
 
             // =================================================
-            // CLIQUE SUR LA CARTE
+            // CLIC SUR LA CARTE
             // =================================================
 
             card.addEventListener("click", () => {
 
-                openItemModal(item, price);
+                openItemModal(
+                    item,
+                    price
+                );
 
             });
 
 
-            // Accessibilité clavier
+            // =================================================
+            // CLAVIER
+            // =================================================
 
-            card.setAttribute("tabindex", "0");
-            card.setAttribute("role", "button");
+            card.setAttribute(
+                "tabindex",
+                "0"
+            );
+
+            card.setAttribute(
+                "role",
+                "button"
+            );
 
 
-            card.addEventListener("keydown", (event) => {
+            card.addEventListener(
+                "keydown",
+                (event) => {
 
-                if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
+                    if (
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ) {
 
-                    event.preventDefault();
+                        event.preventDefault();
 
-                    openItemModal(item, price);
+                        openItemModal(
+                            item,
+                            price
+                        );
+
+                    }
 
                 }
-
-            });
+            );
 
 
             shopContainer.appendChild(card);
@@ -246,7 +320,9 @@ async function loadShop() {
         // RESULTAT
         // =====================================================
 
-        if (shopContainer.children.length === 0) {
+        if (
+            shopContainer.children.length === 0
+        ) {
 
             status.textContent =
                 "Aucun objet trouvé.";
@@ -260,7 +336,11 @@ async function loadShop() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Erreur boutique :",
+            error
+        );
+
 
         status.textContent =
             "❌ Impossible de charger la boutique. Réessaie dans quelques secondes.";
@@ -276,6 +356,8 @@ async function loadShop() {
 
 displayDate();
 
+setupModal();
+
 loadShop();
 
 
@@ -287,4 +369,26 @@ if ("serviceWorker" in navigator) {
 
     window.addEventListener("load", () => {
 
-        navigator
+        navigator.serviceWorker
+            .register("./sw.js")
+
+            .then(() => {
+
+                console.log(
+                    "Service worker activé"
+                );
+
+            })
+
+            .catch(error => {
+
+                console.error(
+                    "Service worker :",
+                    error
+                );
+
+            });
+
+    });
+
+}
