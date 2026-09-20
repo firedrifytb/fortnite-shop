@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "fortnite-shop",
+  "main": "./worker.js",
+  "compatibility_date": "2026-09-18",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  }
+}
