@@ -1,24 +1,80 @@
-const API_URL = "https://fortnite-api.com/v2/shop?language=fr";
+const API_URL =
+    "https://fortnite-api.com/v2/shop?language=fr";
+
 const COSMETIC_API_URL =
     "https://fortnite-api.com/v2/cosmetics/br/search/ids?language=fr&id=";
 
-const shopContainer = document.getElementById("shop");
-const status = document.getElementById("status");
-const dateElement = document.getElementById("date");
 
-const itemModal = document.getElementById("item-modal");
-const modalClose = document.getElementById("modal-close");
-const modalBackdrop = document.querySelector(".modal-backdrop");
+// =========================================================
+// ELEMENTS
+// =========================================================
 
-const modalImage = document.getElementById("modal-image");
-const modalVideo = document.getElementById("modal-video");
+const shopContainer =
+    document.getElementById("shop");
 
-const modalName = document.getElementById("modal-name");
-const modalPrice = document.getElementById("modal-price");
-const modalDescription = document.getElementById("modal-description");
+const status =
+    document.getElementById("status");
 
-const previewStatus = document.getElementById("preview-status");
-const modalExtraInfo = document.getElementById("modal-extra-info");
+const dateElement =
+    document.getElementById("date");
+
+
+// Modal
+
+const itemModal =
+    document.getElementById("item-modal");
+
+const modalClose =
+    document.getElementById("modal-close");
+
+const modalBackdrop =
+    document.querySelector(".modal-backdrop");
+
+
+// Media
+
+const modalMedia =
+    document.getElementById("modal-media");
+
+const modalYoutube =
+    document.getElementById("modal-youtube");
+
+const modalImage =
+    document.getElementById("modal-image");
+
+const previewStatus =
+    document.getElementById("preview-status");
+
+const carouselDots =
+    document.getElementById("carousel-dots");
+
+
+// Infos
+
+const modalName =
+    document.getElementById("modal-name");
+
+const modalPrice =
+    document.getElementById("modal-price");
+
+const modalDescription =
+    document.getElementById("modal-description");
+
+const modalExtraInfo =
+    document.getElementById("modal-extra-info");
+
+
+// =========================================================
+// ETAT CAROUSEL
+// =========================================================
+
+let hasVideo = false;
+
+let currentSlide = 0;
+
+let touchStartX = 0;
+
+let touchEndX = 0;
 
 
 // =========================================================
@@ -26,15 +82,20 @@ const modalExtraInfo = document.getElementById("modal-extra-info");
 // =========================================================
 
 function displayDate() {
-    const today = new Date();
+
+    const today =
+        new Date();
 
     dateElement.textContent =
-        today.toLocaleDateString("fr-FR", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-        });
+        today.toLocaleDateString(
+            "fr-FR",
+            {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            }
+        );
 }
 
 
@@ -43,7 +104,9 @@ function displayDate() {
 // =========================================================
 
 function getVbucksIcon() {
-    return "https://firedrifytb.github.io/fortnite-shop/IMG_2258.png";
+
+    return "./IMG_2258.png";
+
 }
 
 
@@ -52,294 +115,60 @@ function getVbucksIcon() {
 // =========================================================
 
 function escapeHTML(value) {
-    if (value === null || value === undefined) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
         return "";
+
     }
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-
-// =========================================================
-// CAROUSEL
-// =========================================================
-
-let currentSlide = 0;
-let hasVideo = false;
-
-let touchStartX = 0;
-let touchEndX = 0;
-
-
-// =========================================================
-// CREER LES POINTS
-// =========================================================
-
-function createCarouselDots(videoAvailable) {
-
-    const media =
-        document.querySelector(".modal-media");
-
-    if (!media) return;
-
-    let dots =
-        media.querySelector(".carousel-dots");
-
-    if (dots) {
-        dots.remove();
-    }
-
-    dots =
-        document.createElement("div");
-
-    dots.className =
-        "carousel-dots";
-
-    // Image seule
-    if (!videoAvailable) {
-        const dot =
-            document.createElement("button");
-
-        dot.className =
-            "carousel-dot active";
-
-        dot.setAttribute(
-            "aria-label",
-            "Image"
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
         );
-
-        dots.appendChild(dot);
-
-        media.appendChild(dots);
-
-        return;
-    }
-
-    // Vidéo + image
-    for (let i = 0; i < 2; i++) {
-
-        const dot =
-            document.createElement("button");
-
-        dot.className =
-            "carousel-dot";
-
-        if (i === 0) {
-            dot.classList.add("active");
-        }
-
-        dot.setAttribute(
-            "aria-label",
-            i === 0
-                ? "Voir la vidéo"
-                : "Voir l'image"
-        );
-
-        dot.addEventListener(
-            "click",
-            event => {
-
-                event.stopPropagation();
-
-                showSlide(i);
-
-            }
-        );
-
-        dots.appendChild(dot);
-    }
-
-    media.appendChild(dots);
-}
-
-
-// =========================================================
-// CHANGER DE SLIDE
-// =========================================================
-
-function showSlide(slide) {
-
-    if (!hasVideo) {
-        slide = 1;
-    }
-
-    currentSlide =
-        Math.max(
-            0,
-            Math.min(
-                slide,
-                1
-            )
-        );
-
-    const media =
-        document.querySelector(".modal-media");
-
-    if (!media) return;
-
-    const dots =
-        media.querySelectorAll(
-            ".carousel-dot"
-        );
-
-    dots.forEach(
-        (dot, index) => {
-
-            dot.classList.toggle(
-                "active",
-                index === currentSlide
-            );
-
-        }
-    );
-
-
-    // -----------------------------------------------------
-    // VIDEO
-    // -----------------------------------------------------
-
-    if (
-        hasVideo &&
-        currentSlide === 0
-    ) {
-
-        modalVideo.classList.add(
-            "visible"
-        );
-
-        modalImage.classList.add(
-            "hidden"
-        );
-
-        previewStatus.textContent =
-            "APERÇU ANIMÉ";
-
-        modalVideo
-            .play()
-            .catch(() => {});
-
-        return;
-    }
-
-
-    // -----------------------------------------------------
-    // IMAGE
-    // -----------------------------------------------------
-
-    modalVideo.pause();
-
-    modalVideo.classList.remove(
-        "visible"
-    );
-
-    modalImage.classList.remove(
-        "hidden"
-    );
-
-    previewStatus.textContent =
-        "APERÇU DE L'OBJET";
-}
-
-
-// =========================================================
-// SWIPE
-// =========================================================
-
-function handleTouchStart(event) {
-
-    touchStartX =
-        event.changedTouches[0].screenX;
-
-}
-
-function handleTouchEnd(event) {
-
-    touchEndX =
-        event.changedTouches[0].screenX;
-
-    const difference =
-        touchStartX -
-        touchEndX;
-
-    // Minimum de 50 px pour déclencher
-    if (
-        Math.abs(difference) <
-        50
-    ) {
-        return;
-    }
-
-    if (difference > 0) {
-
-        // Swipe gauche
-        showSlide(
-            currentSlide + 1
-        );
-
-    } else {
-
-        // Swipe droite
-        showSlide(
-            currentSlide - 1
-        );
-
-    }
 
 }
 
 
 // =========================================================
-// RECUPERER LA VIDEO
+// RECUPERATION DE L'ID VIDEO
 // =========================================================
 
-function findVideoUrl(item, entry) {
+function findShowcaseVideo(item) {
 
     const possibleValues = [
 
-        // Champs directs
+        item?.showcase_video_id,
+
+        item?.showcaseVideoId,
+
         item?.showcase_video,
+
         item?.showcaseVideo,
 
         item?.showcase_video_url,
-        item?.showcaseVideoUrl,
 
-        item?.video,
-        item?.video_url,
-        item?.videoUrl,
-
-        // Objets vidéo
-        item?.showcase_video?.url,
-        item?.showcaseVideo?.url,
-
-        item?.video?.url,
-
-        item?.videos?.showcase,
-        item?.videos?.showcase?.url,
-
-        item?.videos?.preview,
-        item?.videos?.preview?.url,
-
-        item?.videos?.featured,
-        item?.videos?.featured?.url,
-
-        // Entrée shop
-        entry?.showcase_video,
-        entry?.showcaseVideo,
-
-        entry?.showcase_video_url,
-        entry?.showcaseVideoUrl,
-
-        entry?.video,
-        entry?.video_url,
-        entry?.videoUrl,
-
-        entry?.showcase_video?.url,
-        entry?.showcaseVideo?.url
+        item?.showcaseVideoUrl
 
     ];
 
@@ -350,81 +179,120 @@ function findVideoUrl(item, entry) {
     ) {
 
         if (
-            typeof value ===
-            "string" &&
-            value.startsWith("http")
+            typeof value !== "string"
         ) {
 
-            return value;
+            continue;
 
         }
 
+
+        const clean =
+            value.trim();
+
+
+        if (!clean) {
+            continue;
+        }
+
+
+        // -----------------------------------------------------
+        // ID YOUTUBE DIRECT
+        // -----------------------------------------------------
+
         if (
-            value &&
-            typeof value ===
-            "object"
+            /^[a-zA-Z0-9_-]{11}$/
+                .test(clean)
         ) {
 
+            return clean;
+
+        }
+
+
+        // -----------------------------------------------------
+        // URL YOUTUBE
+        // -----------------------------------------------------
+
+        try {
+
             const url =
-                value.url ||
-                value.videoUrl ||
-                value.video_url;
+                new URL(clean);
+
 
             if (
-                typeof url ===
-                "string" &&
-                url.startsWith("http")
+                url.hostname.includes(
+                    "youtube.com"
+                )
             ) {
 
-                return url;
+                const id =
+                    url.searchParams.get(
+                        "v"
+                    );
+
+                if (
+                    id &&
+                    /^[a-zA-Z0-9_-]{11}$/
+                        .test(id)
+                ) {
+
+                    return id;
+
+                }
 
             }
+
+
+            if (
+                url.hostname ===
+                    "youtu.be"
+            ) {
+
+                const id =
+                    url.pathname
+                        .replace(
+                            "/",
+                            ""
+                        );
+
+                if (
+                    /^[a-zA-Z0-9_-]{11}$/
+                        .test(id)
+                ) {
+
+                    return id;
+
+                }
+
+            }
+
+        } catch {
+
+            // Pas une URL valide
 
         }
 
     }
 
+
     return null;
+
 }
 
 
 // =========================================================
-// RESET VIDEO
-// =========================================================
-
-function resetVideo() {
-
-    if (!modalVideo) return;
-
-    modalVideo.pause();
-
-    modalVideo.removeAttribute(
-        "src"
-    );
-
-    modalVideo.load();
-
-    modalVideo.classList.remove(
-        "visible"
-    );
-
-    modalVideo.onloadeddata =
-        null;
-
-    modalVideo.onerror =
-        null;
-}
-
-
-// =========================================================
-// RECUPERATION COSMETIQUE
+// RECUPERATION COSMETIQUE COMPLET
 // =========================================================
 
 async function getCompleteCosmetic(item) {
 
     if (!item?.id) {
+
         return item;
+
     }
+
 
     try {
 
@@ -436,24 +304,28 @@ async function getCompleteCosmetic(item) {
                 )
             );
 
+
         if (!response.ok) {
 
             console.warn(
-                "Erreur cosmétique :",
+                "Erreur API cosmétique :",
                 response.status
             );
 
             return item;
+
         }
+
 
         const result =
             await response.json();
+
 
         if (
             Array.isArray(
                 result.data
             ) &&
-            result.data.length
+            result.data.length > 0
         ) {
 
             return result.data[0];
@@ -463,13 +335,15 @@ async function getCompleteCosmetic(item) {
     } catch (error) {
 
         console.warn(
-            "Impossible de récupérer la fiche cosmétique :",
+            "Impossible de récupérer le cosmétique :",
             error
         );
 
     }
 
+
     return item;
+
 }
 
 
@@ -483,30 +357,37 @@ function updateExtraInfo(item) {
         return;
     }
 
+
     modalExtraInfo.innerHTML =
         "";
 
+
     const infos = [];
+
 
     const type =
         item?.type?.displayValue ||
         item?.type?.value ||
         item?.displayType;
 
+
     const rarity =
         item?.rarity?.displayValue ||
         item?.rarity?.value ||
         item?.displayRarity;
+
 
     const series =
         item?.series?.name ||
         item?.series?.displayValue ||
         item?.series?.value;
 
+
     const set =
         item?.set?.text ||
         item?.set?.name ||
         item?.set?.value;
+
 
     if (type) {
         infos.push(type);
@@ -523,6 +404,7 @@ function updateExtraInfo(item) {
     if (set) {
         infos.push(set);
     }
+
 
     infos.forEach(
         info => {
@@ -544,169 +426,409 @@ function updateExtraInfo(item) {
 
         }
     );
+
 }
 
 
 // =========================================================
-// CHARGER UNE VIDEO
+// RESET MEDIA
 // =========================================================
 
-function loadVideo(videoUrl) {
+function resetMedia() {
 
-    if (!videoUrl) {
+    if (modalYoutube) {
 
-        hasVideo = false;
+        modalYoutube.src =
+            "";
 
-        createCarouselDots(
-            false
+        modalYoutube.classList.remove(
+            "visible"
         );
 
-        showSlide(1);
+    }
+
+
+    if (modalImage) {
+
+        modalImage.classList.remove(
+            "hidden"
+        );
+
+    }
+
+
+    if (carouselDots) {
+
+        carouselDots.innerHTML =
+            "";
+
+    }
+
+
+    hasVideo =
+        false;
+
+    currentSlide =
+        0;
+
+}
+
+
+// =========================================================
+// CREER LES DOTS
+// =========================================================
+
+function createDots() {
+
+    if (!carouselDots) {
+        return;
+    }
+
+
+    carouselDots.innerHTML =
+        "";
+
+
+    // Pas de vidéo
+    if (!hasVideo) {
+
+        const dot =
+            document.createElement(
+                "button"
+            );
+
+        dot.className =
+            "carousel-dot active";
+
+        dot.setAttribute(
+            "aria-label",
+            "Image"
+        );
+
+        carouselDots.appendChild(
+            dot
+        );
 
         return;
 
     }
 
-    resetVideo();
 
-    hasVideo = true;
+    // Vidéo + image
 
-    modalVideo.muted =
-        true;
-
-    modalVideo.autoplay =
-        true;
-
-    modalVideo.loop =
-        true;
-
-    modalVideo.playsInline =
-        true;
-
-    modalVideo.controls =
-        true;
-
-    modalVideo.setAttribute(
-        "muted",
-        ""
-    );
-
-    modalVideo.setAttribute(
-        "playsinline",
-        ""
-    );
-
-    modalVideo.src =
-        videoUrl;
+    const labels = [
+        "Vidéo",
+        "Image"
+    ];
 
 
-    modalVideo.onloadedmetadata =
-        () => {
+    labels.forEach(
+        (label, index) => {
 
-            console.log(
-                "Vidéo trouvée :",
-                videoUrl
+            const dot =
+                document.createElement(
+                    "button"
+                );
+
+            dot.className =
+                "carousel-dot";
+
+
+            if (
+                index ===
+                currentSlide
+            ) {
+
+                dot.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            dot.setAttribute(
+                "aria-label",
+                `Afficher ${label}`
             );
 
-            createCarouselDots(
-                true
+
+            dot.addEventListener(
+                "click",
+                event => {
+
+                    event.stopPropagation();
+
+                    showSlide(
+                        index
+                    );
+
+                }
             );
 
-            showSlide(0);
 
-        };
+            carouselDots.appendChild(
+                dot
+            );
+
+        }
+    );
+
+}
 
 
-    modalVideo.onloadeddata =
-        () => {
+// =========================================================
+// AFFICHER SLIDE
+// =========================================================
+
+function showSlide(slide) {
+
+    if (!hasVideo) {
+
+        currentSlide =
+            0;
+
+        if (modalYoutube) {
+
+            modalYoutube.classList.remove(
+                "visible"
+            );
+
+        }
+
+        if (modalImage) {
+
+            modalImage.classList.remove(
+                "hidden"
+            );
+
+        }
+
+        if (previewStatus) {
+
+            previewStatus.textContent =
+                "APERÇU DE L'OBJET";
+
+        }
+
+        createDots();
+
+        return;
+
+    }
+
+
+    currentSlide =
+        Math.max(
+            0,
+            Math.min(
+                slide,
+                1
+            )
+        );
+
+
+    const dots =
+        carouselDots
+            ? carouselDots.querySelectorAll(
+                ".carousel-dot"
+            )
+            : [];
+
+
+    dots.forEach(
+        (dot, index) => {
+
+            dot.classList.toggle(
+                "active",
+                index ===
+                currentSlide
+            );
+
+        }
+    );
+
+
+    // =====================================================
+    // VIDEO
+    // =====================================================
+
+    if (
+        currentSlide === 0
+    ) {
+
+        if (modalImage) {
 
             modalImage.classList.add(
                 "hidden"
             );
 
-            modalVideo.classList.add(
+        }
+
+
+        if (modalYoutube) {
+
+            modalYoutube.classList.add(
                 "visible"
             );
+
+        }
+
+
+        if (previewStatus) {
 
             previewStatus.textContent =
                 "APERÇU ANIMÉ";
 
-            modalVideo
-                .play()
-                .catch(error => {
-
-                    console.warn(
-                        "Autoplay bloqué :",
-                        error
-                    );
-
-                });
-
-        };
+        }
 
 
-    modalVideo.onerror =
-        () => {
+        return;
 
-            console.warn(
-                "La vidéo n'a pas pu être chargée :",
-                videoUrl
-            );
-
-            hasVideo = false;
-
-            resetVideo();
-
-            createCarouselDots(
-                false
-            );
-
-            showSlide(1);
-
-        };
+    }
 
 
-    modalVideo.load();
+    // =====================================================
+    // IMAGE
+    // =====================================================
+
+    if (modalYoutube) {
+
+        modalYoutube.classList.remove(
+            "visible"
+        );
+
+    }
+
+
+    if (modalImage) {
+
+        modalImage.classList.remove(
+            "hidden"
+        );
+
+    }
+
+
+    if (previewStatus) {
+
+        previewStatus.textContent =
+            "APERÇU DE L'OBJET";
+
+    }
 
 }
 
 
 // =========================================================
-// OUVRIR LE MODAL
+// CHARGER VIDEO YOUTUBE
+// =========================================================
+
+function loadYoutubeVideo(videoId) {
+
+    if (
+        !videoId ||
+        !modalYoutube
+    ) {
+
+        hasVideo =
+            false;
+
+        createDots();
+
+        showSlide(0);
+
+        return;
+
+    }
+
+
+    hasVideo =
+        true;
+
+    currentSlide =
+        0;
+
+
+    /*
+        mute=1 :
+        nécessaire pour que l'autoplay
+        fonctionne correctement sur mobile
+        et la plupart des navigateurs.
+
+        playsinline=1 :
+        évite le plein écran automatique
+        sur certains appareils.
+
+        autoplay=1 :
+        démarre directement.
+
+        controls=1 :
+        permet à l'utilisateur de contrôler
+        la vidéo.
+    */
+
+    const youtubeUrl =
+        "https://www.youtube.com/embed/" +
+        encodeURIComponent(videoId) +
+        "?autoplay=1" +
+        "&mute=1" +
+        "&playsinline=1" +
+        "&controls=1" +
+        "&rel=0";
+
+
+    modalYoutube.src =
+        youtubeUrl;
+
+
+    createDots();
+
+    showSlide(0);
+
+}
+
+
+// =========================================================
+// OUVRIR MODAL
 // =========================================================
 
 async function openItemModal(
     item,
-    price,
-    entry
+    price
 ) {
 
-    if (!itemModal || !item) {
+    if (
+        !itemModal ||
+        !item
+    ) {
+
         return;
+
     }
+
 
     const image =
         item.images?.featured ||
         item.images?.icon;
 
+
     if (!image) {
+
         return;
+
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // RESET
-    // -----------------------------------------------------
+    // =====================================================
 
-    hasVideo = false;
-    currentSlide = 0;
-
-    resetVideo();
+    resetMedia();
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // IMAGE
-    // -----------------------------------------------------
+    // =====================================================
 
     modalImage.src =
         image;
@@ -715,25 +837,22 @@ async function openItemModal(
         item.name ||
         "Objet Fortnite";
 
-    modalImage.classList.remove(
-        "hidden"
-    );
 
-
-    // -----------------------------------------------------
+    // =====================================================
     // NOM
-    // -----------------------------------------------------
+    // =====================================================
 
     modalName.textContent =
         item.name ||
         "Objet Fortnite";
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // PRIX
-    // -----------------------------------------------------
+    // =====================================================
 
     modalPrice.innerHTML = `
+
         <img
             class="vbucks-icon"
             src="${getVbucksIcon()}"
@@ -747,12 +866,13 @@ async function openItemModal(
         <span>
             V-Bucks
         </span>
+
     `;
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // DESCRIPTION
-    // -----------------------------------------------------
+    // =====================================================
 
     modalDescription.textContent =
         "Chargement des informations...";
@@ -762,12 +882,14 @@ async function openItemModal(
     );
 
 
-    updateExtraInfo(item);
+    updateExtraInfo(
+        item
+    );
 
 
-    // -----------------------------------------------------
-    // MODAL
-    // -----------------------------------------------------
+    // =====================================================
+    // OUVERTURE
+    // =====================================================
 
     itemModal.classList.add(
         "active"
@@ -783,9 +905,9 @@ async function openItemModal(
     );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // RECUPERATION COMPLETE
-    // -----------------------------------------------------
+    // =====================================================
 
     const completeItem =
         await getCompleteCosmetic(
@@ -793,19 +915,24 @@ async function openItemModal(
         );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // DESCRIPTION
-    // -----------------------------------------------------
+    // =====================================================
 
     const description =
         completeItem?.description ||
         completeItem?.introduction?.text ||
         "";
 
+
     if (description) {
 
         modalDescription.textContent =
             description;
+
+        modalDescription.classList.remove(
+            "empty"
+        );
 
     } else {
 
@@ -819,54 +946,54 @@ async function openItemModal(
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // INFOS
-    // -----------------------------------------------------
+    // =====================================================
 
     updateExtraInfo(
         completeItem
     );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // VIDEO
-    // -----------------------------------------------------
+    // =====================================================
 
-    const videoUrl =
-        findVideoUrl(
-            completeItem,
-            entry
+    const videoId =
+        findShowcaseVideo(
+            completeItem
         );
 
 
     console.log(
-        "Vidéo de",
-        completeItem.name,
-        ":",
-        videoUrl
+        "Objet :",
+        completeItem.name
+    );
+
+    console.log(
+        "ID vidéo :",
+        videoId
     );
 
 
-    if (videoUrl) {
+    if (videoId) {
 
-        loadVideo(
-            videoUrl
+        loadYoutubeVideo(
+            videoId
         );
 
     } else {
 
         console.log(
-            "Aucune vidéo disponible pour",
-            completeItem.name
+            "Aucune vidéo de présentation disponible."
         );
 
-        hasVideo = false;
+        hasVideo =
+            false;
 
-        createCarouselDots(
-            false
-        );
+        createDots();
 
-        showSlide(1);
+        showSlide(0);
 
     }
 
@@ -883,6 +1010,7 @@ function closeItemModal() {
         return;
     }
 
+
     itemModal.classList.remove(
         "active"
     );
@@ -892,19 +1020,19 @@ function closeItemModal() {
         "true"
     );
 
+
     document.body.classList.remove(
         "modal-open"
     );
 
-    resetVideo();
 
-    hasVideo = false;
+    resetMedia();
 
 }
 
 
 // =========================================================
-// EVENTS
+// BOUTON FERMER
 // =========================================================
 
 if (modalClose) {
@@ -916,6 +1044,11 @@ if (modalClose) {
 
 }
 
+
+// =========================================================
+// BACKDROP
+// =========================================================
+
 if (modalBackdrop) {
 
     modalBackdrop.addEventListener(
@@ -924,6 +1057,11 @@ if (modalBackdrop) {
     );
 
 }
+
+
+// =========================================================
+// ESCAPE
+// =========================================================
 
 document.addEventListener(
     "keydown",
@@ -943,27 +1081,69 @@ document.addEventListener(
 
 
 // =========================================================
-// SWIPE EVENTS
+// SWIPE
 // =========================================================
-
-const modalMedia =
-    document.querySelector(
-        ".modal-media"
-    );
 
 if (modalMedia) {
 
     modalMedia.addEventListener(
         "touchstart",
-        handleTouchStart,
+        event => {
+
+            touchStartX =
+                event.changedTouches[0]
+                    .screenX;
+
+        },
         {
             passive: true
         }
     );
 
+
     modalMedia.addEventListener(
         "touchend",
-        handleTouchEnd,
+        event => {
+
+            touchEndX =
+                event.changedTouches[0]
+                    .screenX;
+
+
+            const difference =
+                touchStartX -
+                touchEndX;
+
+
+            if (
+                Math.abs(difference) <
+                50
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                difference > 0
+            ) {
+
+                // Swipe gauche
+                showSlide(
+                    currentSlide + 1
+                );
+
+            } else {
+
+                // Swipe droite
+                showSlide(
+                    currentSlide - 1
+                );
+
+            }
+
+        },
         {
             passive: true
         }
@@ -979,17 +1159,23 @@ if (modalMedia) {
 async function loadShop() {
 
     status.innerHTML = `
+
         <div class="loading-container">
+
             <div class="loading-spinner"></div>
 
             <span>
                 Chargement de la boutique...
             </span>
+
         </div>
+
     `;
+
 
     shopContainer.innerHTML =
         "";
+
 
     try {
 
@@ -997,6 +1183,7 @@ async function loadShop() {
             await fetch(
                 API_URL
             );
+
 
         if (!response.ok) {
 
@@ -1006,12 +1193,15 @@ async function loadShop() {
 
         }
 
+
         const result =
             await response.json();
+
 
         const entries =
             result.data?.entries ||
             [];
+
 
         const displayedItems =
             new Set();
@@ -1023,20 +1213,26 @@ async function loadShop() {
                 const item =
                     entry.brItems?.[0];
 
+
                 if (!item) {
                     return;
                 }
 
+
                 const name =
                     item.name;
+
 
                 if (
                     displayedItems.has(
                         name
                     )
                 ) {
+
                     return;
+
                 }
+
 
                 displayedItems.add(
                     name
@@ -1046,6 +1242,7 @@ async function loadShop() {
                 const image =
                     item.images?.featured ||
                     item.images?.icon;
+
 
                 if (!image) {
                     return;
@@ -1057,13 +1254,19 @@ async function loadShop() {
                     "?";
 
 
+                // =================================================
+                // CARD
+                // =================================================
+
                 const card =
                     document.createElement(
                         "div"
                     );
 
+
                 card.className =
                     "card";
+
 
                 card.style.animationDelay =
                     `${Math.min(
@@ -1073,10 +1276,11 @@ async function loadShop() {
 
 
                 card.innerHTML = `
+
                     <div class="card-image-wrapper">
 
                         <img
-                            src="${image}"
+                            src="${escapeHTML(image)}"
                             alt="${escapeHTML(name)}"
                             loading="lazy"
                         >
@@ -1089,11 +1293,13 @@ async function loadShop() {
 
                     </div>
 
+
                     <div class="card-info">
 
                         <h2>
                             ${escapeHTML(name)}
                         </h2>
+
 
                         <div class="price">
 
@@ -1107,11 +1313,20 @@ async function loadShop() {
                                 ${escapeHTML(price)}
                             </span>
 
+                            <span>
+                                V-Bucks
+                            </span>
+
                         </div>
 
                     </div>
+
                 `;
 
+
+                // =================================================
+                // CLICK
+                // =================================================
 
                 card.addEventListener(
                     "click",
@@ -1119,18 +1334,22 @@ async function loadShop() {
 
                         openItemModal(
                             item,
-                            price,
-                            entry
+                            price
                         );
 
                     }
                 );
 
 
+                // =================================================
+                // CLAVIER
+                // =================================================
+
                 card.setAttribute(
                     "tabindex",
                     "0"
                 );
+
 
                 card.setAttribute(
                     "role",
@@ -1153,8 +1372,7 @@ async function loadShop() {
 
                             openItemModal(
                                 item,
-                                price,
-                                entry
+                                price
                             );
 
                         }
@@ -1170,6 +1388,10 @@ async function loadShop() {
             }
         );
 
+
+        // =====================================================
+        // RESULTAT
+        // =====================================================
 
         if (
             shopContainer.children.length ===
@@ -1193,6 +1415,7 @@ async function loadShop() {
             "Erreur boutique :",
             error
         );
+
 
         status.textContent =
             "❌ Impossible de charger la boutique. Réessaie dans quelques secondes.";
@@ -1224,8 +1447,9 @@ if (
         () => {
 
             navigator.serviceWorker
-                .register("./sw.js")
-
+                .register(
+                    "./sw.js"
+                )
                 .then(
                     () => {
 
@@ -1235,7 +1459,6 @@ if (
 
                     }
                 )
-
                 .catch(
                     error => {
 
