@@ -8,7 +8,6 @@ const SHOP_API =
 const COSMETIC_API =
     "https://fortnite-api.com/v2/cosmetics/br/search/ids";
 
-
 // =========================================================
 // DOM
 // =========================================================
@@ -61,7 +60,6 @@ const carouselDots =
 const videoFallback =
     document.getElementById("video-fallback");
 
-
 // =========================================================
 // ÉTAT
 // =========================================================
@@ -82,7 +80,6 @@ let touchCurrentX = 0;
 
 let isDragging = false;
 
-
 // =========================================================
 // DATE
 // =========================================================
@@ -101,7 +98,6 @@ function updateDate() {
             }
         );
 }
-
 
 // =========================================================
 // CHARGER LA BOUTIQUE
@@ -143,6 +139,8 @@ async function loadShop() {
         const entries =
             data?.data?.entries ||
             data?.data?.shop ||
+            data?.entries ||
+            data?.shop ||
             [];
 
         if (
@@ -183,7 +181,6 @@ async function loadShop() {
     }
 }
 
-
 // =========================================================
 // RENDU SHOP
 // =========================================================
@@ -213,7 +210,6 @@ function renderShop(entries) {
     );
 }
 
-
 // =========================================================
 // EXTRACTION OBJET
 // =========================================================
@@ -231,11 +227,9 @@ function extractShopItem(entry) {
         entry.items ||
         null;
 
-
     if (Array.isArray(item)) {
         item = item[0];
     }
-
 
     const id =
         item?.id ||
@@ -243,18 +237,15 @@ function extractShopItem(entry) {
         entry?.offerId ||
         null;
 
-
     const name =
         item?.name ||
         entry?.displayName ||
         entry?.name ||
         "Objet Fortnite";
 
-
     const description =
         item?.description ||
         "";
-
 
     const image =
         item?.images?.featured ||
@@ -264,8 +255,8 @@ function extractShopItem(entry) {
         item?.images?.background ||
         entry?.newDisplayAsset?.renderImages?.[0]?.image ||
         entry?.bundle?.image ||
+        entry?.tracks?.[0]?.albumArt ||
         null;
-
 
     const price =
         entry?.finalPrice ??
@@ -274,24 +265,20 @@ function extractShopItem(entry) {
         item?.price ??
         0;
 
-
     const rarity =
         item?.rarity?.displayValue ||
         item?.rarity?.value ||
         "";
-
 
     const type =
         item?.type?.displayValue ||
         item?.type?.value ||
         "";
 
-
     const series =
         item?.series?.name ||
         item?.series?.value ||
         "";
-
 
     return {
         id,
@@ -306,7 +293,6 @@ function extractShopItem(entry) {
         cosmetic: item
     };
 }
-
 
 // =========================================================
 // CARTE
@@ -323,13 +309,11 @@ function createCard(item, index) {
     card.style.animationDelay =
         `${Math.min(index * 35, 500)}ms`;
 
-
     const imageContainer =
         document.createElement("div");
 
     imageContainer.className =
         "card-image";
-
 
     if (item.image) {
 
@@ -348,19 +332,14 @@ function createCard(item, index) {
         image.decoding =
             "async";
 
+        image.onerror = () => {
+            image.remove();
+        };
+
         imageContainer.appendChild(
             image
         );
-
-    } else {
-
-        imageContainer.innerHTML = `
-            <div class="no-image">
-                IMAGE
-            </div>
-        `;
     }
-
 
     const overlay =
         document.createElement("div");
@@ -368,13 +347,11 @@ function createCard(item, index) {
     overlay.className =
         "card-overlay";
 
-
     const info =
         document.createElement("div");
 
     info.className =
         "card-info";
-
 
     const name =
         document.createElement("h3");
@@ -382,13 +359,11 @@ function createCard(item, index) {
     name.textContent =
         item.name;
 
-
     const bottom =
         document.createElement("div");
 
     bottom.className =
         "card-bottom";
-
 
     const price =
         document.createElement("div");
@@ -400,7 +375,6 @@ function createCard(item, index) {
         ${formatPrice(item.price)}
         <span class="vbucks-symbol">V</span>
     `;
-
 
     bottom.appendChild(
         price
@@ -426,16 +400,13 @@ function createCard(item, index) {
         imageContainer
     );
 
-
     card.addEventListener(
         "click",
         () => openModal(item)
     );
 
-
     return card;
 }
-
 
 // =========================================================
 // PRIX
@@ -463,7 +434,6 @@ function formatPrice(price) {
     );
 }
 
-
 // =========================================================
 // OUVRIR MODALE
 // =========================================================
@@ -482,7 +452,6 @@ async function openModal(item) {
     currentVideoUrl =
         null;
 
-
     document.body.classList.add(
         "modal-open"
     );
@@ -496,20 +465,16 @@ async function openModal(item) {
         "false"
     );
 
-
     modalName.textContent =
         item.name;
-
 
     modalPrice.innerHTML = `
         ${formatPrice(item.price)}
         <span class="vbucks-symbol">V</span>
     `;
 
-
     modalDescription.textContent =
         item.description || "";
-
 
     const extraParts = [];
 
@@ -525,10 +490,8 @@ async function openModal(item) {
         extraParts.push(item.series);
     }
 
-
     modalExtraInfo.textContent =
         extraParts.join(" • ");
-
 
     modalImage.src =
         item.image || "";
@@ -536,9 +499,7 @@ async function openModal(item) {
     modalImage.alt =
         item.name;
 
-
     resetVideo();
-
 
     createDots();
 
@@ -547,11 +508,9 @@ async function openModal(item) {
         false
     );
 
-
     if (!item.id) {
         return;
     }
-
 
     try {
 
@@ -560,7 +519,6 @@ async function openModal(item) {
                 item.id
             );
 
-
         if (
             currentItem !== item ||
             !modal.classList.contains("open")
@@ -568,12 +526,10 @@ async function openModal(item) {
             return;
         }
 
-
         const videoUrl =
             findDirectVideo(
                 cosmetic
             );
-
 
         if (videoUrl) {
 
@@ -600,7 +556,6 @@ async function openModal(item) {
 
             resetVideo();
         }
-
 
         createDots();
 
@@ -633,7 +588,6 @@ async function openModal(item) {
     }
 }
 
-
 // =========================================================
 // FERMER
 // =========================================================
@@ -653,13 +607,11 @@ function closeModal() {
         "modal-open"
     );
 
-
     resetVideo();
 
     currentItem =
         null;
 }
-
 
 // =========================================================
 // RESET VIDÉO
@@ -686,7 +638,6 @@ function resetVideo() {
         null;
 }
 
-
 // =========================================================
 // RÉCUPÉRATION COSMÉTIQUE
 // =========================================================
@@ -696,7 +647,6 @@ async function fetchCosmetic(id) {
     const url =
         `${COSMETIC_API}?language=fr&id=${encodeURIComponent(id)}`;
 
-
     const response =
         await fetch(
             url,
@@ -705,7 +655,6 @@ async function fetchCosmetic(id) {
             }
         );
 
-
     if (!response.ok) {
 
         throw new Error(
@@ -713,10 +662,8 @@ async function fetchCosmetic(id) {
         );
     }
 
-
     const data =
         await response.json();
-
 
     return (
         data?.data?.[0] ||
@@ -724,7 +671,6 @@ async function fetchCosmetic(id) {
         null
     );
 }
-
 
 // =========================================================
 // TROUVER UNE VRAIE VIDÉO DIRECTE
@@ -735,16 +681,6 @@ function findDirectVideo(cosmetic) {
     if (!cosmetic) {
         return null;
     }
-
-
-    /*
-       On accepte UNIQUEMENT des URLs
-       de fichiers vidéo.
-
-       Aucun YouTube.
-       Aucun iframe.
-       Aucun ID YouTube.
-    */
 
     const candidates = [
 
@@ -758,7 +694,6 @@ function findDirectVideo(cosmetic) {
 
     ];
 
-
     for (const candidate of candidates) {
 
         if (
@@ -767,15 +702,12 @@ function findDirectVideo(cosmetic) {
             continue;
         }
 
-
         const value =
             candidate.trim();
-
 
         if (!value) {
             continue;
         }
-
 
         if (
             isDirectVideoUrl(value)
@@ -784,10 +716,8 @@ function findDirectVideo(cosmetic) {
         }
     }
 
-
     return null;
 }
-
 
 // =========================================================
 // VÉRIFIER URL VIDÉO
@@ -800,7 +730,6 @@ function isDirectVideoUrl(value) {
         const url =
             new URL(value);
 
-
         if (
             url.protocol !== "https:" &&
             url.protocol !== "http:"
@@ -808,10 +737,8 @@ function isDirectVideoUrl(value) {
             return false;
         }
 
-
         const pathname =
             url.pathname.toLowerCase();
-
 
         const extensions = [
             ".mp4",
@@ -820,7 +747,6 @@ function isDirectVideoUrl(value) {
             ".m4v",
             ".ogv"
         ];
-
 
         return extensions.some(
             extension =>
@@ -833,7 +759,6 @@ function isDirectVideoUrl(value) {
     }
 }
 
-
 // =========================================================
 // CHARGER VIDÉO DIRECTE
 // =========================================================
@@ -842,22 +767,17 @@ function loadDirectVideo(url) {
 
     resetVideo();
 
-
     if (
         !isDirectVideoUrl(url)
     ) {
-
         return;
     }
-
 
     currentVideoUrl =
         url;
 
-
     modalVideo.style.display =
         "block";
-
 
     modalVideo.muted =
         true;
@@ -871,17 +791,13 @@ function loadDirectVideo(url) {
     modalVideo.playsInline =
         true;
 
-
     modalVideo.src =
         url;
 
-
     modalVideo.load();
-
 
     const playPromise =
         modalVideo.play();
-
 
     if (
         playPromise &&
@@ -902,7 +818,6 @@ function loadDirectVideo(url) {
     }
 }
 
-
 // =========================================================
 // FALLBACK
 // =========================================================
@@ -917,7 +832,6 @@ function showVideoFallback() {
     );
 }
 
-
 // =========================================================
 // POINTS
 // =========================================================
@@ -927,12 +841,10 @@ function createDots() {
     carouselDots.innerHTML =
         "";
 
-
     const count =
         hasVideo
             ? 2
             : 1;
-
 
     for (
         let i = 0;
@@ -945,10 +857,8 @@ function createDots() {
                 "button"
             );
 
-
         dot.className =
             "carousel-dot";
-
 
         if (
             i === currentSlide
@@ -959,14 +869,12 @@ function createDots() {
             );
         }
 
-
         dot.setAttribute(
             "aria-label",
             i === 0 && hasVideo
                 ? "Afficher la vidéo"
                 : "Afficher l'image"
         );
-
 
         dot.addEventListener(
             "click",
@@ -978,13 +886,11 @@ function createDots() {
             }
         );
 
-
         carouselDots.appendChild(
             dot
         );
     }
 }
-
 
 // =========================================================
 // CHANGER SLIDE
@@ -1009,13 +915,11 @@ function goToSlide(index) {
             );
     }
 
-
     updateSlide(
         currentSlide,
         true
     );
 }
-
 
 // =========================================================
 // UPDATE SLIDE
@@ -1029,22 +933,18 @@ function updateSlide(
     currentSlide =
         index;
 
-
     previewTrack.style.transition =
         animate
             ? "transform 0.35s cubic-bezier(.22,.61,.36,1)"
             : "none";
 
-
     previewTrack.style.transform =
         `translateX(-${index * 50}%)`;
-
 
     const dots =
         carouselDots.querySelectorAll(
             ".carousel-dot"
         );
-
 
     dots.forEach(
         (dot, dotIndex) => {
@@ -1056,14 +956,12 @@ function updateSlide(
         }
     );
 
-
     if (index === 0) {
 
         previewStatus.textContent =
             hasVideo
                 ? "APERÇU ANIMÉ"
                 : "APERÇU";
-
 
         playCurrentVideo();
 
@@ -1075,7 +973,6 @@ function updateSlide(
         pauseCurrentVideo();
     }
 }
-
 
 // =========================================================
 // PLAY
@@ -1090,18 +987,14 @@ function playCurrentVideo() {
         return;
     }
 
-
     modalVideo.style.display =
         "block";
-
 
     modalVideo.muted =
         true;
 
-
     const promise =
         modalVideo.play();
-
 
     if (
         promise &&
@@ -1114,7 +1007,6 @@ function playCurrentVideo() {
     }
 }
 
-
 // =========================================================
 // PAUSE
 // =========================================================
@@ -1123,7 +1015,6 @@ function pauseCurrentVideo() {
 
     modalVideo.pause();
 }
-
 
 // =========================================================
 // TOUCH START
@@ -1137,10 +1028,8 @@ function handleTouchStart(event) {
         return;
     }
 
-
     const touch =
         event.touches[0];
-
 
     touchStartX =
         touch.clientX;
@@ -1154,11 +1043,9 @@ function handleTouchStart(event) {
     isDragging =
         true;
 
-
     previewTrack.style.transition =
         "none";
 }
-
 
 // =========================================================
 // TOUCH MOVE
@@ -1170,66 +1057,63 @@ function handleTouchMove(event) {
         return;
     }
 
-
     const touch =
         event.touches[0];
 
-
     touchCurrentX =
         touch.clientX;
-
 
     const deltaX =
         touchCurrentX -
         touchStartX;
 
-
     const deltaY =
         touch.clientY -
         touchStartY;
-
 
     if (
         Math.abs(deltaY) >
         Math.abs(deltaX)
     ) {
+
+        isDragging = false;
+
         return;
     }
 
-
     event.preventDefault();
-
 
     const width =
         modalMedia.clientWidth;
 
+    if (!width) {
+        return;
+    }
 
-    const percentage =
+    const deltaPercent =
         (deltaX / width) * 50;
 
-
-    const base =
+    const basePercent =
         currentSlide * 50;
 
-
     let position =
-        base - percentage;
+        basePercent - deltaPercent;
 
+    if (position < 0) {
 
-    position =
-        Math.max(
-            -5,
-            Math.min(
-                105,
-                position
-            )
-        );
+        position *= 0.25;
+    }
 
+    if (position > 50) {
+
+        position =
+            50 +
+            (position - 50) * 0.25;
+    }
 
     previewTrack.style.transform =
         `translateX(-${position}%)`;
 }
-
 
 // =========================================================
 // TOUCH END
@@ -1241,19 +1125,15 @@ function handleTouchEnd() {
         return;
     }
 
-
     isDragging =
         false;
-
 
     const deltaX =
         touchCurrentX -
         touchStartX;
 
-
     const threshold =
         60;
-
 
     if (
         hasVideo &&
@@ -1278,7 +1158,6 @@ function handleTouchEnd() {
     }
 }
 
-
 // =========================================================
 // CLAVIER
 // =========================================================
@@ -1291,7 +1170,6 @@ function handleKeyDown(event) {
         return;
     }
 
-
     if (
         event.key === "Escape"
     ) {
@@ -1301,14 +1179,12 @@ function handleKeyDown(event) {
         return;
     }
 
-
     if (
         event.key === "ArrowLeft"
     ) {
 
         goToSlide(0);
     }
-
 
     if (
         event.key === "ArrowRight" &&
@@ -1319,7 +1195,6 @@ function handleKeyDown(event) {
     }
 }
 
-
 // =========================================================
 // ÉVÉNEMENTS
 // =========================================================
@@ -1329,7 +1204,6 @@ modalClose.addEventListener(
     closeModal
 );
 
-
 document
     .querySelector(".modal-backdrop")
     .addEventListener(
@@ -1337,12 +1211,10 @@ document
         closeModal
     );
 
-
 document.addEventListener(
     "keydown",
     handleKeyDown
 );
-
 
 modalMedia.addEventListener(
     "touchstart",
@@ -1352,7 +1224,6 @@ modalMedia.addEventListener(
     }
 );
 
-
 modalMedia.addEventListener(
     "touchmove",
     handleTouchMove,
@@ -1361,7 +1232,6 @@ modalMedia.addEventListener(
     }
 );
 
-
 modalMedia.addEventListener(
     "touchend",
     handleTouchEnd,
@@ -1369,7 +1239,6 @@ modalMedia.addEventListener(
         passive: true
     }
 );
-
 
 // =========================================================
 // ERREUR VIDÉO
@@ -1388,7 +1257,6 @@ modalVideo.addEventListener(
     }
 );
 
-
 modalVideo.addEventListener(
     "loadeddata",
     () => {
@@ -1398,7 +1266,6 @@ modalVideo.addEventListener(
         );
     }
 );
-
 
 // =========================================================
 // INITIALISATION
