@@ -68,6 +68,14 @@ let currentItem = null;
 
 let currentSlide = 0;
 
+/*
+ * IMPORTANT :
+ * Le carousel possède TOUJOURS 2 slides.
+ *
+ * Slide 0 = image
+ * Slide 1 = vidéo / fallback
+ */
+
 let hasVideo = false;
 
 let currentVideoUrl = null;
@@ -80,6 +88,61 @@ let pointerCurrentX = 0;
 let isDragging = false;
 let swipeDirectionLocked = false;
 let activePointerId = null;
+
+// =========================================================
+// ORDRE DES SLIDES
+// =========================================================
+
+/*
+ * Ton HTML avait initialement la vidéo avant l'image.
+ *
+ * On remet automatiquement l'image en premier
+ * et la vidéo en deuxième sans modifier ton HTML.
+ */
+
+function setupSlideOrder() {
+
+    if (!previewTrack) {
+        return;
+    }
+
+    const slides =
+        Array.from(
+            previewTrack.querySelectorAll(
+                ".preview-slide"
+            )
+        );
+
+    if (slides.length < 2) {
+        return;
+    }
+
+    const imageSlide =
+        slides.find(
+            slide =>
+                slide.contains(modalImage)
+        );
+
+    const videoSlide =
+        slides.find(
+            slide =>
+                slide.contains(modalVideo)
+        );
+
+    if (
+        imageSlide &&
+        videoSlide
+    ) {
+
+        previewTrack.appendChild(
+            imageSlide
+        );
+
+        previewTrack.appendChild(
+            videoSlide
+        );
+    }
+}
 
 // =========================================================
 // DATE
@@ -223,12 +286,6 @@ function extractShopItem(entry) {
     if (!entry) {
         return null;
     }
-
-    /*
-     * IMPORTANT :
-     * Certains objets de la boutique sont dans brItems,
-     * mais les musiques peuvent être dans "tracks".
-     */
 
     let item = null;
 
@@ -381,12 +438,6 @@ function extractShopItem(entry) {
     // =====================================================
 
     let type = "";
-
-    /*
-     * Une entrée contenant "tracks" est une musique.
-     * On le traite AVANT item.type pour éviter
-     * "Objet Fortnite".
-     */
 
     if (
         itemCategory === "track" ||
@@ -706,6 +757,10 @@ async function openModal(item) {
     currentItem =
         item;
 
+    /*
+     * Toujours commencer sur l'image.
+     */
+
     currentSlide =
         0;
 
@@ -773,6 +828,10 @@ async function openModal(item) {
 
     resetVideo();
 
+    /*
+     * Les deux points existent toujours.
+     */
+
     createDots();
 
     updateSlide(
@@ -781,21 +840,23 @@ async function openModal(item) {
     );
 
     if (!item.id) {
+
+        showVideoFallback();
+
         return;
     }
 
     /*
-     * Les musiques / tracks ne sont pas forcément
-     * récupérables via l'endpoint BR.
-     *
-     * On ne cherche donc la vidéo que pour
-     * les cosmétiques BR classiques.
+     * Les tracks et instruments ne passent
+     * pas par l'endpoint BR.
      */
 
     if (
         item.category === "track" ||
         item.category === "instrument"
     ) {
+
+        showVideoFallback();
 
         return;
     }
@@ -832,7 +893,7 @@ async function openModal(item) {
             );
 
             previewStatus.textContent =
-                "APERÇU ANIMÉ";
+                "IMAGE";
 
         } else {
 
@@ -840,10 +901,16 @@ async function openModal(item) {
                 false;
 
             previewStatus.textContent =
-                "APERÇU";
+                "IMAGE";
 
             resetVideo();
+
+            showVideoFallback();
         }
+
+        /*
+         * On garde toujours deux slides.
+         */
 
         createDots();
 
@@ -864,8 +931,10 @@ async function openModal(item) {
 
         resetVideo();
 
+        showVideoFallback();
+
         previewStatus.textContent =
-            "APERÇU";
+            "IMAGE";
 
         createDots();
 
@@ -1006,6 +1075,7 @@ function findDirectVideo(cosmetic) {
         if (
             isDirectVideoUrl(value)
         ) {
+
             return value;
         }
     }
@@ -1135,14 +1205,16 @@ function createDots() {
     carouselDots.innerHTML =
         "";
 
-    const count =
-        hasVideo
-            ? 2
-            : 1;
+    /*
+     * TOUJOURS 2 points.
+     *
+     * 0 = image
+     * 1 = vidéo / fallback
+     */
 
     for (
         let i = 0;
-        i < count;
+        i < 2;
         i++
     ) {
 
@@ -1165,9 +1237,9 @@ function createDots() {
 
         dot.setAttribute(
             "aria-label",
-            i === 0 && hasVideo
-                ? "Afficher la vidéo"
-                : "Afficher l'image"
+            i === 0
+                ? "Afficher l'image"
+                : "Afficher la vidéo"
         );
 
         dot.addEventListener(
@@ -1192,22 +1264,18 @@ function createDots() {
 
 function goToSlide(index) {
 
-    if (!hasVideo) {
+    /*
+     * Le carousel possède toujours deux positions.
+     */
 
-        currentSlide =
-            0;
-
-    } else {
-
-        currentSlide =
-            Math.max(
-                0,
-                Math.min(
-                    1,
-                    index
-                )
-            );
-    }
+    currentSlide =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                index
+            )
+        );
 
     updateSlide(
         currentSlide,
@@ -1224,15 +1292,18 @@ function updateSlide(
     animate = true
 ) {
 
-    if (!hasVideo) {
-        index = 0;
-    }
+    /*
+     * Toujours deux slides :
+     *
+     * 0 = IMAGE
+     * 1 = VIDEO
+     */
 
     index =
         Math.max(
             0,
             Math.min(
-                hasVideo ? 1 : 0,
+                1,
                 index
             )
         );
@@ -1263,21 +1334,67 @@ function updateSlide(
         }
     );
 
+    /*
+     * SLIDE 0 = IMAGE
+     */
+
     if (index === 0) {
 
-        previewStatus.textContent =
-            hasVideo
-                ? "APERÇU ANIMÉ"
-                : "APERÇU";
+        modalImage.style.display =
+            "block";
 
-        playCurrentVideo();
+        modalVideo.style.display =
+            "none";
 
-    } else {
+        videoFallback.classList.remove(
+            "visible"
+        );
 
         previewStatus.textContent =
             "IMAGE";
 
         pauseCurrentVideo();
+
+        return;
+    }
+
+    /*
+     * SLIDE 1 = VIDEO
+     */
+
+    modalImage.style.display =
+        "none";
+
+    previewStatus.textContent =
+        "APERÇU ANIMÉ";
+
+    if (
+        hasVideo &&
+        currentVideoUrl
+    ) {
+
+        modalVideo.style.display =
+            "block";
+
+        videoFallback.classList.remove(
+            "visible"
+        );
+
+        playCurrentVideo();
+
+    } else {
+
+        /*
+         * Pas de vidéo :
+         * la deuxième slide existe quand même.
+         */
+
+        modalVideo.style.display =
+            "none";
+
+        videoFallback.classList.add(
+            "visible"
+        );
     }
 }
 
@@ -1320,7 +1437,13 @@ function playCurrentVideo() {
 
 function pauseCurrentVideo() {
 
-    modalVideo.pause();
+    if (
+        modalVideo &&
+        typeof modalVideo.pause === "function"
+    ) {
+
+        modalVideo.pause();
+    }
 }
 
 // =========================================================
@@ -1330,15 +1453,16 @@ function pauseCurrentVideo() {
 function handlePointerDown(event) {
 
     if (
-        !modal.classList.contains("open") ||
-        !hasVideo
+        !modal.classList.contains("open")
     ) {
         return;
     }
 
     /*
-     * On ne déclenche le swipe qu'avec
-     * le doigt / stylet.
+     * On accepte doigt et stylet.
+     *
+     * La souris reste utilisable pour les points
+     * et les flèches clavier.
      */
 
     if (
@@ -1404,8 +1528,7 @@ function handlePointerMove(event) {
         pointerStartY;
 
     /*
-     * On attend quelques pixels avant
-     * de décider si le geste est horizontal.
+     * Détection direction.
      */
 
     if (
@@ -1416,8 +1539,14 @@ function handlePointerMove(event) {
             Math.abs(deltaX) < 8 &&
             Math.abs(deltaY) < 8
         ) {
+
             return;
         }
+
+        /*
+         * Si le mouvement est surtout vertical,
+         * on laisse le navigateur gérer le scroll.
+         */
 
         if (
             Math.abs(deltaY) >
@@ -1443,10 +1572,6 @@ function handlePointerMove(event) {
             true;
     }
 
-    /*
-     * Le geste est horizontal.
-     */
-
     event.preventDefault();
 
     const width =
@@ -1459,7 +1584,7 @@ function handlePointerMove(event) {
     }
 
     /*
-     * Une slide = 50% du track.
+     * Une slide représente 50% du track.
      */
 
     const movementPercent =
@@ -1472,7 +1597,7 @@ function handlePointerMove(event) {
         basePosition - movementPercent;
 
     /*
-     * Résistance aux extrémités.
+     * Résistance à gauche.
      */
 
     if (
@@ -1482,6 +1607,10 @@ function handlePointerMove(event) {
         position =
             position * 0.18;
     }
+
+    /*
+     * Résistance à droite.
+     */
 
     if (
         position > 50
@@ -1529,7 +1658,9 @@ function handlePointerUp(event) {
         null;
 
     /*
-     * Swipe gauche = vidéo -> image
+     * Swipe gauche :
+     *
+     * IMAGE -> VIDEO
      */
 
     if (
@@ -1543,7 +1674,9 @@ function handlePointerUp(event) {
     }
 
     /*
-     * Swipe droite = image -> vidéo
+     * Swipe droite :
+     *
+     * VIDEO -> IMAGE
      */
 
     if (
@@ -1557,8 +1690,8 @@ function handlePointerUp(event) {
     }
 
     /*
-     * Pas assez de déplacement :
-     * retour propre à la slide actuelle.
+     * Mouvement insuffisant :
+     * retour à la position actuelle.
      */
 
     updateSlide(
@@ -1659,8 +1792,11 @@ document.addEventListener(
 );
 
 /*
- * Nouveau système de swipe :
- * Pointer Events.
+ * Système de swipe Pointer Events.
+ *
+ * IMPORTANT :
+ * On ne teste PLUS hasVideo ici.
+ * Le swipe fonctionne toujours.
  */
 
 modalMedia.addEventListener(
@@ -1703,11 +1839,20 @@ modalVideo.addEventListener(
     "error",
     () => {
 
+        hasVideo =
+            false;
+
+        currentVideoUrl =
+            null;
+
         if (
-            currentSlide === 0
+            currentSlide === 1
         ) {
 
             showVideoFallback();
+
+            previewStatus.textContent =
+                "APERÇU ANIMÉ";
         }
     }
 );
@@ -1723,12 +1868,17 @@ modalVideo.addEventListener(
         videoFallback.classList.remove(
             "visible"
         );
+
+        hasVideo =
+            true;
     }
 );
 
 // =========================================================
 // INITIALISATION
 // =========================================================
+
+setupSlideOrder();
 
 updateDate();
 
