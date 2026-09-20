@@ -296,8 +296,7 @@ header {
 
     font-size: 10px;
 
-    color:
-        var(--muted);
+    color: var(--muted);
 
     text-transform:
         uppercase;
@@ -544,7 +543,7 @@ main {
 
 
 /* =========================================================
-   HEADING
+   SHOP HEADING
 ========================================================= */
 
 .shop-heading {
@@ -991,8 +990,6 @@ main {
     padding: 0 !important;
 
     margin: 0 !important;
-
-    filter: none !important;
 
 }
 
@@ -1810,7 +1807,7 @@ footer p {
 
 
 /* =========================================================
-   ACCESSIBILITÉ
+   ACCESSIBILITE
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
