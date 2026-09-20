@@ -5,11 +5,25 @@ const status = document.getElementById("status");
 const dateElement = document.getElementById("date");
 
 
-/* =========================================================
-   DATE
-========================================================= */
+// =========================================================
+// MODAL
+// =========================================================
+
+const itemModal = document.getElementById("item-modal");
+const modalBackdrop = document.querySelector(".modal-backdrop");
+const modalClose = document.getElementById("modal-close");
+
+const modalImage = document.getElementById("modal-image");
+const modalName = document.getElementById("modal-name");
+const modalPrice = document.getElementById("modal-price");
+
+
+// =========================================================
+// DATE
+// =========================================================
 
 function displayDate() {
+
     const today = new Date();
 
     dateElement.textContent = today.toLocaleDateString("fr-FR", {
@@ -18,12 +32,89 @@ function displayDate() {
         month: "long",
         year: "numeric"
     });
+
 }
 
 
-/* =========================================================
-   SHOP
-========================================================= */
+// =========================================================
+// OUVRIR LE MODAL
+// =========================================================
+
+function openItemModal(item, price) {
+
+    const image =
+        item.images?.featured ||
+        item.images?.icon;
+
+    if (!image) return;
+
+    modalImage.src = image;
+    modalImage.alt = item.name;
+
+    modalName.textContent = item.name;
+
+    modalPrice.innerHTML = `
+        <img
+            class="vbucks-icon"
+            src="https://firedrifytb.github.io/fortnite-shop/IMG_2258.png"
+            alt="V-Bucks"
+        >
+        <span>${price}</span>
+        <span>V-Bucks</span>
+    `;
+
+    itemModal.classList.add("active");
+    itemModal.setAttribute("aria-hidden", "false");
+
+    document.body.classList.add("modal-open");
+
+}
+
+
+// =========================================================
+// FERMER LE MODAL
+// =========================================================
+
+function closeItemModal() {
+
+    itemModal.classList.remove("active");
+    itemModal.setAttribute("aria-hidden", "true");
+
+    document.body.classList.remove("modal-open");
+
+}
+
+
+// =========================================================
+// BOUTON FERMER
+// =========================================================
+
+modalClose.addEventListener("click", closeItemModal);
+
+
+// =========================================================
+// CLIQUER SUR LE FOND
+// =========================================================
+
+modalBackdrop.addEventListener("click", closeItemModal);
+
+
+// =========================================================
+// TOUCHE ÉCHAP
+// =========================================================
+
+document.addEventListener("keydown", (event) => {
+
+    if (event.key === "Escape") {
+        closeItemModal();
+    }
+
+});
+
+
+// =========================================================
+// SHOP
+// =========================================================
 
 async function loadShop() {
 
@@ -74,9 +165,9 @@ async function loadShop() {
             const price = entry.finalPrice ?? "?";
 
 
-            /* =================================================
-               CARD
-            ================================================= */
+            // =================================================
+            // CARD
+            // =================================================
 
             const card = document.createElement("div");
 
@@ -113,14 +204,47 @@ async function loadShop() {
             `;
 
 
+            // =================================================
+            // CLIQUE SUR LA CARTE
+            // =================================================
+
+            card.addEventListener("click", () => {
+
+                openItemModal(item, price);
+
+            });
+
+
+            // Accessibilité clavier
+
+            card.setAttribute("tabindex", "0");
+            card.setAttribute("role", "button");
+
+
+            card.addEventListener("keydown", (event) => {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+
+                    event.preventDefault();
+
+                    openItemModal(item, price);
+
+                }
+
+            });
+
+
             shopContainer.appendChild(card);
 
         });
 
 
-        /* =================================================
-           RESULT
-        ================================================= */
+        // =====================================================
+        // RESULTAT
+        // =====================================================
 
         if (shopContainer.children.length === 0) {
 
@@ -142,40 +266,25 @@ async function loadShop() {
             "❌ Impossible de charger la boutique. Réessaie dans quelques secondes.";
 
     }
+
 }
 
 
-/* =========================================================
-   INITIALISATION
-========================================================= */
+// =========================================================
+// INITIALISATION
+// =========================================================
 
 displayDate();
 
 loadShop();
 
 
-/* =========================================================
-   SERVICE WORKER
-========================================================= */
+// =========================================================
+// SERVICE WORKER
+// =========================================================
 
 if ("serviceWorker" in navigator) {
 
     window.addEventListener("load", () => {
 
-        navigator.serviceWorker
-            .register("./sw.js")
-
-            .then(() => {
-                console.log("Service worker activé");
-            })
-
-            .catch(error => {
-                console.error(
-                    "Service worker:",
-                    error
-                );
-            });
-
-    });
-
-}
+        navigator
