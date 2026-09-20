@@ -24,22 +24,46 @@
         <div class="grid-background"></div>
     </div>
 
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
     <header>
+
         <div class="header-inner">
 
             <div class="brand">
-                <div class="brand-logo">⚡</div>
+
+                <div class="brand-logo">
+                    ⚡
+                </div>
 
                 <div class="brand-text">
-                    <h1>FORTNITE <span>SHOP</span></h1>
-                    <p>Boutique quotidienne</p>
+
+                    <h1>
+                        FORTNITE <span>SHOP</span>
+                    </h1>
+
+                    <p>
+                        Boutique quotidienne
+                    </p>
+
                 </div>
+
             </div>
 
+
             <div class="date-box">
-                <span class="date-label">BOUTIQUE DU</span>
+
+                <span class="date-label">
+                    BOUTIQUE DU
+                </span>
+
                 <div id="date"></div>
+
             </div>
+
 
             <div class="actions">
 
@@ -47,28 +71,50 @@
                     class="login-button"
                     href="https://fortnite-shop.firedrifytb.workers.dev/login"
                 >
-                    <span class="epic-icon">🎮</span>
+
+                    <span class="epic-icon">
+                        🎮
+                    </span>
 
                     <span class="login-content">
-                        <small>COMPTE EPIC</small>
+
+                        <small>
+                            COMPTE EPIC
+                        </small>
+
                         Se connecter
+
                     </span>
+
                 </a>
+
 
                 <button
                     class="refresh-button"
                     onclick="loadShop()"
                     aria-label="Actualiser la boutique"
                 >
-                    <span class="refresh-icon">↻</span>
-                    <span class="refresh-text">Actualiser</span>
+
+                    <span class="refresh-icon">
+                        ↻
+                    </span>
+
+                    <span class="refresh-text">
+                        Actualiser
+                    </span>
+
                 </button>
 
             </div>
 
         </div>
+
     </header>
 
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
 
     <main>
 
@@ -90,9 +136,13 @@
 
             </div>
 
+
             <div class="live-badge">
+
                 <span></span>
+
                 EN DIRECT
+
             </div>
 
         </section>
@@ -101,11 +151,13 @@
         <div id="status">
 
             <div class="loading-container">
+
                 <div class="loading-spinner"></div>
 
                 <span>
                     Chargement de la boutique...
                 </span>
+
             </div>
 
         </div>
@@ -136,6 +188,11 @@
             aria-labelledby="modal-name"
         >
 
+
+            <!-- =================================================
+                 CLOSE
+            ================================================== -->
+
             <button
                 id="modal-close"
                 class="modal-close"
@@ -145,9 +202,15 @@
             </button>
 
 
+            <!-- =================================================
+                 MEDIA
+            ================================================== -->
+
             <div class="modal-media">
 
-                <!-- Vidéo de présentation -->
+
+                <!-- VIDEO -->
+
                 <video
                     id="modal-video"
                     class="modal-video"
@@ -158,7 +221,8 @@
                 ></video>
 
 
-                <!-- Image de secours -->
+                <!-- IMAGE FALLBACK -->
+
                 <img
                     id="modal-image"
                     class="modal-image"
@@ -167,6 +231,37 @@
                 >
 
 
+                <!-- VIDEO OVERLAY -->
+
+                <div
+                    id="video-overlay"
+                    class="video-overlay"
+                >
+
+                    <button
+                        id="video-sound"
+                        class="media-button"
+                        type="button"
+                        aria-label="Activer le son"
+                    >
+                        🔇
+                    </button>
+
+
+                    <button
+                        id="video-fullscreen"
+                        class="media-button"
+                        type="button"
+                        aria-label="Plein écran"
+                    >
+                        ⛶
+                    </button>
+
+                </div>
+
+
+                <!-- PREVIEW LABEL -->
+
                 <div
                     id="preview-status"
                     class="preview-status"
@@ -174,14 +269,44 @@
                     Aperçu de l'objet
                 </div>
 
+
+                <!-- VIDEO LOADING -->
+
+                <div
+                    id="video-loading"
+                    class="video-loading"
+                >
+
+                    <div class="video-loading-spinner"></div>
+
+                    <span>
+                        Chargement de l'aperçu...
+                    </span>
+
+                </div>
+
             </div>
 
 
+            <!-- =================================================
+                 INFORMATIONS
+            ================================================== -->
+
             <div class="modal-info">
 
-                <span class="modal-label">
-                    OBJET FORTNITE
-                </span>
+
+                <div class="modal-top-line">
+
+                    <span class="modal-label">
+                        OBJET FORTNITE
+                    </span>
+
+                    <span
+                        id="modal-rarity"
+                        class="modal-rarity"
+                    ></span>
+
+                </div>
 
 
                 <h2 id="modal-name"></h2>
@@ -189,13 +314,39 @@
 
                 <div
                     id="modal-price"
-                    class="price"
+                    class="modal-price"
                 ></div>
 
+
+                <!-- TAGS -->
+
+                <div
+                    id="modal-tags"
+                    class="modal-tags"
+                ></div>
+
+
+                <!-- DESCRIPTION -->
 
                 <div
                     id="modal-description"
                     class="modal-description"
+                ></div>
+
+
+                <!-- INTRODUCTION -->
+
+                <div
+                    id="modal-introduction"
+                    class="modal-introduction"
+                ></div>
+
+
+                <!-- SET -->
+
+                <div
+                    id="modal-set"
+                    class="modal-set"
                 ></div>
 
             </div>
@@ -204,6 +355,10 @@
 
     </div>
 
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
 
     <footer>
 
