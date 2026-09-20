@@ -134,7 +134,8 @@ header {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
 
-    animation: headerAppear 0.7s ease both;
+    animation:
+        headerAppear 0.7s ease both;
 }
 
 .header-inner {
@@ -272,7 +273,9 @@ header {
 }
 
 
-/* LOGIN */
+/* =========================================================
+   LOGIN
+========================================================= */
 
 .login-button {
     position: relative;
@@ -377,7 +380,9 @@ header {
 }
 
 
-/* REFRESH */
+/* =========================================================
+   REFRESH
+========================================================= */
 
 .refresh-button {
     display: flex;
@@ -505,7 +510,9 @@ main {
 }
 
 
-/* LIVE */
+/* =========================================================
+   LIVE BADGE
+========================================================= */
 
 .live-badge {
     display: flex;
@@ -634,9 +641,6 @@ main {
     box-shadow:
         0 10px 30px rgba(0, 0, 0, 0.25);
 
-    transform:
-        translateY(0);
-
     opacity: 0;
 
     animation:
@@ -653,11 +657,6 @@ main {
         box-shadow 0.3s ease;
 }
 
-
-/*
-   Petite lumière en haut de la carte
-*/
-
 .card::before {
     content: "";
 
@@ -673,7 +672,7 @@ main {
         linear-gradient(
             90deg,
             transparent,
-            rgba(255, 255, 255, 0.25),
+            rgba(255, 255, 255, 0.3),
             transparent
         );
 
@@ -681,6 +680,8 @@ main {
 
     transition:
         opacity 0.3s ease;
+
+    z-index: 3;
 }
 
 .card:hover {
@@ -704,7 +705,7 @@ main {
    CARD IMAGE
 ========================================================= */
 
-.card img {
+.card img:not(.vbucks-icon) {
     display: block;
 
     width: 100%;
@@ -725,48 +726,12 @@ main {
         filter 0.4s ease;
 }
 
-.card:hover img {
+.card:hover img:not(.vbucks-icon) {
     transform: scale(1.055);
 
     filter:
         brightness(1.08)
         saturate(1.08);
-}
-
-
-/*
-   Image overlay
-*/
-
-.card::after {
-    content: "";
-
-    position: absolute;
-
-    left: 0;
-    right: 0;
-
-    top: 0;
-
-    height: 55%;
-
-    pointer-events: none;
-
-    background:
-        linear-gradient(
-            to bottom,
-            rgba(0, 0, 0, 0.18),
-            transparent
-        );
-
-    opacity: 0;
-
-    transition:
-        opacity 0.3s ease;
-}
-
-.card:hover::after {
-    opacity: 1;
 }
 
 
@@ -799,18 +764,56 @@ main {
     letter-spacing: -0.3px;
 }
 
+
+/* =========================================================
+   V-BUCKS PRICE
+========================================================= */
+
 .price {
     display: inline-flex;
 
     align-items: center;
 
-    gap: 5px;
+    gap: 6px;
 
     color: #ffd84d;
 
     font-size: 13px;
 
     font-weight: 800;
+}
+
+.vbucks-icon {
+    width: 18px !important;
+    height: 18px !important;
+
+    aspect-ratio: 1 / 1 !important;
+
+    object-fit: contain !important;
+
+    background: transparent !important;
+
+    filter:
+        drop-shadow(
+            0 0 4px
+            rgba(255, 216, 77, 0.25)
+        );
+
+    transition:
+        transform 0.25s ease,
+        filter 0.25s ease;
+}
+
+.card:hover .vbucks-icon {
+    transform:
+        scale(1.15)
+        rotate(-5deg);
+
+    filter:
+        drop-shadow(
+            0 0 8px
+            rgba(255, 216, 77, 0.5)
+        );
 }
 
 
@@ -870,29 +873,30 @@ footer p {
 ========================================================= */
 
 @keyframes spin {
+
     to {
         transform: rotate(360deg);
     }
+
 }
 
-
 @keyframes livePulse {
+
     0%,
     100% {
         opacity: 1;
-
         transform: scale(1);
     }
 
     50% {
         opacity: 0.45;
-
         transform: scale(0.7);
     }
+
 }
 
-
 @keyframes floatingOrb {
+
     0% {
         transform:
             translate3d(0, 0, 0)
@@ -904,44 +908,39 @@ footer p {
             translate3d(50px, 35px, 0)
             scale(1.1);
     }
-}
 
+}
 
 @keyframes headerAppear {
+
     from {
         opacity: 0;
-
-        transform:
-            translateY(-15px);
+        transform: translateY(-15px);
     }
 
     to {
         opacity: 1;
-
-        transform:
-            translateY(0);
+        transform: translateY(0);
     }
-}
 
+}
 
 @keyframes fadeUp {
+
     from {
         opacity: 0;
-
-        transform:
-            translateY(15px);
+        transform: translateY(15px);
     }
 
     to {
         opacity: 1;
-
-        transform:
-            translateY(0);
+        transform: translateY(0);
     }
+
 }
 
-
 @keyframes cardAppear {
+
     from {
         opacity: 0;
 
@@ -957,20 +956,24 @@ footer p {
             translateY(0)
             scale(1);
     }
+
 }
 
-
 @keyframes logoPulse {
+
     0%,
     100% {
         box-shadow:
-            0 0 20px rgba(79, 124, 255, 0.18);
+            0 0 20px
+            rgba(79, 124, 255, 0.18);
     }
 
     50% {
         box-shadow:
-            0 0 32px rgba(79, 124, 255, 0.35);
+            0 0 32px
+            rgba(79, 124, 255, 0.35);
     }
+
 }
 
 
@@ -985,37 +988,6 @@ footer p {
             repeat(4, minmax(0, 1fr));
     }
 
-    .card:nth-child(1) {
-        animation-delay: 0.02s;
-    }
-
-    .card:nth-child(2) {
-        animation-delay: 0.06s;
-    }
-
-    .card:nth-child(3) {
-        animation-delay: 0.10s;
-    }
-
-    .card:nth-child(4) {
-        animation-delay: 0.14s;
-    }
-
-    .card:nth-child(5) {
-        animation-delay: 0.18s;
-    }
-
-    .card:nth-child(6) {
-        animation-delay: 0.22s;
-    }
-
-    .card:nth-child(7) {
-        animation-delay: 0.26s;
-    }
-
-    .card:nth-child(8) {
-        animation-delay: 0.30s;
-    }
 }
 
 
@@ -1035,11 +1007,13 @@ footer p {
     .header-inner,
     main,
     footer {
-        width: min(
-            1500px,
-            calc(100% - 60px)
-        );
+        width:
+            min(
+                1500px,
+                calc(100% - 60px)
+            );
     }
+
 }
 
 
@@ -1052,8 +1026,7 @@ footer p {
     .header-inner {
         min-height: auto;
 
-        padding:
-            13px 0;
+        padding: 13px 0;
 
         flex-wrap: wrap;
 
@@ -1089,7 +1062,8 @@ footer p {
         padding-top: 4px;
 
         border-top:
-            1px solid rgba(255, 255, 255, 0.05);
+            1px solid
+            rgba(255, 255, 255, 0.05);
     }
 
     .actions {
@@ -1169,10 +1143,16 @@ footer p {
         font-size: 12px;
     }
 
+    .vbucks-icon {
+        width: 17px !important;
+        height: 17px !important;
+    }
+
     footer {
         width:
             calc(100% - 30px);
     }
+
 }
 
 
@@ -1196,4 +1176,5 @@ footer p {
         transition-duration:
             0.01ms !important;
     }
+
 }
