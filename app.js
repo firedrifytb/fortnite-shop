@@ -100,10 +100,10 @@ async function loadShop() {
                     <div class="price">
 
                         <img
-    class="vbucks-icon"
-    src="IMG_2558.png"
-    alt="V-Bucks"
->
+                            class="vbucks-icon"
+                            src="IMG_2258.png"
+                            alt="V-Bucks"
+                        >
 
                         <span>${price}</span>
 
