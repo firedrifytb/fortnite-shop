@@ -1,9 +1,20 @@
-/* =========================================================
-   RESET
-========================================================= */
-
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
+}
+
+:root {
+    --bg: #070b18;
+    --bg-light: #0d1326;
+    --card: rgba(16, 23, 43, 0.72);
+    --border: rgba(255, 255, 255, 0.08);
+    --blue: #5b8cff;
+    --blue-light: #7aa2ff;
+    --purple: #9b6cff;
+    --text: #ffffff;
+    --text-muted: #9ca8c4;
+    --yellow: #ffd84d;
 }
 
 html {
@@ -11,95 +22,83 @@ html {
 }
 
 body {
-    margin: 0;
     min-height: 100vh;
-
+    background: var(--bg);
+    color: var(--text);
     font-family:
         Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
         Arial,
-        Helvetica,
         sans-serif;
-
-    color: #ffffff;
-
-    background:
-        radial-gradient(
-            circle at 50% -15%,
-            rgba(77, 110, 255, 0.18),
-            transparent 38%
-        ),
-        linear-gradient(
-            180deg,
-            #070b18 0%,
-            #080c19 45%,
-            #050710 100%
-        );
-
     overflow-x: hidden;
 }
 
 
-/* =========================================================
+/* =========================
    BACKGROUND
-========================================================= */
+========================= */
 
 .background {
     position: fixed;
     inset: 0;
-
-    pointer-events: none;
-
+    z-index: -1;
     overflow: hidden;
 
-    z-index: -10;
+    background:
+        radial-gradient(
+            circle at 50% -20%,
+            rgba(91, 140, 255, 0.13),
+            transparent 40%
+        ),
+        linear-gradient(
+            180deg,
+            #070b18 0%,
+            #080d1c 100%
+        );
 }
 
 .orb {
     position: absolute;
-
-    width: 500px;
-    height: 500px;
-
     border-radius: 50%;
-
-    filter: blur(120px);
-
-    opacity: 0.13;
-
-    animation:
-        floatingOrb 12s ease-in-out infinite alternate;
+    filter: blur(90px);
+    opacity: 0.22;
+    pointer-events: none;
 }
 
 .orb-blue {
-    top: -280px;
+    width: 500px;
+    height: 500px;
+    top: -200px;
     left: -180px;
-
-    background: #4169ff;
+    background: #326cff;
+    animation: floatBlue 12s ease-in-out infinite alternate;
 }
 
 .orb-purple {
-    right: -220px;
-    bottom: -280px;
-
-    background: #8b5cf6;
-
-    animation-delay: -5s;
+    width: 500px;
+    height: 500px;
+    right: -200px;
+    top: 25%;
+    background: #873cff;
+    animation: floatPurple 15s ease-in-out infinite alternate;
 }
 
 .grid-background {
     position: absolute;
     inset: 0;
-
-    opacity: 0.035;
+    opacity: 0.18;
 
     background-image:
         linear-gradient(
-            rgba(255, 255, 255, 0.5) 1px,
+            rgba(255, 255, 255, 0.035) 1px,
             transparent 1px
         ),
         linear-gradient(
             90deg,
-            rgba(255, 255, 255, 0.5) 1px,
+            rgba(255, 255, 255, 0.035) 1px,
             transparent 1px
         );
 
@@ -109,198 +108,161 @@ body {
         linear-gradient(
             to bottom,
             black,
-            transparent 70%
+            transparent 85%
         );
 }
 
+@keyframes floatBlue {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
 
-/* =========================================================
+    to {
+        transform: translate3d(80px, 50px, 0);
+    }
+}
+
+@keyframes floatPurple {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: translate3d(-70px, -40px, 0);
+    }
+}
+
+
+/* =========================
    HEADER
-========================================================= */
+========================= */
 
 header {
     position: sticky;
-
     top: 0;
+    z-index: 50;
 
-    z-index: 100;
+    border-bottom: 1px solid var(--border);
 
-    background:
-        rgba(6, 10, 23, 0.72);
+    background: rgba(7, 11, 24, 0.72);
 
-    border-bottom:
-        1px solid rgba(255, 255, 255, 0.07);
-
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
-    animation:
-        headerAppear 0.7s ease both;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
 .header-inner {
-    width: min(
-        1400px,
-        calc(100% - 32px)
-    );
-
-    min-height: 88px;
-
+    width: min(1400px, calc(100% - 40px));
+    min-height: 82px;
     margin: auto;
 
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     gap: 25px;
 }
 
 
-/* =========================================================
+/* =========================
    BRAND
-========================================================= */
+========================= */
 
 .brand {
     display: flex;
-
     align-items: center;
-
-    gap: 12px;
+    gap: 13px;
 }
 
 .brand-logo {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
 
-    display: flex;
+    display: grid;
+    place-items: center;
 
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 14px;
+    border-radius: 12px;
 
     background:
         linear-gradient(
             135deg,
-            #4f7cff,
-            #7c3aed
+            rgba(91, 140, 255, 0.22),
+            rgba(155, 108, 255, 0.18)
         );
 
+    border: 1px solid rgba(255, 255, 255, 0.09);
+
     box-shadow:
-        0 0 25px rgba(79, 124, 255, 0.25);
+        0 0 25px rgba(91, 140, 255, 0.18);
 
-    font-size: 20px;
-
-    animation:
-        logoPulse 4s ease-in-out infinite;
+    font-size: 21px;
 }
 
 .brand-text h1 {
-    margin: 0;
-
-    font-size: 19px;
-
+    font-size: 17px;
     font-weight: 900;
-
-    letter-spacing: -0.6px;
+    letter-spacing: 1px;
 }
 
 .brand-text h1 span {
-    color: #6f91ff;
+    color: var(--blue-light);
 }
 
 .brand-text p {
-    margin: 3px 0 0;
+    margin-top: 2px;
 
-    color: #737e95;
+    color: var(--text-muted);
 
-    font-size: 9px;
-
-    font-weight: 700;
-
-    letter-spacing: 1.5px;
+    font-size: 10px;
+    font-weight: 600;
 
     text-transform: uppercase;
+    letter-spacing: 1.2px;
 }
 
 
-/* =========================================================
+/* =========================
    DATE
-========================================================= */
+========================= */
 
 .date-box {
     text-align: center;
-
-    animation:
-        fadeUp 0.8s 0.15s ease both;
 }
 
 .date-label {
     display: block;
 
-    margin-bottom: 5px;
-
-    color: #626d84;
+    color: #687592;
 
     font-size: 9px;
-
     font-weight: 800;
 
-    letter-spacing: 1.7px;
+    letter-spacing: 1.5px;
 }
 
 #date {
-    color: #dce3f2;
+    margin-top: 3px;
 
     font-size: 13px;
+    font-weight: 700;
 
-    font-weight: 600;
+    text-transform: capitalize;
 }
 
 
-/* =========================================================
+/* =========================
    ACTIONS
-========================================================= */
+========================= */
 
 .actions {
     display: flex;
-
     align-items: center;
-
-    gap: 9px;
+    gap: 10px;
 }
 
+.login-button,
+.refresh-button {
+    height: 44px;
 
-/* =========================================================
-   LOGIN
-========================================================= */
-
-.login-button {
-    position: relative;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 9px;
-
-    padding: 9px 14px;
-
-    color: #ffffff;
-
-    text-decoration: none;
-
-    border:
-        1px solid rgba(255, 255, 255, 0.1);
-
-    border-radius: 13px;
-
-    background:
-        rgba(255, 255, 255, 0.055);
-
-    overflow: hidden;
+    border-radius: 12px;
 
     transition:
         transform 0.25s ease,
@@ -309,7 +271,34 @@ header {
         box-shadow 0.25s ease;
 }
 
-.login-button::before {
+
+/* LOGIN */
+
+.login-button {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 0 15px;
+
+    color: white;
+    text-decoration: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(91, 140, 255, 0.18),
+            rgba(155, 108, 255, 0.14)
+        );
+
+    border: 1px solid rgba(91, 140, 255, 0.25);
+
+    overflow: hidden;
+}
+
+.login-button::after {
     content: "";
 
     position: absolute;
@@ -317,103 +306,91 @@ header {
     top: 0;
     left: -100%;
 
-    width: 70%;
+    width: 60%;
     height: 100%;
 
     background:
         linear-gradient(
             90deg,
             transparent,
-            rgba(255, 255, 255, 0.12),
+            rgba(255, 255, 255, 0.13),
             transparent
         );
 
     transform: skewX(-20deg);
 
-    transition:
-        left 0.5s ease;
+    transition: left 0.6s ease;
 }
 
-.login-button:hover::before {
-    left: 130%;
+.login-button:hover::after {
+    left: 140%;
 }
 
 .login-button:hover {
     transform: translateY(-2px);
 
-    border-color:
-        rgba(255, 255, 255, 0.2);
-
-    background:
-        rgba(255, 255, 255, 0.09);
+    border-color: rgba(91, 140, 255, 0.5);
 
     box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.25);
-}
-
-.login-button:active {
-    transform: scale(0.96);
+        0 8px 30px rgba(91, 140, 255, 0.15);
 }
 
 .epic-icon {
-    font-size: 18px;
+    font-size: 17px;
 }
 
 .login-content {
     display: flex;
-
     flex-direction: column;
 
     font-size: 12px;
-
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .login-content small {
-    margin-bottom: 1px;
+    color: #7784a2;
 
-    color: #6f7a91;
-
-    font-size: 7px;
+    font-size: 8px;
+    font-weight: 800;
 
     letter-spacing: 1px;
 }
 
 
-/* =========================================================
-   REFRESH
-========================================================= */
+/* REFRESH */
 
 .refresh-button {
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     gap: 7px;
 
-    padding: 10px 14px;
+    padding: 0 14px;
 
-    border:
-        1px solid rgba(79, 124, 255, 0.25);
+    color: #b9c3d9;
 
-    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.04);
 
-    background:
-        rgba(79, 124, 255, 0.11);
-
-    color: #dce5ff;
-
-    font-size: 12px;
-
-    font-weight: 700;
+    border: 1px solid var(--border);
 
     cursor: pointer;
 
-    transition:
-        transform 0.25s ease,
-        background 0.25s ease,
-        box-shadow 0.25s ease;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.refresh-button:hover {
+    color: white;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    border-color: rgba(255, 255, 255, 0.14);
+
+    transform: translateY(-2px);
+}
+
+.refresh-button:hover .refresh-icon {
+    transform: rotate(180deg);
 }
 
 .refresh-icon {
@@ -421,382 +398,321 @@ header {
 
     font-size: 19px;
 
-    line-height: 1;
-
-    transition:
-        transform 0.5s ease;
-}
-
-.refresh-button:hover {
-    transform: translateY(-2px);
-
-    background:
-        rgba(79, 124, 255, 0.2);
-
-    box-shadow:
-        0 8px 25px rgba(79, 124, 255, 0.12);
-}
-
-.refresh-button:hover .refresh-icon {
-    transform: rotate(180deg);
-}
-
-.refresh-button:active {
-    transform: scale(0.95);
+    transition: transform 0.45s ease;
 }
 
 
-/* =========================================================
+/* =========================
    MAIN
-========================================================= */
+========================= */
 
 main {
-    width: min(
-        1400px,
-        calc(100% - 32px)
-    );
+    width: min(1400px, calc(100% - 40px));
 
     margin: auto;
+
+    padding: 55px 0 80px;
 }
 
 
-/* =========================================================
+/* =========================
    SHOP HEADING
-========================================================= */
+========================= */
 
 .shop-heading {
-    margin-top: 55px;
-    margin-bottom: 30px;
-
     display: flex;
-
     align-items: flex-end;
-
     justify-content: space-between;
 
-    gap: 20px;
-
-    animation:
-        fadeUp 0.8s 0.1s ease both;
+    margin-bottom: 35px;
 }
 
 .section-label {
-    color: #6f91ff;
+    color: var(--blue-light);
 
     font-size: 10px;
-
     font-weight: 900;
 
     letter-spacing: 2px;
 }
 
-.shop-heading h2 {
-    margin: 6px 0 5px;
+.heading-content h2 {
+    margin-top: 5px;
 
-    font-size:
-        clamp(28px, 5vw, 43px);
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.05;
 
-    line-height: 1;
-
-    letter-spacing: -2px;
+    letter-spacing: -1.5px;
 }
 
-.shop-heading p {
-    margin: 0;
+.heading-content p {
+    margin-top: 9px;
 
-    color: #7e899f;
+    color: var(--text-muted);
 
-    font-size: 13px;
+    font-size: 14px;
 }
 
 
-/* =========================================================
-   LIVE BADGE
-========================================================= */
+/* LIVE */
 
 .live-badge {
     display: flex;
-
     align-items: center;
-
-    gap: 8px;
+    gap: 7px;
 
     padding: 8px 12px;
 
-    border:
-        1px solid rgba(74, 222, 128, 0.18);
+    border-radius: 999px;
 
-    border-radius: 50px;
+    color: #9de7ba;
 
-    background:
-        rgba(74, 222, 128, 0.06);
+    background: rgba(57, 194, 110, 0.07);
 
-    color: #9be8b4;
+    border: 1px solid rgba(57, 194, 110, 0.18);
 
     font-size: 9px;
-
-    font-weight: 800;
+    font-weight: 900;
 
     letter-spacing: 1px;
-
-    white-space: nowrap;
 }
 
 .live-badge span {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
 
     border-radius: 50%;
 
-    background: #4ade80;
+    background: #4fe58a;
 
     box-shadow:
-        0 0 10px rgba(74, 222, 128, 0.8);
+        0 0 10px rgba(79, 229, 138, 0.8);
 
-    animation:
-        livePulse 1.5s ease-in-out infinite;
+    animation: livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.45;
+        transform: scale(0.7);
+    }
 }
 
 
-/* =========================================================
-   STATUS
-========================================================= */
+/* =========================
+   STATUS / LOADING
+========================= */
 
 #status {
-    min-height: 55px;
+    min-height: 45px;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
-    margin-bottom: 15px;
-
-    color: #7e899f;
+    color: var(--text-muted);
 
     font-size: 13px;
 }
 
 .loading-container {
     display: flex;
-
     align-items: center;
-
     gap: 10px;
 }
 
 .loading-spinner {
-    width: 17px;
-    height: 17px;
-
-    border:
-        2px solid rgba(255, 255, 255, 0.1);
-
-    border-top-color: #6385ff;
+    width: 18px;
+    height: 18px;
 
     border-radius: 50%;
 
-    animation:
-        spin 0.8s linear infinite;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-top-color: var(--blue-light);
+
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 
-/* =========================================================
+/* =========================
    SHOP GRID
-========================================================= */
+========================= */
 
 #shop {
     display: grid;
 
     grid-template-columns:
-        repeat(2, minmax(0, 1fr));
+        repeat(
+            auto-fill,
+            minmax(210px, 1fr)
+        );
 
-    gap: 16px;
-
-    padding-bottom: 50px;
+    gap: 18px;
 }
 
 
-/* =========================================================
+/* =========================
    CARD
-========================================================= */
+========================= */
 
 .card {
     position: relative;
 
     overflow: hidden;
 
+    border-radius: 17px;
+
     background:
         linear-gradient(
             145deg,
-            rgba(25, 34, 59, 0.92),
-            rgba(13, 19, 35, 0.94)
+            rgba(20, 29, 53, 0.82),
+            rgba(10, 15, 30, 0.9)
         );
 
-    border:
-        1px solid rgba(255, 255, 255, 0.07);
-
-    border-radius: 18px;
+    border: 1px solid var(--border);
 
     box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.25);
+        0 12px 35px rgba(0, 0, 0, 0.18);
 
-    opacity: 0;
-
-    animation:
-        cardAppear 0.65s cubic-bezier(
-            0.2,
-            0.8,
-            0.2,
-            1
-        ) forwards;
+    animation: cardAppear 0.55s ease both;
 
     transition:
-        transform 0.3s ease,
-        border-color 0.3s ease,
-        box-shadow 0.3s ease;
+        transform 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease;
 }
 
-.card::before {
+.card::after {
     content: "";
 
     position: absolute;
+    inset: 0;
 
-    top: 0;
-    left: 0;
-    right: 0;
-
-    height: 1px;
+    pointer-events: none;
 
     background:
         linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.3),
-            transparent
+            135deg,
+            rgba(91, 140, 255, 0.08),
+            transparent 40%
         );
 
     opacity: 0;
 
-    transition:
-        opacity 0.3s ease;
-
-    z-index: 3;
+    transition: opacity 0.35s ease;
 }
 
 .card:hover {
-    transform:
-        translateY(-7px);
+    transform: translateY(-7px);
 
-    border-color:
-        rgba(111, 145, 255, 0.3);
+    border-color: rgba(91, 140, 255, 0.28);
 
     box-shadow:
-        0 18px 45px rgba(0, 0, 0, 0.4),
-        0 0 30px rgba(79, 124, 255, 0.08);
+        0 20px 50px rgba(0, 0, 0, 0.3),
+        0 0 30px rgba(91, 140, 255, 0.08);
 }
 
-.card:hover::before {
+.card:hover::after {
     opacity: 1;
 }
 
-
-/* =========================================================
-   CARD IMAGE
-========================================================= */
-
-.card img:not(.vbucks-icon) {
-    display: block;
-
+.card > img {
     width: 100%;
+    height: 210px;
 
-    aspect-ratio: 1 / 1;
+    display: block;
 
     object-fit: cover;
 
-    background: #111827;
+    background: #0b1020;
 
     transition:
-        transform 0.5s cubic-bezier(
-            0.2,
-            0.8,
-            0.2,
-            1
-        ),
-        filter 0.4s ease;
+        transform 0.5s ease,
+        filter 0.5s ease;
 }
 
-.card:hover img:not(.vbucks-icon) {
+.card:hover > img {
     transform: scale(1.055);
 
     filter:
-        brightness(1.08)
+        brightness(1.06)
         saturate(1.08);
 }
 
 
-/* =========================================================
+/* =========================
    CARD INFO
-========================================================= */
+========================= */
 
 .card-info {
     position: relative;
+    z-index: 2;
 
-    padding: 13px 14px 15px;
-
-    background:
-        rgba(10, 15, 29, 0.5);
-
-    backdrop-filter: blur(8px);
+    padding: 14px 15px 16px;
 }
 
-.card h2 {
-    margin: 0 0 7px;
+.card-info h2 {
+    overflow: hidden;
 
-    color: #f4f7ff;
+    color: white;
 
-    font-size: 15px;
-
+    font-size: 14px;
     font-weight: 800;
 
-    line-height: 1.25;
-
-    letter-spacing: -0.3px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
-
-
-/* =========================================================
-   V-BUCKS PRICE
-========================================================= */
 
 .price {
     display: inline-flex;
-
     align-items: center;
 
     gap: 6px;
 
-    color: #ffd84d;
+    margin-top: 8px;
+
+    color: var(--yellow);
 
     font-size: 13px;
-
     font-weight: 800;
 }
 
+
+/* =========================
+   V-BUCKS ICON
+========================= */
+
 .vbucks-icon {
-    width: 18px !important;
-    height: 18px !important;
+    width: 19px !important;
+    height: 19px !important;
 
-    aspect-ratio: 1 / 1 !important;
+    min-width: 19px;
+    min-height: 19px;
 
-    object-fit: contain !important;
+    aspect-ratio: 1 / 1;
+
+    display: block;
+
+    object-fit: contain;
 
     background: transparent !important;
 
     filter:
         drop-shadow(
             0 0 4px
-            rgba(255, 216, 77, 0.25)
+            rgba(255, 216, 77, 0.3)
         );
 
     transition:
@@ -812,266 +728,140 @@ main {
     filter:
         drop-shadow(
             0 0 8px
-            rgba(255, 216, 77, 0.5)
+            rgba(255, 216, 77, 0.55)
         );
 }
 
 
-/* =========================================================
+/* =========================
+   CARD ANIMATION
+========================= */
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================
    FOOTER
-========================================================= */
+========================= */
 
 footer {
-    width: min(
-        1400px,
-        calc(100% - 32px)
-    );
+    width: min(1400px, calc(100% - 40px));
 
-    margin: 10px auto 0;
+    margin: auto;
 
-    padding:
-        25px
-        0
-        35px;
+    padding: 25px 0 35px;
 
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 
-    color: #59647a;
+    color: #65708a;
 
-    font-size: 9px;
+    font-size: 10px;
+}
+
+.footer-logo {
+    color: #8a96af;
+
+    font-size: 10px;
+    font-weight: 900;
 
     letter-spacing: 1px;
 }
 
-.footer-logo {
-    color: #78849c;
-
-    font-size: 11px;
-
-    font-weight: 900;
-
-    letter-spacing: 2px;
-}
-
 .footer-line {
-    width: 50px;
+    flex: 1;
+
     height: 1px;
 
-    margin: 13px auto;
-
-    background:
-        rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 footer p {
-    margin: 0;
+    white-space: nowrap;
 }
 
 
-/* =========================================================
-   ANIMATIONS
-========================================================= */
+/* =========================
+   TABLET
+========================= */
 
-@keyframes spin {
+@media (max-width: 900px) {
 
-    to {
-        transform: rotate(360deg);
+    .header-inner {
+        width: min(100% - 28px, 700px);
     }
 
-}
-
-@keyframes livePulse {
-
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
+    .date-box {
+        display: none;
     }
 
-    50% {
-        opacity: 0.45;
-        transform: scale(0.7);
+    main {
+        width: min(100% - 28px, 700px);
+
+        padding-top: 40px;
     }
-
-}
-
-@keyframes floatingOrb {
-
-    0% {
-        transform:
-            translate3d(0, 0, 0)
-            scale(1);
-    }
-
-    100% {
-        transform:
-            translate3d(50px, 35px, 0)
-            scale(1.1);
-    }
-
-}
-
-@keyframes headerAppear {
-
-    from {
-        opacity: 0;
-        transform: translateY(-15px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-}
-
-@keyframes fadeUp {
-
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-}
-
-@keyframes cardAppear {
-
-    from {
-        opacity: 0;
-
-        transform:
-            translateY(25px)
-            scale(0.97);
-    }
-
-    to {
-        opacity: 1;
-
-        transform:
-            translateY(0)
-            scale(1);
-    }
-
-}
-
-@keyframes logoPulse {
-
-    0%,
-    100% {
-        box-shadow:
-            0 0 20px
-            rgba(79, 124, 255, 0.18);
-    }
-
-    50% {
-        box-shadow:
-            0 0 32px
-            rgba(79, 124, 255, 0.35);
-    }
-
-}
-
-
-/* =========================================================
-   DESKTOP
-========================================================= */
-
-@media (min-width: 700px) {
 
     #shop {
         grid-template-columns:
-            repeat(4, minmax(0, 1fr));
-    }
-
-}
-
-
-/* =========================================================
-   LARGE DESKTOP
-========================================================= */
-
-@media (min-width: 1100px) {
-
-    #shop {
-        grid-template-columns:
-            repeat(5, minmax(0, 1fr));
-
-        gap: 18px;
-    }
-
-    .header-inner,
-    main,
-    footer {
-        width:
-            min(
-                1500px,
-                calc(100% - 60px)
+            repeat(
+                auto-fill,
+                minmax(180px, 1fr)
             );
     }
 
+    .card > img {
+        height: 190px;
+    }
 }
 
 
-/* =========================================================
+/* =========================
    MOBILE
-========================================================= */
+========================= */
 
-@media (max-width: 699px) {
+@media (max-width: 600px) {
 
     .header-inner {
-        min-height: auto;
+        min-height: 70px;
 
-        padding: 13px 0;
-
-        flex-wrap: wrap;
-
-        gap: 14px;
-    }
-
-    .brand {
-        flex: 1;
+        gap: 10px;
     }
 
     .brand-logo {
-        width: 39px;
-        height: 39px;
+        width: 37px;
+        height: 37px;
 
-        border-radius: 12px;
-
-        font-size: 17px;
+        font-size: 18px;
     }
 
     .brand-text h1 {
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .brand-text p {
         font-size: 8px;
     }
 
-    .date-box {
-        order: 3;
-
-        width: 100%;
-
-        padding-top: 4px;
-
-        border-top:
-            1px solid
-            rgba(255, 255, 255, 0.05);
-    }
-
     .actions {
-        gap: 6px;
+        margin-left: auto;
     }
 
     .login-button {
-        padding: 9px 10px;
+        width: 42px;
+        padding: 0;
+
+        justify-content: center;
     }
 
     .login-content {
@@ -1079,13 +869,11 @@ footer p {
     }
 
     .epic-icon {
-        font-size: 18px;
+        font-size: 17px;
     }
 
     .refresh-button {
-        width: 40px;
-        height: 40px;
-
+        width: 42px;
         padding: 0;
     }
 
@@ -1093,20 +881,26 @@ footer p {
         display: none;
     }
 
+    main {
+        width: calc(100% - 24px);
+
+        padding-top: 30px;
+        padding-bottom: 55px;
+    }
+
     .shop-heading {
-        margin-top: 35px;
-
         align-items: flex-start;
+        gap: 20px;
     }
 
-    .shop-heading h2 {
-        font-size: 30px;
+    .heading-content h2 {
+        font-size: 29px;
     }
 
-    .shop-heading p {
-        max-width: 250px;
+    .heading-content p {
+        max-width: 260px;
 
-        line-height: 1.5;
+        font-size: 12px;
     }
 
     .live-badge {
@@ -1115,66 +909,72 @@ footer p {
         font-size: 8px;
     }
 
-    main {
-        width:
-            calc(100% - 20px);
-    }
-
     #shop {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+
         gap: 10px;
     }
 
     .card {
-        border-radius: 15px;
+        border-radius: 13px;
+    }
+
+    .card > img {
+        height: 145px;
     }
 
     .card-info {
-        padding:
-            10px
-            10px
-            12px;
+        padding: 10px 10px 12px;
     }
 
-    .card h2 {
-        font-size: 13px;
-    }
-
-    .price {
+    .card-info h2 {
         font-size: 12px;
     }
 
+    .price {
+        margin-top: 6px;
+
+        font-size: 11px;
+    }
+
     .vbucks-icon {
-        width: 17px !important;
-        height: 17px !important;
+        width: 16px !important;
+        height: 16px !important;
+
+        min-width: 16px;
+        min-height: 16px;
     }
 
     footer {
-        width:
-            calc(100% - 30px);
+        width: calc(100% - 24px);
+
+        flex-wrap: wrap;
+
+        gap: 8px;
     }
 
+    .footer-line {
+        display: none;
+    }
 }
 
 
-/* =========================================================
-   REDUCE MOTION
-========================================================= */
+/* =========================
+   REDUCED MOTION
+========================= */
 
 @media (prefers-reduced-motion: reduce) {
 
     *,
     *::before,
     *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
-
-        animation-duration:
-            0.01ms !important;
-
-        animation-iteration-count:
-            1 !important;
-
-        transition-duration:
-            0.01ms !important;
     }
-
 }
