@@ -1,1409 +1,970 @@
-/* =========================================================
-   FORTNITE SHOP
-   ========================================================= */
+const SHOP_URL = "https://fortnite-api.com/v2/shop?language=fr";
+const COSMETIC_URL =
+  "https://fortnite-api.com/v2/cosmetics/br/search/ids?language=fr&id=";
 
-const SHOP_API =
-    "https://fortnite-api.com/v2/shop?language=fr";
+const shopElement = document.querySelector("#shop");
+const statusElement = document.querySelector("#status");
+const dateElement = document.querySelector("#date");
 
-const COSMETIC_API =
-    "https://fortnite-api.com/v2/cosmetics/br/search/ids";
+const modal = document.querySelector(".item-modal");
+const modalVideo = document.querySelector("#modal-video");
+const modalImage = document.querySelector("#modal-image");
+const previewTrack = document.querySelector(".preview-track");
+const previewStatus = document.querySelector(".preview-status");
 
-
-// =========================================================
-// DOM
-// =========================================================
-
-const shopElement =
-    document.getElementById("shop");
-
-const statusElement =
-    document.getElementById("status");
-
-const dateElement =
-    document.getElementById("date");
-
-const modal =
-    document.getElementById("item-modal");
-
-const modalMedia =
-    document.getElementById("modal-media");
-
-const modalClose =
-    document.getElementById("modal-close");
-
-const modalName =
-    document.getElementById("modal-name");
-
-const modalPrice =
-    document.getElementById("modal-price");
-
-const modalExtraInfo =
-    document.getElementById("modal-extra-info");
-
-const modalDescription =
-    document.getElementById("modal-description");
-
-const previewTrack =
-    document.getElementById("preview-track");
-
-const modalVideo =
-    document.getElementById("modal-video");
-
-const modalImage =
-    document.getElementById("modal-image");
-
-const previewStatus =
-    document.getElementById("preview-status");
-
-const carouselDots =
-    document.getElementById("carousel-dots");
-
-const videoFallback =
-    document.getElementById("video-fallback");
-
-
-// =========================================================
-// ÉTAT
-// =========================================================
-
-let currentItem = null;
-
-let currentSlide = 0;
-
-let hasVideo = false;
-
-let currentVideoUrl = null;
-
+let shopItems = [];
+let currentIndex = 0;
 let touchStartX = 0;
-
-let touchStartY = 0;
-
 let touchCurrentX = 0;
-
 let isDragging = false;
 
+function setStatus(text, type = "") {
+  if (!statusElement) return;
 
-// =========================================================
-// DATE
-// =========================================================
-
-function updateDate() {
-
-    const now = new Date();
-
-    dateElement.textContent =
-        now.toLocaleDateString(
-            "fr-FR",
-            {
-                day: "2-digit",
-                month: "long",
-                year: "numeric"
-            }
-        );
+  statusElement.textContent = text;
+  statusElement.className = type ? `status ${type}` : "status";
 }
 
-
-// =========================================================
-// CHARGER LA BOUTIQUE
-// =========================================================
-
-async function loadShop() {
-
-    updateDate();
-
-    shopElement.innerHTML = "";
-
-    statusElement.innerHTML = `
-        <div class="loading-container">
-            <div class="loading-spinner"></div>
-            <span>Chargement de la boutique...</span>
-        </div>
-    `;
-
-    try {
-
-        const response =
-            await fetch(
-                SHOP_API,
-                {
-                    cache: "no-store"
-                }
-            );
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Erreur HTTP ${response.status}`
-            );
-        }
-
-        const data =
-            await response.json();
-
-        const entries =
-            data?.data?.entries ||
-            data?.data?.shop ||
-            [];
-
-        if (
-            !Array.isArray(entries) ||
-            entries.length === 0
-        ) {
-
-            throw new Error(
-                "Aucun objet trouvé."
-            );
-        }
-
-        renderShop(entries);
-
-        statusElement.innerHTML = `
-            <div class="loaded-status">
-                <span class="loaded-dot"></span>
-                Boutique chargée
-            </div>
-        `;
-
-    } catch (error) {
-
-        console.error(
-            "Erreur boutique :",
-            error
-        );
-
-        statusElement.innerHTML = `
-            <div class="error-status">
-                Impossible de charger la boutique.
-
-                <button onclick="loadShop()">
-                    Réessayer
-                </button>
-            </div>
-        `;
-    }
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
+function isValidHttpUrl(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return false;
+  }
 
-// =========================================================
-// RENDU SHOP
-// =========================================================
-
-function renderShop(entries) {
-
-    shopElement.innerHTML = "";
-
-    entries.forEach(
-        (entry, index) => {
-
-            const item =
-                extractShopItem(entry);
-
-            if (!item) {
-                return;
-            }
-
-            const card =
-                createCard(
-                    item,
-                    index
-                );
-
-            shopElement.appendChild(card);
-        }
-    );
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
 }
 
+/*
+ * IMPORTANT :
+ * Cette fonction refuse volontairement les IDs YouTube.
+ * Un showcaseVideo comme "oQkiJeNZJqk" n'est PAS une vidéo lisible
+ * par <video>.
+ */
+function isDirectVideoUrl(value) {
+  if (!isValidHttpUrl(value)) {
+    return false;
+  }
 
-// =========================================================
-// EXTRACTION OBJET
-// =========================================================
+  const url = new URL(value);
 
-function extractShopItem(entry) {
+  // On ne veut jamais envoyer YouTube dans le lecteur natif.
+  const blockedHosts = [
+    "youtube.com",
+    "www.youtube.com",
+    "youtu.be",
+    "www.youtu.be",
+    "youtube-nocookie.com",
+    "www.youtube-nocookie.com"
+  ];
 
-    if (!entry) {
-        return null;
-    }
+  if (blockedHosts.includes(url.hostname.toLowerCase())) {
+    return false;
+  }
 
-    let item =
-        entry.brItems?.[0] ||
-        entry.items?.[0] ||
-        entry.brItems ||
-        entry.items ||
-        null;
-
-
-    if (Array.isArray(item)) {
-        item = item[0];
-    }
-
-
-    const id =
-        item?.id ||
-        entry?.id ||
-        entry?.offerId ||
-        null;
-
-
-    const name =
-        item?.name ||
-        entry?.displayName ||
-        entry?.name ||
-        "Objet Fortnite";
-
-
-    const description =
-        item?.description ||
-        "";
-
-
-    const image =
-        item?.images?.featured ||
-        item?.images?.icon ||
-        item?.images?.smallIcon ||
-        item?.images?.full_background ||
-        item?.images?.background ||
-        entry?.newDisplayAsset?.renderImages?.[0]?.image ||
-        entry?.bundle?.image ||
-        null;
-
-
-    const price =
-        entry?.finalPrice ??
-        entry?.regularPrice ??
-        entry?.price?.finalPrice ??
-        item?.price ??
-        0;
-
-
-    const rarity =
-        item?.rarity?.displayValue ||
-        item?.rarity?.value ||
-        "";
-
-
-    const type =
-        item?.type?.displayValue ||
-        item?.type?.value ||
-        "";
-
-
-    const series =
-        item?.series?.name ||
-        item?.series?.value ||
-        "";
-
-
-    return {
-        id,
-        name,
-        description,
-        image,
-        price,
-        rarity,
-        type,
-        series,
-        raw: entry,
-        cosmetic: item
-    };
+  return true;
 }
 
+/*
+ * Recherche une vraie URL vidéo dans toutes les propriétés
+ * susceptibles d'en contenir une.
+ *
+ * On ne suppose PAS que l'URL doit obligatoirement finir par .mp4.
+ * Certains CDN utilisent des URLs sans extension.
+ */
+function findDirectVideo(data) {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
 
-// =========================================================
-// CARTE
-// =========================================================
+  const possibleKeys = [
+    "video",
+    "videoUrl",
+    "videoURL",
+    "video_url",
+    "videoSrc",
+    "videoSource",
+    "video_source",
+    "showcaseVideoUrl",
+    "showcase_video_url",
+    "previewVideo",
+    "previewVideoUrl",
+    "preview_video_url",
+    "mediaUrl",
+    "mediaURL",
+    "media_url"
+  ];
 
-function createCard(item, index) {
+  for (const key of possibleKeys) {
+    const value = data[key];
 
-    const card =
-        document.createElement("article");
-
-    card.className =
-        "card";
-
-    card.style.animationDelay =
-        `${Math.min(index * 35, 500)}ms`;
-
-
-    const imageContainer =
-        document.createElement("div");
-
-    imageContainer.className =
-        "card-image";
-
-
-    if (item.image) {
-
-        const image =
-            document.createElement("img");
-
-        image.src =
-            item.image;
-
-        image.alt =
-            item.name;
-
-        image.loading =
-            "lazy";
-
-        image.decoding =
-            "async";
-
-        imageContainer.appendChild(
-            image
-        );
-
-    } else {
-
-        imageContainer.innerHTML = `
-            <div class="no-image">
-                IMAGE
-            </div>
-        `;
+    if (isDirectVideoUrl(value)) {
+      return value;
     }
+  }
 
-
-    const overlay =
-        document.createElement("div");
-
-    overlay.className =
-        "card-overlay";
-
-
-    const info =
-        document.createElement("div");
-
-    info.className =
-        "card-info";
-
-
-    const name =
-        document.createElement("h3");
-
-    name.textContent =
-        item.name;
-
-
-    const bottom =
-        document.createElement("div");
-
-    bottom.className =
-        "card-bottom";
-
-
-    const price =
-        document.createElement("div");
-
-    price.className =
-        "price";
-
-    price.innerHTML = `
-        ${formatPrice(item.price)}
-        <span class="vbucks-symbol">V</span>
-    `;
-
-
-    bottom.appendChild(
-        price
-    );
-
-    info.appendChild(
-        name
-    );
-
-    info.appendChild(
-        bottom
-    );
-
-    overlay.appendChild(
-        info
-    );
-
-    imageContainer.appendChild(
-        overlay
-    );
-
-    card.appendChild(
-        imageContainer
-    );
-
-
-    card.addEventListener(
-        "click",
-        () => openModal(item)
-    );
-
-
-    return card;
+  return null;
 }
 
+/*
+ * Extraction extrêmement tolérante des images.
+ *
+ * Le shop actuel peut fournir :
+ * - brItems[].images.featured
+ * - brItems[].images.icon
+ * - newDisplayAsset.renderImages[].image
+ * - bundle.image
+ * - etc.
+ */
+function collectImages(entry, cosmetic) {
+  const result = [];
 
-// =========================================================
-// PRIX
-// =========================================================
+  function add(value) {
+    if (!isValidHttpUrl(value)) return;
 
-function formatPrice(price) {
-
-    if (
-        price === null ||
-        price === undefined ||
-        price === ""
-    ) {
-        return "—";
+    if (!result.includes(value)) {
+      result.push(value);
     }
-
-    const number =
-        Number(price);
-
-    if (Number.isNaN(number)) {
-        return String(price);
-    }
-
-    return number.toLocaleString(
-        "fr-FR"
-    );
-}
-
-
-// =========================================================
-// OUVRIR MODALE
-// =========================================================
-
-async function openModal(item) {
-
-    currentItem =
-        item;
-
-    currentSlide =
-        0;
-
-    hasVideo =
-        false;
-
-    currentVideoUrl =
-        null;
-
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
-    modal.classList.add(
-        "open"
-    );
-
-    modal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-
-    modalName.textContent =
-        item.name;
-
-
-    modalPrice.innerHTML = `
-        ${formatPrice(item.price)}
-        <span class="vbucks-symbol">V</span>
-    `;
-
-
-    modalDescription.textContent =
-        item.description || "";
-
-
-    const extraParts = [];
-
-    if (item.type) {
-        extraParts.push(item.type);
-    }
-
-    if (item.rarity) {
-        extraParts.push(item.rarity);
-    }
-
-    if (item.series) {
-        extraParts.push(item.series);
-    }
-
-
-    modalExtraInfo.textContent =
-        extraParts.join(" • ");
-
-
-    modalImage.src =
-        item.image || "";
-
-    modalImage.alt =
-        item.name;
-
-
-    resetVideo();
-
-
-    createDots();
-
-    updateSlide(
-        0,
-        false
-    );
-
-
-    if (!item.id) {
-        return;
-    }
-
-
-    try {
-
-        const cosmetic =
-            await fetchCosmetic(
-                item.id
-            );
-
-
-        if (
-            currentItem !== item ||
-            !modal.classList.contains("open")
-        ) {
-            return;
-        }
-
-
-        const videoUrl =
-            findDirectVideo(
-                cosmetic
-            );
-
-
-        if (videoUrl) {
-
-            hasVideo =
-                true;
-
-            currentVideoUrl =
-                videoUrl;
-
-            loadDirectVideo(
-                videoUrl
-            );
-
-            previewStatus.textContent =
-                "APERÇU ANIMÉ";
-
-        } else {
-
-            hasVideo =
-                false;
-
-            previewStatus.textContent =
-                "APERÇU";
-
-            resetVideo();
-        }
-
-
-        createDots();
-
-        updateSlide(
-            currentSlide,
-            false
-        );
-
-    } catch (error) {
-
-        console.warn(
-            "Impossible de récupérer la vidéo :",
-            error
-        );
-
-        hasVideo =
-            false;
-
-        resetVideo();
-
-        previewStatus.textContent =
-            "APERÇU";
-
-        createDots();
-
-        updateSlide(
-            0,
-            false
-        );
-    }
-}
-
-
-// =========================================================
-// FERMER
-// =========================================================
-
-function closeModal() {
-
-    modal.classList.remove(
-        "open"
-    );
-
-    modal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-
-    resetVideo();
-
-    currentItem =
-        null;
-}
-
-
-// =========================================================
-// RESET VIDÉO
-// =========================================================
-
-function resetVideo() {
-
-    modalVideo.pause();
-
-    modalVideo.removeAttribute(
-        "src"
-    );
-
-    modalVideo.load();
-
-    modalVideo.style.display =
-        "none";
-
-    videoFallback.classList.remove(
-        "visible"
-    );
-
-    currentVideoUrl =
-        null;
-}
-
-
-// =========================================================
-// RÉCUPÉRATION COSMÉTIQUE
-// =========================================================
-
-async function fetchCosmetic(id) {
-
-    const url =
-        `${COSMETIC_API}?language=fr&id=${encodeURIComponent(id)}`;
-
-
-    const response =
-        await fetch(
-            url,
-            {
-                cache: "no-store"
-            }
-        );
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            `Erreur cosmétique HTTP ${response.status}`
-        );
-    }
-
-
-    const data =
-        await response.json();
-
-
-    return (
-        data?.data?.[0] ||
-        data?.data ||
-        null
-    );
-}
-
-
-// =========================================================
-// TROUVER UNE VRAIE VIDÉO DIRECTE
-// =========================================================
-
-function findDirectVideo(cosmetic) {
-
-    if (!cosmetic) {
-        return null;
-    }
-
-
-    /*
-       On accepte UNIQUEMENT des URLs
-       de fichiers vidéo.
-
-       Aucun YouTube.
-       Aucun iframe.
-       Aucun ID YouTube.
-    */
-
-    const candidates = [
-
-        cosmetic.showcase_video_url,
-
-        cosmetic.showcaseVideoUrl,
-
-        cosmetic.showcase_video,
-
-        cosmetic.showcaseVideo
-
+  }
+
+  function inspectImages(images) {
+    if (!images || typeof images !== "object") return;
+
+    const preferred = [
+      "featured",
+      "background",
+      "full_background",
+      "icon",
+      "smallIcon",
+      "small",
+      "large",
+      "wide"
     ];
 
-
-    for (const candidate of candidates) {
-
-        if (
-            typeof candidate !== "string"
-        ) {
-            continue;
-        }
-
-
-        const value =
-            candidate.trim();
-
-
-        if (!value) {
-            continue;
-        }
-
-
-        if (
-            isDirectVideoUrl(value)
-        ) {
-            return value;
-        }
+    for (const key of preferred) {
+      add(images[key]);
     }
 
+    // Permet aussi de récupérer d'éventuelles nouvelles propriétés.
+    for (const value of Object.values(images)) {
+      if (typeof value === "string") {
+        add(value);
+      } else if (value && typeof value === "object") {
+        for (const nested of Object.values(value)) {
+          add(nested);
+        }
+      }
+    }
+  }
 
+  if (cosmetic) {
+    inspectImages(cosmetic.images);
+  }
+
+  if (entry) {
+    inspectImages(entry.images);
+
+    if (entry.bundle) {
+      add(entry.bundle.image);
+    }
+
+    const renderImages =
+      entry.newDisplayAsset?.renderImages ||
+      entry.new_display_asset?.renderImages ||
+      [];
+
+    for (const render of renderImages) {
+      add(render?.image);
+    }
+
+    const oldRenderImages =
+      entry.displayAsset?.renderImages ||
+      entry.display_asset?.renderImages ||
+      [];
+
+    for (const render of oldRenderImages) {
+      add(render?.image);
+    }
+  }
+
+  return result;
+}
+
+/*
+ * Récupère une vidéo seulement si l'API donne réellement une URL.
+ *
+ * showcaseVideo / showcase_video_id est volontairement ignoré :
+ * ce n'est qu'un identifiant YouTube.
+ */
+function getVideoSource(entry, cosmetic) {
+  const candidates = [
+    entry,
+    cosmetic,
+    entry?.newDisplayAsset,
+    entry?.new_display_asset,
+    entry?.displayAsset,
+    entry?.display_asset
+  ];
+
+  for (const candidate of candidates) {
+    const video = findDirectVideo(candidate);
+
+    if (video) {
+      return video;
+    }
+  }
+
+  return null;
+}
+
+function getPrimaryCosmetic(entry) {
+  if (!entry) return null;
+
+  return (
+    entry.brItems?.[0] ||
+    entry.items?.[0] ||
+    entry.br?.[0] ||
+    entry.cosmetics?.[0] ||
+    null
+  );
+}
+
+function extractShopItem(entry) {
+  const cosmetic = getPrimaryCosmetic(entry);
+
+  if (!cosmetic && !entry) {
     return null;
+  }
+
+  const images = collectImages(entry, cosmetic);
+
+  if (!images.length) {
+    return null;
+  }
+
+  const video = getVideoSource(entry, cosmetic);
+
+  return {
+    id:
+      cosmetic?.id ||
+      entry?.newDisplayAsset?.cosmeticId ||
+      entry?.newDisplayAsset?.id ||
+      entry?.offerId ||
+      crypto.randomUUID(),
+
+    name:
+      cosmetic?.name ||
+      entry?.bundle?.name ||
+      "Objet Fortnite",
+
+    description:
+      cosmetic?.description ||
+      "",
+
+    type:
+      cosmetic?.type?.displayValue ||
+      cosmetic?.type?.value ||
+      "",
+
+    rarity:
+      cosmetic?.rarity?.displayValue ||
+      cosmetic?.rarity?.value ||
+      "",
+
+    price:
+      entry?.finalPrice ??
+      entry?.regularPrice ??
+      0,
+
+    images,
+
+    video,
+
+    showcaseVideo:
+      cosmetic?.showcaseVideo ||
+      cosmetic?.showcase_video_id ||
+      null,
+
+    displayAssetPath:
+      entry?.newDisplayAssetPath ||
+      entry?.new_display_asset_path ||
+      entry?.displayAssetPath ||
+      entry?.display_asset_path ||
+      null,
+
+    newDisplayAsset:
+      entry?.newDisplayAsset ||
+      entry?.new_display_asset ||
+      null,
+
+    raw: entry
+  };
 }
 
-
-// =========================================================
-// VÉRIFIER URL VIDÉO
-// =========================================================
-
-function isDirectVideoUrl(value) {
-
-    try {
-
-        const url =
-            new URL(value);
-
-
-        if (
-            url.protocol !== "https:" &&
-            url.protocol !== "http:"
-        ) {
-            return false;
-        }
-
-
-        const pathname =
-            url.pathname.toLowerCase();
-
-
-        const extensions = [
-            ".mp4",
-            ".webm",
-            ".mov",
-            ".m4v",
-            ".ogv"
-        ];
-
-
-        return extensions.some(
-            extension =>
-                pathname.endsWith(extension)
-        );
-
-    } catch {
-
-        return false;
-    }
+function formatPrice(price) {
+  return `${Number(price || 0).toLocaleString("fr-FR")} V-Bucks`;
 }
 
+function renderShop() {
+  if (!shopElement) return;
 
-// =========================================================
-// CHARGER VIDÉO DIRECTE
-// =========================================================
+  shopElement.innerHTML = "";
 
-function loadDirectVideo(url) {
+  if (!shopItems.length) {
+    shopElement.innerHTML = `
+      <div class="empty-shop">
+        Aucun objet disponible.
+      </div>
+    `;
+    return;
+  }
 
-    resetVideo();
+  for (let i = 0; i < shopItems.length; i++) {
+    const item = shopItems[i];
 
+    const image = item.images[0];
 
-    if (
-        !isDirectVideoUrl(url)
-    ) {
+    const card = document.createElement("article");
+    card.className = "card";
 
+    card.innerHTML = `
+      <div class="card-media">
+        <img
+          src="${escapeHTML(image)}"
+          alt="${escapeHTML(item.name)}"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+
+      <div class="card-info">
+        <div>
+          <h3>${escapeHTML(item.name)}</h3>
+          ${
+            item.type
+              ? `<p>${escapeHTML(item.type)}</p>`
+              : ""
+          }
+        </div>
+
+        <div class="price">
+          ${escapeHTML(formatPrice(item.price))}
+        </div>
+      </div>
+    `;
+
+    const imageElement = card.querySelector("img");
+
+    /*
+     * Si la première image est morte, on essaye toutes les autres
+     * images que l'API nous a données.
+     */
+    let fallbackIndex = 1;
+
+    imageElement.addEventListener("error", () => {
+      if (fallbackIndex >= item.images.length) {
+        imageElement.style.display = "none";
         return;
-    }
+      }
 
+      imageElement.src = item.images[fallbackIndex];
+      fallbackIndex++;
+    });
 
-    currentVideoUrl =
-        url;
+    card.addEventListener("click", () => {
+      openModal(i);
+    });
 
-
-    modalVideo.style.display =
-        "block";
-
-
-    modalVideo.muted =
-        true;
-
-    modalVideo.autoplay =
-        true;
-
-    modalVideo.loop =
-        true;
-
-    modalVideo.playsInline =
-        true;
-
-
-    modalVideo.src =
-        url;
-
-
-    modalVideo.load();
-
-
-    const playPromise =
-        modalVideo.play();
-
-
-    if (
-        playPromise &&
-        typeof playPromise.catch === "function"
-    ) {
-
-        playPromise.catch(
-            error => {
-
-                console.warn(
-                    "Lecture vidéo impossible :",
-                    error
-                );
-
-                showVideoFallback();
-            }
-        );
-    }
+    shopElement.appendChild(card);
+  }
 }
 
+function updateModalPosition(animate = true) {
+  if (!previewTrack) return;
 
-// =========================================================
-// FALLBACK
-// =========================================================
+  previewTrack.style.transition = animate
+    ? "transform 0.35s cubic-bezier(.2,.8,.2,1)"
+    : "none";
 
-function showVideoFallback() {
+  previewTrack.style.transform =
+    `translate3d(-${currentIndex * 50}%, 0, 0)`;
 
-    modalVideo.style.display =
-        "none";
-
-    videoFallback.classList.add(
-        "visible"
-    );
+  updateDots();
 }
 
+function updateDots() {
+  const dots = document.querySelectorAll(".carousel-dot");
 
-// =========================================================
-// POINTS
-// =========================================================
+  dots.forEach((dot, index) => {
+    dot.classList.toggle("active", index === currentIndex);
+  });
+}
 
 function createDots() {
+  const container = document.querySelector(".carousel-dots");
 
-    carouselDots.innerHTML =
-        "";
+  if (!container) return;
 
+  container.innerHTML = `
+    <button class="carousel-dot active" type="button" aria-label="Vidéo"></button>
+    <button class="carousel-dot" type="button" aria-label="Image"></button>
+  `;
 
-    const count =
-        hasVideo
-            ? 2
-            : 1;
+  const dots = container.querySelectorAll(".carousel-dot");
 
-
-    for (
-        let i = 0;
-        i < count;
-        i++
-    ) {
-
-        const dot =
-            document.createElement(
-                "button"
-            );
-
-
-        dot.className =
-            "carousel-dot";
-
-
-        if (
-            i === currentSlide
-        ) {
-
-            dot.classList.add(
-                "active"
-            );
-        }
-
-
-        dot.setAttribute(
-            "aria-label",
-            i === 0 && hasVideo
-                ? "Afficher la vidéo"
-                : "Afficher l'image"
-        );
-
-
-        dot.addEventListener(
-            "click",
-            event => {
-
-                event.stopPropagation();
-
-                goToSlide(i);
-            }
-        );
-
-
-        carouselDots.appendChild(
-            dot
-        );
-    }
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", (event) => {
+      event.stopPropagation();
+      currentIndex = index;
+      updateModalPosition(true);
+      handleMediaPlayback();
+    });
+  });
 }
 
+function resetVideo() {
+  if (!modalVideo) return;
 
-// =========================================================
-// CHANGER SLIDE
-// =========================================================
-
-function goToSlide(index) {
-
-    if (!hasVideo) {
-
-        currentSlide =
-            0;
-
-    } else {
-
-        currentSlide =
-            Math.max(
-                0,
-                Math.min(
-                    1,
-                    index
-                )
-            );
-    }
-
-
-    updateSlide(
-        currentSlide,
-        true
-    );
+  modalVideo.pause();
+  modalVideo.removeAttribute("src");
+  modalVideo.load();
 }
 
+function showImageFallback() {
+  if (!modalVideo || !modalImage) return;
 
-// =========================================================
-// UPDATE SLIDE
-// =========================================================
+  modalVideo.style.visibility = "hidden";
+  modalVideo.style.opacity = "0";
 
-function updateSlide(
-    index,
-    animate = true
-) {
+  modalImage.style.visibility = "visible";
+  modalImage.style.opacity = "1";
+}
 
-    currentSlide =
-        index;
+function showVideo() {
+  if (!modalVideo || !modalImage) return;
 
+  modalImage.style.visibility = "hidden";
+  modalImage.style.opacity = "0";
 
-    previewTrack.style.transition =
-        animate
-            ? "transform 0.35s cubic-bezier(.22,.61,.36,1)"
-            : "none";
+  modalVideo.style.visibility = "visible";
+  modalVideo.style.opacity = "1";
+}
 
+function handleMediaPlayback() {
+  const item = shopItems[currentIndex];
 
+  if (!item) return;
+
+  const image =
+    item.images[0] ||
+    "";
+
+  if (modalImage) {
+    modalImage.src = image;
+    modalImage.alt = item.name;
+  }
+
+  /*
+   * Slide 0 = vidéo
+   * Slide 1 = image
+   */
+  if (currentIndex === 1) {
+    resetVideo();
+    showImageFallback();
+
+    if (previewStatus) {
+      previewStatus.textContent = "Image";
+    }
+
+    return;
+  }
+
+  /*
+   * IMPORTANT :
+   * On n'utilise jamais showcaseVideo comme src.
+   *
+   * Si l'API ne fournit pas une vraie URL vidéo, on affiche
+   * simplement l'image dans la première vue.
+   */
+  if (!item.video) {
+    resetVideo();
+    showImageFallback();
+
+    if (previewStatus) {
+      previewStatus.textContent = "Aperçu";
+    }
+
+    return;
+  }
+
+  modalVideo.src = item.video;
+  modalVideo.muted = true;
+  modalVideo.loop = true;
+  modalVideo.autoplay = true;
+  modalVideo.playsInline = true;
+
+  showVideo();
+
+  if (previewStatus) {
+    previewStatus.textContent = "Lecture";
+  }
+
+  const playPromise = modalVideo.play();
+
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(() => {
+      /*
+       * Si le navigateur refuse l'autoplay ou si l'URL
+       * n'est finalement pas une ressource vidéo native,
+       * on revient proprement à l'image.
+       */
+      showImageFallback();
+
+      if (previewStatus) {
+        previewStatus.textContent = "Aperçu";
+      }
+    });
+  }
+}
+
+function openModal(index) {
+  if (!modal) return;
+
+  currentIndex = index;
+
+  const item = shopItems[currentIndex];
+
+  if (!item) return;
+
+  modal.classList.add("open");
+  document.body.classList.add("modal-open");
+
+  createDots();
+  updateModalPosition(false);
+
+  if (previewTrack) {
     previewTrack.style.transform =
-        `translateX(-${index * 50}%)`;
+      `translate3d(-${currentIndex * 50}%, 0, 0)`;
+  }
 
+  /*
+   * On commence toujours sur la première vue.
+   */
+  currentIndex = 0;
+  updateModalPosition(false);
 
-    const dots =
-        carouselDots.querySelectorAll(
-            ".carousel-dot"
-        );
+  handleMediaPlayback();
 
-
-    dots.forEach(
-        (dot, dotIndex) => {
-
-            dot.classList.toggle(
-                "active",
-                dotIndex === index
-            );
-        }
-    );
-
-
-    if (index === 0) {
-
-        previewStatus.textContent =
-            hasVideo
-                ? "APERÇU ANIMÉ"
-                : "APERÇU";
-
-
-        playCurrentVideo();
-
-    } else {
-
-        previewStatus.textContent =
-            "IMAGE";
-
-        pauseCurrentVideo();
-    }
+  /*
+   * Met les infos du premier item affiché.
+   */
+  updateModalInfo(item);
 }
 
+function updateModalInfo(item) {
+  const title =
+    document.querySelector(".modal-info h2") ||
+    document.querySelector(".modal-info h3");
 
-// =========================================================
-// PLAY
-// =========================================================
+  const description =
+    document.querySelector(".modal-info p");
 
-function playCurrentVideo() {
+  const price =
+    document.querySelector(".modal-info .price");
 
-    if (
-        !hasVideo ||
-        !currentVideoUrl
-    ) {
-        return;
-    }
+  if (title) {
+    title.textContent = item.name;
+  }
 
+  if (description) {
+    description.textContent =
+      item.description ||
+      item.type ||
+      "";
+  }
 
-    modalVideo.style.display =
-        "block";
-
-
-    modalVideo.muted =
-        true;
-
-
-    const promise =
-        modalVideo.play();
-
-
-    if (
-        promise &&
-        typeof promise.catch === "function"
-    ) {
-
-        promise.catch(
-            () => {}
-        );
-    }
+  if (price) {
+    price.textContent = formatPrice(item.price);
+  }
 }
 
+function closeModal() {
+  if (!modal) return;
 
-// =========================================================
-// PAUSE
-// =========================================================
+  modal.classList.remove("open");
+  document.body.classList.remove("modal-open");
 
-function pauseCurrentVideo() {
+  resetVideo();
 
-    modalVideo.pause();
+  if (modalImage) {
+    modalImage.removeAttribute("src");
+  }
 }
 
+function goToNextMedia() {
+  currentIndex = Math.min(currentIndex + 1, 1);
 
-// =========================================================
-// TOUCH START
-// =========================================================
+  updateModalPosition(true);
 
-function handleTouchStart(event) {
+  const item = shopItems[
+    Number(modal?.dataset?.shopIndex || 0)
+  ];
 
-    if (
-        !modal.classList.contains("open")
-    ) {
-        return;
-    }
+  if (item) {
+    updateModalInfo(item);
+  }
 
-
-    const touch =
-        event.touches[0];
-
-
-    touchStartX =
-        touch.clientX;
-
-    touchStartY =
-        touch.clientY;
-
-    touchCurrentX =
-        touchStartX;
-
-    isDragging =
-        true;
-
-
-    previewTrack.style.transition =
-        "none";
+  handleMediaPlayback();
 }
 
+function goToPreviousMedia() {
+  currentIndex = Math.max(currentIndex - 1, 0);
 
-// =========================================================
-// TOUCH MOVE
-// =========================================================
+  updateModalPosition(true);
 
-function handleTouchMove(event) {
+  const item = shopItems[
+    Number(modal?.dataset?.shopIndex || 0)
+  ];
 
-    if (!isDragging) {
-        return;
-    }
+  if (item) {
+    updateModalInfo(item);
+  }
 
-
-    const touch =
-        event.touches[0];
-
-
-    touchCurrentX =
-        touch.clientX;
-
-
-    const deltaX =
-        touchCurrentX -
-        touchStartX;
-
-
-    const deltaY =
-        touch.clientY -
-        touchStartY;
-
-
-    if (
-        Math.abs(deltaY) >
-        Math.abs(deltaX)
-    ) {
-        return;
-    }
-
-
-    event.preventDefault();
-
-
-    const width =
-        modalMedia.clientWidth;
-
-
-    const percentage =
-        (deltaX / width) * 50;
-
-
-    const base =
-        currentSlide * 50;
-
-
-    let position =
-        base - percentage;
-
-
-    position =
-        Math.max(
-            -5,
-            Math.min(
-                105,
-                position
-            )
-        );
-
-
-    previewTrack.style.transform =
-        `translateX(-${position}%)`;
+  handleMediaPlayback();
 }
 
+/*
+ * Swipe horizontal.
+ */
+function setupSwipe() {
+  if (!previewTrack) return;
 
-// =========================================================
-// TOUCH END
-// =========================================================
-
-function handleTouchEnd() {
-
-    if (!isDragging) {
-        return;
-    }
-
-
-    isDragging =
-        false;
-
-
-    const deltaX =
-        touchCurrentX -
-        touchStartX;
-
-
-    const threshold =
-        60;
-
-
-    if (
-        hasVideo &&
-        Math.abs(deltaX) >= threshold
-    ) {
-
-        if (deltaX < 0) {
-
-            goToSlide(1);
-
-        } else {
-
-            goToSlide(0);
-        }
-
-    } else {
-
-        updateSlide(
-            currentSlide,
-            true
-        );
-    }
-}
-
-
-// =========================================================
-// CLAVIER
-// =========================================================
-
-function handleKeyDown(event) {
-
-    if (
-        !modal.classList.contains("open")
-    ) {
-        return;
-    }
-
-
-    if (
-        event.key === "Escape"
-    ) {
-
-        closeModal();
-
-        return;
-    }
-
-
-    if (
-        event.key === "ArrowLeft"
-    ) {
-
-        goToSlide(0);
-    }
-
-
-    if (
-        event.key === "ArrowRight" &&
-        hasVideo
-    ) {
-
-        goToSlide(1);
-    }
-}
-
-
-// =========================================================
-// ÉVÉNEMENTS
-// =========================================================
-
-modalClose.addEventListener(
-    "click",
-    closeModal
-);
-
-
-document
-    .querySelector(".modal-backdrop")
-    .addEventListener(
-        "click",
-        closeModal
-    );
-
-
-document.addEventListener(
-    "keydown",
-    handleKeyDown
-);
-
-
-modalMedia.addEventListener(
+  previewTrack.addEventListener(
     "touchstart",
-    handleTouchStart,
-    {
-        passive: true
-    }
-);
+    (event) => {
+      if (!event.touches.length) return;
 
+      touchStartX = event.touches[0].clientX;
+      touchCurrentX = touchStartX;
+      isDragging = true;
 
-modalMedia.addEventListener(
+      previewTrack.style.transition = "none";
+    },
+    { passive: true }
+  );
+
+  previewTrack.addEventListener(
     "touchmove",
-    handleTouchMove,
-    {
-        passive: false
+    (event) => {
+      if (!isDragging || !event.touches.length) return;
+
+      touchCurrentX = event.touches[0].clientX;
+
+      const delta = touchCurrentX - touchStartX;
+      const percentage = (delta / window.innerWidth) * 50;
+
+      const base = currentIndex * 50;
+
+      previewTrack.style.transform =
+        `translate3d(calc(-${base}% + ${percentage}%), 0, 0)`;
+    },
+    { passive: true }
+  );
+
+  previewTrack.addEventListener("touchend", () => {
+    if (!isDragging) return;
+
+    isDragging = false;
+
+    const delta = touchCurrentX - touchStartX;
+    const threshold = 60;
+
+    if (Math.abs(delta) >= threshold) {
+      if (delta < 0) {
+        currentIndex = Math.min(currentIndex + 1, 1);
+      } else {
+        currentIndex = Math.max(currentIndex - 1, 0);
+      }
     }
-);
 
+    updateModalPosition(true);
+    handleMediaPlayback();
+  });
+}
 
-modalMedia.addEventListener(
-    "touchend",
-    handleTouchEnd,
-    {
-        passive: true
+function setupModalEvents() {
+  if (!modal) return;
+
+  const closeButton =
+    modal.querySelector(".modal-close") ||
+    modal.querySelector("[data-close-modal]");
+
+  if (closeButton) {
+    closeButton.addEventListener("click", closeModal);
+  }
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
     }
-);
+  });
 
+  document.addEventListener("keydown", (event) => {
+    if (!modal.classList.contains("open")) return;
 
-// =========================================================
-// ERREUR VIDÉO
-// =========================================================
+    if (event.key === "Escape") {
+      closeModal();
+    }
 
-modalVideo.addEventListener(
-    "error",
-    () => {
+    if (event.key === "ArrowRight") {
+      currentIndex = Math.min(currentIndex + 1, 1);
+      updateModalPosition(true);
+      handleMediaPlayback();
+    }
 
-        if (
-            currentSlide === 0
-        ) {
+    if (event.key === "ArrowLeft") {
+      currentIndex = Math.max(currentIndex - 1, 0);
+      updateModalPosition(true);
+      handleMediaPlayback();
+    }
+  });
 
-            showVideoFallback();
+  if (modalVideo) {
+    modalVideo.addEventListener("error", () => {
+      showImageFallback();
+
+      if (previewStatus) {
+        previewStatus.textContent = "Aperçu";
+      }
+    });
+
+    modalVideo.addEventListener("loadeddata", () => {
+      if (currentIndex === 0) {
+        showVideo();
+      }
+    });
+  }
+
+  setupSwipe();
+}
+
+async function fetchShop() {
+  setStatus("Chargement de la boutique…", "loading");
+
+  const response = await fetch(SHOP_URL, {
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Erreur API boutique : ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
+async function fetchCosmetic(id) {
+  if (!id) return null;
+
+  try {
+    const response = await fetch(
+      `${COSMETIC_URL}${encodeURIComponent(id)}`,
+      {
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    return (
+      data?.data?.[0] ||
+      data?.data ||
+      null
+    );
+  } catch {
+    return null;
+  }
+}
+
+async function loadShop() {
+  try {
+    const data = await fetchShop();
+
+    const entries =
+      data?.data?.entries ||
+      data?.entries ||
+      [];
+
+    /*
+     * Première extraction directement depuis le shop.
+     * C'est important : le shop actuel fournit déjà beaucoup
+     * d'images via newDisplayAsset.renderImages.
+     */
+    const directItems = entries
+      .map(extractShopItem)
+      .filter(Boolean);
+
+    /*
+     * Certains anciens / particuliers items ont moins de données.
+     * On complète uniquement ceux qui ont besoin d'une requête
+     * cosmétique supplémentaire.
+     */
+    const completed = [];
+
+    for (const item of directItems) {
+      let finalItem = item;
+
+      const cosmeticId =
+        item.raw?.newDisplayAsset?.cosmeticId ||
+        item.raw?.brItems?.[0]?.id ||
+        item.raw?.items?.[0]?.id;
+
+      if (
+        cosmeticId &&
+        (
+          item.images.length < 2 ||
+          !item.name ||
+          !item.raw?.brItems?.[0]
+        )
+      ) {
+        const cosmetic = await fetchCosmetic(cosmeticId);
+
+        if (cosmetic) {
+          const extraImages =
+            collectImages(item.raw, cosmetic);
+
+          finalItem = {
+            ...item,
+
+            name:
+              cosmetic.name ||
+              item.name,
+
+            description:
+              cosmetic.description ||
+              item.description,
+
+            type:
+              cosmetic.type?.displayValue ||
+              item.type,
+
+            rarity:
+              cosmetic.rarity?.displayValue ||
+              item.rarity,
+
+            images: [
+              ...new Set([
+                ...extraImages,
+                ...item.images
+              ])
+            ],
+
+            /*
+             * Toujours pas de showcaseVideo ici :
+             * c'est un ID YouTube, pas une URL native.
+             */
+            video:
+              item.video ||
+              getVideoSource(item.raw, cosmetic)
+          };
         }
+      }
+
+      completed.push(finalItem);
     }
-);
 
+    shopItems = completed;
 
-modalVideo.addEventListener(
-    "loadeddata",
-    () => {
+    renderShop();
 
-        videoFallback.classList.remove(
-            "visible"
-        );
+    if (dateElement && data?.data?.date) {
+      const date = new Date(data.data.date);
+
+      dateElement.textContent =
+        date.toLocaleDateString("fr-FR", {
+          weekday: "long",
+          day: "numeric",
+          month: "long"
+        });
     }
-);
 
+    setStatus(
+      `${shopItems.length} objets disponibles`,
+      "success"
+    );
 
-// =========================================================
-// INITIALISATION
-// =========================================================
+    /*
+     * On rend le modal prêt dès le chargement.
+     */
+    setupModalEvents();
 
-updateDate();
+  } catch (error) {
+    console.error(error);
 
+    setStatus(
+      "Impossible de charger la boutique.",
+      "error"
+    );
+
+    if (shopElement) {
+      shopElement.innerHTML = `
+        <div class="empty-shop">
+          <h3>Erreur de chargement</h3>
+          <p>Impossible de récupérer la boutique Fortnite.</p>
+        </div>
+      `;
+    }
+  }
+}
+
+/*
+ * Refresh si un bouton existe déjà dans ton interface.
+ */
+const refreshButton =
+  document.querySelector("#refresh") ||
+  document.querySelector(".refresh-btn") ||
+  document.querySelector("[data-refresh]");
+
+if (refreshButton) {
+  refreshButton.addEventListener("click", () => {
+    loadShop();
+  });
+}
+
+/*
+ * Bouton Epic existant :
+ * on ne modifie pas son fonctionnement.
+ */
+const epicLoginButton =
+  document.querySelector("#epic-login") ||
+  document.querySelector(".epic-login") ||
+  document.querySelector("[data-epic-login]");
+
+if (epicLoginButton) {
+  epicLoginButton.addEventListener("click", () => {
+    window.location.href =
+      "https://fortnite-shop.firedrifytb.workers.dev/login";
+  });
+}
+
+/*
+ * Lancement.
+ */
 loadShop();
