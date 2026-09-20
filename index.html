@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="img_2234.jpeg">
+    <link rel="apple-touch-icon" href="IMG_2234.jpeg">
     <link rel="stylesheet" href="style.css">
 
     <title>Fortnite Shop</title>
@@ -30,7 +30,6 @@
     ====================================================== -->
 
     <header>
-
         <div class="header-inner">
 
             <div class="brand">
@@ -108,8 +107,8 @@
             </div>
 
         </div>
-
     </header>
+
 
 
     <!-- =====================================================
@@ -148,6 +147,9 @@
         </section>
 
 
+
+        <!-- STATUS -->
+
         <div id="status">
 
             <div class="loading-container">
@@ -163,13 +165,17 @@
         </div>
 
 
+
+        <!-- SHOP -->
+
         <section id="shop"></section>
 
     </main>
 
 
+
     <!-- =====================================================
-         MODAL OBJET
+         MODAL
     ====================================================== -->
 
     <div
@@ -189,9 +195,7 @@
         >
 
 
-            <!-- =================================================
-                 CLOSE
-            ================================================== -->
+            <!-- CLOSE -->
 
             <button
                 id="modal-close"
@@ -202,26 +206,33 @@
             </button>
 
 
+
             <!-- =================================================
-                 MEDIA
+                 MEDIA / CAROUSEL
             ================================================== -->
 
-            <div class="modal-media">
+            <div
+                class="modal-media"
+                id="modal-media"
+            >
+
+                <!-- VIDEO YOUTUBE -->
+
+                <iframe
+                    id="modal-youtube"
+                    class="modal-youtube"
+                    title="Aperçu vidéo de l'objet"
+                    allow="
+                        autoplay;
+                        encrypted-media;
+                        picture-in-picture;
+                        fullscreen
+                    "
+                    allowfullscreen
+                ></iframe>
 
 
-                <!-- VIDEO -->
-
-                <video
-                    id="modal-video"
-                    class="modal-video"
-                    muted
-                    loop
-                    playsinline
-                    preload="metadata"
-                ></video>
-
-
-                <!-- IMAGE FALLBACK -->
+                <!-- IMAGE -->
 
                 <img
                     id="modal-image"
@@ -231,82 +242,36 @@
                 >
 
 
-                <!-- VIDEO OVERLAY -->
-
-                <div
-                    id="video-overlay"
-                    class="video-overlay"
-                >
-
-                    <button
-                        id="video-sound"
-                        class="media-button"
-                        type="button"
-                        aria-label="Activer le son"
-                    >
-                        🔇
-                    </button>
-
-
-                    <button
-                        id="video-fullscreen"
-                        class="media-button"
-                        type="button"
-                        aria-label="Plein écran"
-                    >
-                        ⛶
-                    </button>
-
-                </div>
-
-
-                <!-- PREVIEW LABEL -->
+                <!-- STATUS -->
 
                 <div
                     id="preview-status"
                     class="preview-status"
                 >
-                    Aperçu de l'objet
+                    APERÇU DE L'OBJET
                 </div>
 
 
-                <!-- VIDEO LOADING -->
+                <!-- DOTS -->
 
                 <div
-                    id="video-loading"
-                    class="video-loading"
-                >
-
-                    <div class="video-loading-spinner"></div>
-
-                    <span>
-                        Chargement de l'aperçu...
-                    </span>
-
-                </div>
+                    id="carousel-dots"
+                    class="carousel-dots"
+                ></div>
 
             </div>
 
 
+
             <!-- =================================================
-                 INFORMATIONS
+                 INFOS
             ================================================== -->
 
             <div class="modal-info">
 
-
-                <div class="modal-top-line">
-
-                    <span class="modal-label">
-                        OBJET FORTNITE
-                    </span>
-
-                    <span
-                        id="modal-rarity"
-                        class="modal-rarity"
-                    ></span>
-
-                </div>
+                <span class="modal-label">
+                    OBJET FORTNITE
+                </span>
 
 
                 <h2 id="modal-name"></h2>
@@ -314,39 +279,19 @@
 
                 <div
                     id="modal-price"
-                    class="modal-price"
+                    class="price"
                 ></div>
 
-
-                <!-- TAGS -->
 
                 <div
-                    id="modal-tags"
-                    class="modal-tags"
+                    id="modal-extra-info"
+                    class="modal-extra-info"
                 ></div>
 
-
-                <!-- DESCRIPTION -->
 
                 <div
                     id="modal-description"
                     class="modal-description"
-                ></div>
-
-
-                <!-- INTRODUCTION -->
-
-                <div
-                    id="modal-introduction"
-                    class="modal-introduction"
-                ></div>
-
-
-                <!-- SET -->
-
-                <div
-                    id="modal-set"
-                    class="modal-set"
                 ></div>
 
             </div>
@@ -354,6 +299,7 @@
         </div>
 
     </div>
+
 
 
     <!-- =====================================================
@@ -373,6 +319,7 @@
         </p>
 
     </footer>
+
 
 
     <script src="app.js"></script>
