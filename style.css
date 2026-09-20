@@ -1,4 +1,5 @@
 :root {
+
     --bg: #070b18;
     --bg-secondary: #0b1022;
 
@@ -11,7 +12,10 @@
     --muted: #8d98b3;
 
     --card: rgba(16, 23, 45, 0.78);
-    --border: rgba(255, 255, 255, 0.08);
+
+    --border:
+        rgba(255, 255, 255, 0.08);
+
 }
 
 
@@ -20,18 +24,24 @@
 ========================================================= */
 
 * {
+
     box-sizing: border-box;
+
     margin: 0;
     padding: 0;
+
 }
 
 
 html {
+
     scroll-behavior: smooth;
+
 }
 
 
 body {
+
     min-height: 100vh;
 
     font-family:
@@ -47,22 +57,25 @@ body {
     background:
         radial-gradient(
             circle at top left,
-            rgba(54, 169, 255, 0.08),
+            rgba(54,169,255,0.08),
             transparent 35%
         ),
         radial-gradient(
             circle at top right,
-            rgba(139, 92, 246, 0.08),
+            rgba(139,92,246,0.08),
             transparent 35%
         ),
         var(--bg);
 
     overflow-x: hidden;
+
 }
 
 
 body.modal-open {
+
     overflow: hidden;
+
 }
 
 
@@ -71,7 +84,9 @@ body.modal-open {
 ========================================================= */
 
 .background {
+
     position: fixed;
+
     inset: 0;
 
     z-index: -1;
@@ -79,31 +94,36 @@ body.modal-open {
     overflow: hidden;
 
     pointer-events: none;
+
 }
 
 
 .grid-background {
+
     position: absolute;
+
     inset: 0;
 
     opacity: 0.22;
 
     background-image:
         linear-gradient(
-            rgba(255, 255, 255, 0.025) 1px,
+            rgba(255,255,255,0.025) 1px,
             transparent 1px
         ),
         linear-gradient(
             90deg,
-            rgba(255, 255, 255, 0.025) 1px,
+            rgba(255,255,255,0.025) 1px,
             transparent 1px
         );
 
     background-size: 55px 55px;
+
 }
 
 
 .orb {
+
     position: absolute;
 
     width: 420px;
@@ -117,35 +137,46 @@ body.modal-open {
 
     animation:
         floatOrb 12s ease-in-out infinite alternate;
+
 }
 
 
 .orb-blue {
+
     top: -180px;
     left: -120px;
 
     background: var(--blue);
+
 }
 
 
 .orb-purple {
+
     top: 25%;
     right: -180px;
 
     background: var(--purple);
 
     animation-delay: -5s;
+
 }
 
 
 @keyframes floatOrb {
 
     from {
-        transform: translate3d(0, 0, 0);
+
+        transform:
+            translate3d(0,0,0);
+
     }
 
     to {
-        transform: translate3d(60px, 40px, 0);
+
+        transform:
+            translate3d(60px,40px,0);
+
     }
 
 }
@@ -156,7 +187,9 @@ body.modal-open {
 ========================================================= */
 
 header {
+
     position: sticky;
+
     top: 0;
 
     z-index: 100;
@@ -165,14 +198,19 @@ header {
         1px solid var(--border);
 
     background:
-        rgba(7, 11, 24, 0.72);
+        rgba(7,11,24,0.72);
 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter:
+        blur(20px);
+
+    -webkit-backdrop-filter:
+        blur(20px);
+
 }
 
 
 .header-inner {
+
     width:
         min(1500px, calc(100% - 40px));
 
@@ -183,9 +221,11 @@ header {
     display: flex;
 
     align-items: center;
+
     justify-content: space-between;
 
     gap: 25px;
+
 }
 
 
@@ -194,15 +234,18 @@ header {
 ========================================================= */
 
 .brand {
+
     display: flex;
 
     align-items: center;
 
     gap: 12px;
+
 }
 
 
 .brand-logo {
+
     width: 43px;
     height: 43px;
 
@@ -221,36 +264,47 @@ header {
 
     box-shadow:
         0 0 25px
-        rgba(54, 169, 255, 0.22);
+        rgba(54,169,255,0.22);
 
     font-size: 20px;
+
 }
 
 
 .brand-text h1 {
+
     font-size: 17px;
 
     font-weight: 900;
 
     letter-spacing: 1px;
+
 }
 
 
 .brand-text h1 span {
-    color: var(--blue-light);
+
+    color:
+        var(--blue-light);
+
 }
 
 
 .brand-text p {
+
     margin-top: 2px;
 
     font-size: 10px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    text-transform: uppercase;
+    text-transform:
+        uppercase;
 
-    letter-spacing: 1.5px;
+    letter-spacing:
+        1.5px;
+
 }
 
 
@@ -259,11 +313,14 @@ header {
 ========================================================= */
 
 .date-box {
+
     text-align: center;
+
 }
 
 
 .date-label {
+
     display: block;
 
     margin-bottom: 4px;
@@ -275,15 +332,19 @@ header {
     color: var(--muted);
 
     letter-spacing: 1.5px;
+
 }
 
 
 #date {
+
     font-size: 13px;
 
     font-weight: 700;
 
-    text-transform: capitalize;
+    text-transform:
+        capitalize;
+
 }
 
 
@@ -292,11 +353,13 @@ header {
 ========================================================= */
 
 .actions {
+
     display: flex;
 
     align-items: center;
 
     gap: 10px;
+
 }
 
 
@@ -305,7 +368,6 @@ header {
 ========================================================= */
 
 .login-button {
-    position: relative;
 
     display: flex;
 
@@ -319,7 +381,7 @@ header {
 
     border:
         1px solid
-        rgba(54, 169, 255, 0.35);
+        rgba(54,169,255,0.35);
 
     border-radius: 12px;
 
@@ -328,39 +390,44 @@ header {
     background:
         linear-gradient(
             135deg,
-            rgba(54, 169, 255, 0.14),
-            rgba(139, 92, 246, 0.14)
+            rgba(54,169,255,0.14),
+            rgba(139,92,246,0.14)
         );
 
     text-decoration: none;
-
-    overflow: hidden;
 
     transition:
         transform 0.25s ease,
         border-color 0.25s ease,
         box-shadow 0.25s ease;
+
 }
 
 
 .login-button:hover {
-    transform: translateY(-2px);
+
+    transform:
+        translateY(-2px);
 
     border-color:
-        rgba(54, 169, 255, 0.7);
+        rgba(54,169,255,0.7);
 
     box-shadow:
         0 8px 30px
-        rgba(54, 169, 255, 0.12);
+        rgba(54,169,255,0.12);
+
 }
 
 
 .epic-icon {
+
     font-size: 19px;
+
 }
 
 
 .login-content {
+
     display: flex;
 
     flex-direction: column;
@@ -368,15 +435,18 @@ header {
     font-size: 12px;
 
     font-weight: 800;
+
 }
 
 
 .login-content small {
+
     font-size: 8px;
 
     color: var(--muted);
 
     letter-spacing: 1px;
+
 }
 
 
@@ -385,6 +455,7 @@ header {
 ========================================================= */
 
 .refresh-button {
+
     display: flex;
 
     align-items: center;
@@ -403,43 +474,55 @@ header {
     color: var(--text);
 
     background:
-        rgba(255, 255, 255, 0.04);
+        rgba(255,255,255,0.04);
 
     cursor: pointer;
 
     transition:
         transform 0.25s ease,
         background 0.25s ease;
+
 }
 
 
 .refresh-button:hover {
-    transform: translateY(-2px);
+
+    transform:
+        translateY(-2px);
 
     background:
-        rgba(255, 255, 255, 0.08);
+        rgba(255,255,255,0.08);
+
 }
 
 
 .refresh-icon {
+
     display: inline-block;
 
     font-size: 20px;
 
     transition:
         transform 0.5s ease;
+
 }
 
 
-.refresh-button:hover .refresh-icon {
-    transform: rotate(180deg);
+.refresh-button:hover
+.refresh-icon {
+
+    transform:
+        rotate(180deg);
+
 }
 
 
 .refresh-text {
+
     font-size: 11px;
 
     font-weight: 700;
+
 }
 
 
@@ -448,6 +531,7 @@ header {
 ========================================================= */
 
 main {
+
     width:
         min(1500px, calc(100% - 40px));
 
@@ -455,14 +539,16 @@ main {
 
     padding:
         55px 0 80px;
+
 }
 
 
 /* =========================================================
-   SHOP HEADING
+   HEADING
 ========================================================= */
 
 .shop-heading {
+
     display: flex;
 
     align-items: flex-end;
@@ -472,42 +558,51 @@ main {
     gap: 30px;
 
     margin-bottom: 35px;
+
 }
 
 
 .section-label {
+
     display: inline-block;
 
     margin-bottom: 8px;
 
-    color: var(--blue-light);
+    color:
+        var(--blue-light);
 
     font-size: 10px;
 
     font-weight: 900;
 
     letter-spacing: 2px;
+
 }
 
 
 .heading-content h2 {
+
     font-size:
-        clamp(30px, 5vw, 52px);
+        clamp(30px,5vw,52px);
 
     line-height: 1;
 
     font-weight: 950;
 
     letter-spacing: -1.5px;
+
 }
 
 
 .heading-content p {
+
     margin-top: 12px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
     font-size: 14px;
+
 }
 
 
@@ -516,6 +611,7 @@ main {
 ========================================================= */
 
 .live-badge {
+
     display: flex;
 
     align-items: center;
@@ -526,24 +622,26 @@ main {
 
     border:
         1px solid
-        rgba(70, 255, 150, 0.2);
+        rgba(70,255,150,0.2);
 
     border-radius: 999px;
 
     color: #9fffc7;
 
     background:
-        rgba(70, 255, 150, 0.06);
+        rgba(70,255,150,0.06);
 
     font-size: 9px;
 
     font-weight: 900;
 
     letter-spacing: 1px;
+
 }
 
 
 .live-badge span {
+
     width: 6px;
     height: 6px;
 
@@ -555,15 +653,22 @@ main {
         0 0 10px #52ff9b;
 
     animation:
-        livePulse 1.5s ease-in-out infinite;
+        livePulse 1.5s
+        ease-in-out
+        infinite;
+
 }
 
 
 @keyframes livePulse {
 
     50% {
+
         opacity: 0.35;
-        transform: scale(0.7);
+
+        transform:
+            scale(0.7);
+
     }
 
 }
@@ -574,6 +679,7 @@ main {
 ========================================================= */
 
 .loading-container {
+
     min-height: 180px;
 
     display: flex;
@@ -586,13 +692,16 @@ main {
 
     gap: 13px;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
     font-size: 13px;
+
 }
 
 
 .loading-spinner {
+
     width: 34px;
     height: 34px;
 
@@ -600,19 +709,24 @@ main {
         3px solid
         rgba(255,255,255,0.08);
 
-    border-top-color: var(--blue);
+    border-top-color:
+        var(--blue);
 
     border-radius: 50%;
 
     animation:
         spin 0.8s linear infinite;
+
 }
 
 
 @keyframes spin {
 
     to {
-        transform: rotate(360deg);
+
+        transform:
+            rotate(360deg);
+
     }
 
 }
@@ -623,15 +737,17 @@ main {
 ========================================================= */
 
 #shop {
+
     display: grid;
 
     grid-template-columns:
         repeat(
             auto-fill,
-            minmax(220px, 1fr)
+            minmax(220px,1fr)
         );
 
     gap: 18px;
+
 }
 
 
@@ -640,6 +756,7 @@ main {
 ========================================================= */
 
 .card {
+
     position: relative;
 
     overflow: hidden;
@@ -658,8 +775,8 @@ main {
     background:
         linear-gradient(
             145deg,
-            rgba(20, 28, 54, 0.9),
-            rgba(11, 16, 34, 0.92)
+            rgba(20,28,54,0.9),
+            rgba(11,16,34,0.92)
         );
 
     box-shadow:
@@ -669,38 +786,73 @@ main {
     cursor: pointer;
 
     animation:
-        cardAppear 0.55s ease both;
+        cardAppear
+        0.55s
+        ease
+        both;
 
     transition:
         transform 0.3s ease,
         border-color 0.3s ease,
         box-shadow 0.3s ease;
+
 }
 
 
 .card:hover {
+
     transform:
         translateY(-8px)
         scale(1.015);
 
     border-color:
-        rgba(54, 169, 255, 0.35);
+        rgba(54,169,255,0.35);
 
     box-shadow:
         0 25px 60px
         rgba(0,0,0,0.35);
+
 }
 
 
-.card:focus-visible {
-    outline:
-        2px solid var(--blue);
+@keyframes cardAppear {
 
-    outline-offset: 3px;
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(20px);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0);
+
+    }
+
 }
 
 
-.card > img {
+/* =========================================================
+   CARD IMAGE
+========================================================= */
+
+.card-image-wrapper {
+
+    position: relative;
+
+    overflow: hidden;
+
+}
+
+
+.card-image-wrapper > img {
+
     width: 100%;
 
     height: 235px;
@@ -711,15 +863,62 @@ main {
 
     transition:
         transform 0.45s ease;
+
 }
 
 
-.card:hover > img {
-    transform: scale(1.06);
+.card:hover
+.card-image-wrapper > img {
+
+    transform:
+        scale(1.06);
+
 }
 
+
+/* =========================================================
+   APERÇU BADGE
+========================================================= */
+
+.card-preview-badge {
+
+    position: absolute;
+
+    top: 12px;
+    left: 12px;
+
+    padding:
+        6px 9px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    border-radius: 999px;
+
+    color: white;
+
+    background:
+        rgba(5,8,18,0.65);
+
+    backdrop-filter:
+        blur(10px);
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+
+}
+
+
+/* =========================================================
+   CARD INFO
+========================================================= */
 
 .card-info {
+
     position: relative;
 
     z-index: 2;
@@ -733,10 +932,12 @@ main {
             rgba(11,16,34,0.5),
             rgba(11,16,34,0.98)
         );
+
 }
 
 
 .card-info h2 {
+
     margin-bottom: 9px;
 
     font-size: 15px;
@@ -746,6 +947,7 @@ main {
     overflow: hidden;
 
     text-overflow: ellipsis;
+
 }
 
 
@@ -754,6 +956,7 @@ main {
 ========================================================= */
 
 .price {
+
     display: flex;
 
     align-items: center;
@@ -765,10 +968,12 @@ main {
     font-size: 13px;
 
     font-weight: 800;
+
 }
 
 
 .vbucks-icon {
+
     width: 19px !important;
     height: 19px !important;
 
@@ -788,6 +993,7 @@ main {
     margin: 0 !important;
 
     filter: none !important;
+
 }
 
 
@@ -796,6 +1002,7 @@ main {
 ========================================================= */
 
 .item-modal {
+
     position: fixed;
 
     inset: 0;
@@ -819,15 +1026,18 @@ main {
     transition:
         opacity 0.3s ease,
         visibility 0.3s ease;
+
 }
 
 
 .item-modal.active {
+
     opacity: 1;
 
     visibility: visible;
 
     pointer-events: auto;
+
 }
 
 
@@ -836,18 +1046,20 @@ main {
 ========================================================= */
 
 .modal-backdrop {
+
     position: absolute;
 
     inset: 0;
 
     background:
-        rgba(2, 5, 15, 0.84);
+        rgba(2,5,15,0.86);
 
     backdrop-filter:
         blur(18px);
 
     -webkit-backdrop-filter:
         blur(18px);
+
 }
 
 
@@ -856,16 +1068,17 @@ main {
 ========================================================= */
 
 .modal-content {
+
     position: relative;
 
     z-index: 2;
 
     width:
-        min(980px, 100%);
+        min(950px,100%);
 
-    max-height: 94vh;
+    max-height: 92vh;
 
-    overflow-y: auto;
+    overflow: hidden;
 
     border:
         1px solid
@@ -876,8 +1089,8 @@ main {
     background:
         linear-gradient(
             145deg,
-            rgba(20, 28, 54, 0.98),
-            rgba(7, 11, 24, 0.98)
+            rgba(20,28,54,0.98),
+            rgba(7,11,24,0.98)
         );
 
     box-shadow:
@@ -891,13 +1104,17 @@ main {
     transition:
         transform 0.35s
         cubic-bezier(.2,.8,.2,1);
+
 }
 
 
-.item-modal.active .modal-content {
+.item-modal.active
+.modal-content {
+
     transform:
         translateY(0)
         scale(1);
+
 }
 
 
@@ -906,6 +1123,7 @@ main {
 ========================================================= */
 
 .modal-close {
+
     position: absolute;
 
     top: 15px;
@@ -938,14 +1156,18 @@ main {
     transition:
         transform 0.2s ease,
         background 0.2s ease;
+
 }
 
 
 .modal-close:hover {
-    transform: rotate(90deg);
+
+    transform:
+        rotate(90deg);
 
     background:
         rgba(255,255,255,0.1);
+
 }
 
 
@@ -954,12 +1176,13 @@ main {
 ========================================================= */
 
 .modal-media {
+
     position: relative;
 
     width: 100%;
 
     height:
-        min(62vh, 600px);
+        min(62vh,600px);
 
     display: flex;
 
@@ -975,10 +1198,12 @@ main {
             rgba(54,169,255,0.16),
             transparent 62%
         );
+
 }
 
 
 .modal-media::before {
+
     content: "";
 
     position: absolute;
@@ -994,20 +1219,31 @@ main {
     filter: blur(80px);
 
     animation:
-        previewGlow 4s ease-in-out infinite alternate;
+        previewGlow
+        4s ease-in-out
+        infinite alternate;
+
 }
 
 
 @keyframes previewGlow {
 
     from {
-        transform: scale(0.8);
+
+        transform:
+            scale(0.8);
+
         opacity: 0.4;
+
     }
 
     to {
-        transform: scale(1.2);
+
+        transform:
+            scale(1.2);
+
         opacity: 1;
+
     }
 
 }
@@ -1018,6 +1254,7 @@ main {
 ========================================================= */
 
 .modal-video {
+
     position: absolute;
 
     z-index: 3;
@@ -1027,7 +1264,7 @@ main {
 
     object-fit: contain;
 
-    padding: 25px;
+    padding: 20px;
 
     opacity: 0;
 
@@ -1041,13 +1278,16 @@ main {
             0 25px 40px
             rgba(0,0,0,0.5)
         );
+
 }
 
 
 .modal-video.visible {
+
     opacity: 1;
 
     pointer-events: auto;
+
 }
 
 
@@ -1056,6 +1296,7 @@ main {
 ========================================================= */
 
 .modal-image {
+
     position: relative;
 
     z-index: 2;
@@ -1074,12 +1315,20 @@ main {
         );
 
     animation:
-        imageFloat 4s ease-in-out infinite;
+        imageFloat
+        4s ease-in-out
+        infinite;
+
+    transition:
+        opacity 0.3s ease;
+
 }
 
 
 .modal-image.hidden {
+
     opacity: 0;
+
 }
 
 
@@ -1087,157 +1336,19 @@ main {
 
     0%,
     100% {
-        transform: translateY(0);
+
+        transform:
+            translateY(0);
+
     }
 
     50% {
-        transform: translateY(-7px);
+
+        transform:
+            translateY(-7px);
+
     }
 
-}
-
-
-/* =========================================================
-   VIDEO OVERLAY
-========================================================= */
-
-.video-overlay {
-    position: absolute;
-
-    right: 20px;
-    bottom: 18px;
-
-    z-index: 10;
-
-    display: flex;
-
-    gap: 8px;
-
-    opacity: 0;
-
-    transform:
-        translateY(8px);
-
-    pointer-events: none;
-
-    transition:
-        opacity 0.25s ease,
-        transform 0.25s ease;
-}
-
-
-.video-overlay.visible {
-    opacity: 1;
-
-    transform:
-        translateY(0);
-
-    pointer-events: auto;
-}
-
-
-.media-button {
-    width: 42px;
-    height: 42px;
-
-    display: grid;
-
-    place-items: center;
-
-    border:
-        1px solid
-        rgba(255,255,255,0.15);
-
-    border-radius: 12px;
-
-    color: white;
-
-    background:
-        rgba(5,8,18,0.72);
-
-    backdrop-filter:
-        blur(10px);
-
-    cursor: pointer;
-
-    font-size: 17px;
-
-    transition:
-        transform 0.2s ease,
-        background 0.2s ease;
-}
-
-
-.media-button:hover {
-    transform:
-        translateY(-2px);
-
-    background:
-        rgba(54,169,255,0.2);
-}
-
-
-/* =========================================================
-   VIDEO LOADING
-========================================================= */
-
-.video-loading {
-    position: absolute;
-
-    inset: 0;
-
-    z-index: 8;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    flex-direction: column;
-
-    gap: 10px;
-
-    color: var(--muted);
-
-    background:
-        rgba(7,11,24,0.2);
-
-    opacity: 0;
-
-    pointer-events: none;
-
-    transition:
-        opacity 0.2s ease;
-}
-
-
-.video-loading.visible {
-    opacity: 1;
-}
-
-
-.video-loading-spinner {
-    width: 32px;
-    height: 32px;
-
-    border:
-        3px solid
-        rgba(255,255,255,0.1);
-
-    border-top-color:
-        var(--blue);
-
-    border-radius: 50%;
-
-    animation:
-        spin 0.8s linear infinite;
-}
-
-
-.video-loading span {
-    font-size: 11px;
-
-    font-weight: 700;
 }
 
 
@@ -1246,12 +1357,13 @@ main {
 ========================================================= */
 
 .preview-status {
+
     position: absolute;
 
     left: 18px;
-    bottom: 18px;
+    bottom: 15px;
 
-    z-index: 12;
+    z-index: 10;
 
     padding:
         7px 10px;
@@ -1265,10 +1377,10 @@ main {
     color: var(--muted);
 
     background:
-        rgba(0,0,0,0.42);
+        rgba(0,0,0,0.5);
 
     backdrop-filter:
-        blur(8px);
+        blur(10px);
 
     font-size: 9px;
 
@@ -1276,7 +1388,9 @@ main {
 
     letter-spacing: 1px;
 
-    text-transform: uppercase;
+    text-transform:
+        uppercase;
+
 }
 
 
@@ -1285,235 +1399,103 @@ main {
 ========================================================= */
 
 .modal-info {
+
     padding:
-        22px 26px 28px;
-}
+        20px 25px 25px;
 
-
-.modal-top-line {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 15px;
-
-    margin-bottom: 8px;
 }
 
 
 .modal-label {
-    color: var(--blue-light);
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    color:
+        var(--blue-light);
 
     font-size: 9px;
 
     font-weight: 900;
 
     letter-spacing: 2px;
-}
 
-
-.modal-rarity {
-    display: none;
-
-    padding:
-        5px 9px;
-
-    border:
-        1px solid
-        rgba(255,255,255,0.1);
-
-    border-radius: 999px;
-
-    color: white;
-
-    background:
-        rgba(255,255,255,0.06);
-
-    font-size: 8px;
-
-    font-weight: 900;
-
-    letter-spacing: 1px;
-
-    text-transform: uppercase;
-}
-
-
-.modal-rarity.visible {
-    display: inline-flex;
-}
-
-
-/* Raretés */
-
-.modal-rarity[data-rarity*="legendary"] {
-    color: #ffb83d;
-    border-color: rgba(255,184,61,0.3);
-    background: rgba(255,184,61,0.08);
-}
-
-
-.modal-rarity[data-rarity*="epic"] {
-    color: #c084fc;
-    border-color: rgba(192,132,252,0.3);
-    background: rgba(192,132,252,0.08);
-}
-
-
-.modal-rarity[data-rarity*="rare"] {
-    color: #60a5fa;
-    border-color: rgba(96,165,250,0.3);
-    background: rgba(96,165,250,0.08);
-}
-
-
-.modal-rarity[data-rarity*="uncommon"] {
-    color: #6ee7b7;
-    border-color: rgba(110,231,183,0.3);
-    background: rgba(110,231,183,0.08);
-}
-
-
-.modal-rarity[data-rarity*="common"] {
-    color: #d1d5db;
-    border-color: rgba(209,213,219,0.2);
-    background: rgba(209,213,219,0.06);
 }
 
 
 .modal-info h2 {
-    margin-bottom: 13px;
+
+    margin-bottom: 12px;
 
     font-size:
-        clamp(24px, 4vw, 36px);
-
-    line-height: 1.05;
+        clamp(22px,4vw,34px);
 
     font-weight: 900;
 
-    letter-spacing: -0.7px;
 }
 
 
 /* =========================================================
-   MODAL PRICE
+   EXTRA INFO
 ========================================================= */
 
-.modal-price {
-    display: flex;
+.modal-extra-info {
 
-    align-items: center;
-
-    gap: 8px;
-
-    color: white;
-
-    font-size: 15px;
-}
-
-
-.modal-price strong {
-    font-size: 18px;
-}
-
-
-/* =========================================================
-   TAGS
-========================================================= */
-
-.modal-tags {
     display: flex;
 
     flex-wrap: wrap;
 
     gap: 7px;
 
-    margin-top: 16px;
+    margin:
+        0 0 13px;
+
 }
 
 
-.info-tag {
+.info-pill {
+
     padding:
         6px 9px;
 
     border:
         1px solid
-        rgba(255,255,255,0.08);
+        rgba(54,169,255,0.2);
 
-    border-radius: 8px;
+    border-radius: 999px;
 
-    color: #cbd5e1;
+    color:
+        var(--blue-light);
 
     background:
-        rgba(255,255,255,0.04);
+        rgba(54,169,255,0.06);
 
     font-size: 9px;
 
     font-weight: 800;
 
-    text-transform: uppercase;
-
-    letter-spacing: 0.5px;
 }
 
 
-/* =========================================================
-   DESCRIPTION / INFO
-========================================================= */
+.modal-description {
 
-.modal-description,
-.modal-introduction,
-.modal-set {
-    display: none;
+    margin-top: 12px;
 
-    margin-top: 18px;
-
-    padding-top: 15px;
-
-    border-top:
-        1px solid
-        rgba(255,255,255,0.07);
-}
-
-
-.modal-description.visible,
-.modal-introduction.visible,
-.modal-set.visible {
-    display: block;
-}
-
-
-.info-title {
-    display: block;
-
-    margin-bottom: 7px;
-
-    color: var(--blue-light);
-
-    font-size: 8px;
-
-    font-weight: 900;
-
-    letter-spacing: 1.5px;
-}
-
-
-.modal-description p,
-.modal-introduction p {
-    color: var(--muted);
+    color:
+        var(--muted);
 
     font-size: 12px;
 
     line-height: 1.6;
+
 }
 
 
-.modal-set strong {
-    color: var(--text);
+.modal-description.empty {
 
-    font-size: 13px;
+    display: none;
+
 }
 
 
@@ -1522,8 +1504,9 @@ main {
 ========================================================= */
 
 footer {
+
     width:
-        min(1500px, calc(100% - 40px));
+        min(1500px,calc(100% - 40px));
 
     margin: auto;
 
@@ -1531,19 +1514,23 @@ footer {
         25px 0 40px;
 
     text-align: center;
+
 }
 
 
 .footer-logo {
+
     font-size: 12px;
 
     font-weight: 900;
 
     letter-spacing: 2px;
+
 }
 
 
 .footer-line {
+
     width: 100%;
 
     height: 1px;
@@ -1552,13 +1539,17 @@ footer {
 
     background:
         var(--border);
+
 }
 
 
 footer p {
-    color: var(--muted);
+
+    color:
+        var(--muted);
 
     font-size: 10px;
+
 }
 
 
@@ -1569,16 +1560,20 @@ footer p {
 @media (max-width: 900px) {
 
     .date-box {
+
         display: none;
+
     }
 
 
     #shop {
+
         grid-template-columns:
             repeat(
                 auto-fill,
-                minmax(190px, 1fr)
+                minmax(190px,1fr)
             );
+
     }
 
 }
@@ -1591,44 +1586,57 @@ footer p {
 @media (max-width: 600px) {
 
     .header-inner {
+
         width:
             calc(100% - 24px);
 
         gap: 10px;
+
     }
 
 
     .brand-text p {
+
         display: none;
+
     }
 
 
     .brand-text h1 {
+
         font-size: 14px;
+
     }
 
 
     .brand-logo {
+
         width: 38px;
         height: 38px;
 
         font-size: 17px;
+
     }
 
 
     .login-button {
+
         min-height: 40px;
 
         padding: 0 10px;
+
     }
 
 
     .login-content {
+
         display: none;
+
     }
 
 
     .refresh-button {
+
         width: 40px;
 
         min-height: 40px;
@@ -1636,181 +1644,166 @@ footer p {
         padding: 0;
 
         justify-content: center;
+
     }
 
 
     .refresh-text {
+
         display: none;
+
     }
 
 
     main {
+
         width:
             calc(100% - 24px);
 
         padding:
             35px 0 55px;
+
     }
 
 
     .shop-heading {
+
         align-items: flex-start;
 
         flex-direction: column;
 
         gap: 15px;
+
     }
 
 
     .heading-content h2 {
+
         font-size: 34px;
+
     }
 
 
     #shop {
+
         grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+            repeat(2,minmax(0,1fr));
 
         gap: 10px;
+
     }
 
 
     .card {
+
         min-height: 240px;
 
         border-radius: 14px;
+
     }
 
 
-    .card > img {
+    .card-image-wrapper > img {
+
         height: 175px;
+
     }
 
 
     .card-info {
+
         padding:
             11px 11px 13px;
+
     }
 
 
     .card-info h2 {
+
         font-size: 12px;
+
     }
 
 
     .price {
+
         font-size: 11px;
+
     }
 
 
     .vbucks-icon {
+
         width: 16px !important;
         height: 16px !important;
 
         min-width: 16px;
         min-height: 16px;
+
     }
 
 
     .item-modal {
+
         padding: 10px;
+
     }
 
 
     .modal-content {
+
         width: 100%;
 
-        max-height: 95vh;
+        max-height: 94vh;
 
         border-radius: 20px;
+
     }
 
 
     .modal-media {
+
         height: 52vh;
 
-        min-height: 300px;
     }
 
 
-    .modal-video,
-    .modal-image {
-        padding: 12px;
+    .modal-video {
+
+        padding: 10px;
+
     }
 
 
     .modal-info {
+
         padding:
-            17px 18px 22px;
+            16px 18px 20px;
+
     }
 
 
     .modal-close {
+
         top: 10px;
         right: 10px;
 
         width: 38px;
         height: 38px;
+
     }
 
 
-    .media-button {
-        width: 38px;
-        height: 38px;
+    .card-preview-badge {
 
-        border-radius: 10px;
-    }
+        top: 8px;
+        left: 8px;
 
+        padding:
+            5px 7px;
 
-    .video-overlay {
-        right: 12px;
-        bottom: 12px;
-    }
+        font-size: 7px;
 
-
-    .preview-status {
-        left: 12px;
-        bottom: 12px;
-    }
-
-
-    .modal-top-line {
-        align-items: flex-start;
-    }
-
-
-    .modal-rarity {
-        max-width: 120px;
-
-        text-align: center;
-    }
-
-}
-
-
-/* =========================================================
-   TRÈS PETITS ÉCRANS
-========================================================= */
-
-@media (max-width: 390px) {
-
-    #shop {
-        gap: 8px;
-    }
-
-
-    .card > img {
-        height: 155px;
-    }
-
-
-    .card-info h2 {
-        font-size: 11px;
-    }
-
-
-    .modal-media {
-        height: 47vh;
     }
 
 }
