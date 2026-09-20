@@ -6,13 +6,26 @@ const shopContainer = document.getElementById("shop");
 const status = document.getElementById("status");
 const dateElement = document.getElementById("date");
 
+const itemModal = document.getElementById("item-modal");
+const modalClose = document.getElementById("modal-close");
+const modalBackdrop = document.querySelector(".modal-backdrop");
+
+const modalImage = document.getElementById("modal-image");
+const modalVideo = document.getElementById("modal-video");
+
+const modalName = document.getElementById("modal-name");
+const modalPrice = document.getElementById("modal-price");
+const modalDescription = document.getElementById("modal-description");
+
+const previewStatus = document.getElementById("preview-status");
+const modalExtraInfo = document.getElementById("modal-extra-info");
+
 
 // =========================================================
 // DATE
 // =========================================================
 
 function displayDate() {
-
     const today = new Date();
 
     dateElement.textContent =
@@ -22,43 +35,7 @@ function displayDate() {
             month: "long",
             year: "numeric"
         });
-
 }
-
-
-// =========================================================
-// MODAL
-// =========================================================
-
-const itemModal =
-    document.getElementById("item-modal");
-
-const modalClose =
-    document.getElementById("modal-close");
-
-const modalBackdrop =
-    document.querySelector(".modal-backdrop");
-
-const modalImage =
-    document.getElementById("modal-image");
-
-const modalVideo =
-    document.getElementById("modal-video");
-
-const modalName =
-    document.getElementById("modal-name");
-
-const modalPrice =
-    document.getElementById("modal-price");
-
-const modalDescription =
-    document.getElementById("modal-description");
-
-const previewStatus =
-    document.getElementById("preview-status");
-
-const modalExtraInfo =
-    document.getElementById("modal-extra-info");
 
 
 // =========================================================
@@ -66,18 +43,15 @@ const modalExtraInfo =
 // =========================================================
 
 function getVbucksIcon() {
-
     return "https://firedrifytb.github.io/fortnite-shop/IMG_2258.png";
-
 }
 
 
 // =========================================================
-// ECHAPPE HTML
+// SECURITE HTML
 // =========================================================
 
 function escapeHTML(value) {
-
     if (value === null || value === undefined) {
         return "";
     }
@@ -88,31 +62,262 @@ function escapeHTML(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+
+// =========================================================
+// CAROUSEL
+// =========================================================
+
+let currentSlide = 0;
+let hasVideo = false;
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+
+// =========================================================
+// CREER LES POINTS
+// =========================================================
+
+function createCarouselDots(videoAvailable) {
+
+    const media =
+        document.querySelector(".modal-media");
+
+    if (!media) return;
+
+    let dots =
+        media.querySelector(".carousel-dots");
+
+    if (dots) {
+        dots.remove();
+    }
+
+    dots =
+        document.createElement("div");
+
+    dots.className =
+        "carousel-dots";
+
+    // Image seule
+    if (!videoAvailable) {
+        const dot =
+            document.createElement("button");
+
+        dot.className =
+            "carousel-dot active";
+
+        dot.setAttribute(
+            "aria-label",
+            "Image"
+        );
+
+        dots.appendChild(dot);
+
+        media.appendChild(dots);
+
+        return;
+    }
+
+    // Vidéo + image
+    for (let i = 0; i < 2; i++) {
+
+        const dot =
+            document.createElement("button");
+
+        dot.className =
+            "carousel-dot";
+
+        if (i === 0) {
+            dot.classList.add("active");
+        }
+
+        dot.setAttribute(
+            "aria-label",
+            i === 0
+                ? "Voir la vidéo"
+                : "Voir l'image"
+        );
+
+        dot.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                showSlide(i);
+
+            }
+        );
+
+        dots.appendChild(dot);
+    }
+
+    media.appendChild(dots);
+}
+
+
+// =========================================================
+// CHANGER DE SLIDE
+// =========================================================
+
+function showSlide(slide) {
+
+    if (!hasVideo) {
+        slide = 1;
+    }
+
+    currentSlide =
+        Math.max(
+            0,
+            Math.min(
+                slide,
+                1
+            )
+        );
+
+    const media =
+        document.querySelector(".modal-media");
+
+    if (!media) return;
+
+    const dots =
+        media.querySelectorAll(
+            ".carousel-dot"
+        );
+
+    dots.forEach(
+        (dot, index) => {
+
+            dot.classList.toggle(
+                "active",
+                index === currentSlide
+            );
+
+        }
+    );
+
+
+    // -----------------------------------------------------
+    // VIDEO
+    // -----------------------------------------------------
+
+    if (
+        hasVideo &&
+        currentSlide === 0
+    ) {
+
+        modalVideo.classList.add(
+            "visible"
+        );
+
+        modalImage.classList.add(
+            "hidden"
+        );
+
+        previewStatus.textContent =
+            "APERÇU ANIMÉ";
+
+        modalVideo
+            .play()
+            .catch(() => {});
+
+        return;
+    }
+
+
+    // -----------------------------------------------------
+    // IMAGE
+    // -----------------------------------------------------
+
+    modalVideo.pause();
+
+    modalVideo.classList.remove(
+        "visible"
+    );
+
+    modalImage.classList.remove(
+        "hidden"
+    );
+
+    previewStatus.textContent =
+        "APERÇU DE L'OBJET";
+}
+
+
+// =========================================================
+// SWIPE
+// =========================================================
+
+function handleTouchStart(event) {
+
+    touchStartX =
+        event.changedTouches[0].screenX;
+
+}
+
+function handleTouchEnd(event) {
+
+    touchEndX =
+        event.changedTouches[0].screenX;
+
+    const difference =
+        touchStartX -
+        touchEndX;
+
+    // Minimum de 50 px pour déclencher
+    if (
+        Math.abs(difference) <
+        50
+    ) {
+        return;
+    }
+
+    if (difference > 0) {
+
+        // Swipe gauche
+        showSlide(
+            currentSlide + 1
+        );
+
+    } else {
+
+        // Swipe droite
+        showSlide(
+            currentSlide - 1
+        );
+
+    }
 
 }
 
 
 // =========================================================
-// RECHERCHE VIDEO
+// RECUPERER LA VIDEO
 // =========================================================
 
 function findVideoUrl(item, entry) {
 
     const possibleValues = [
 
-        // Objet cosmétique
-        item?.showcaseVideoUrl,
+        // Champs directs
+        item?.showcase_video,
+        item?.showcaseVideo,
+
         item?.showcase_video_url,
-
-        item?.showcaseVideo?.url,
-        item?.showcase_video?.url,
-
-        item?.videoUrl,
-        item?.video_url,
+        item?.showcaseVideoUrl,
 
         item?.video,
+        item?.video_url,
+        item?.videoUrl,
 
-        // Vidéos éventuelles
+        // Objets vidéo
+        item?.showcase_video?.url,
+        item?.showcaseVideo?.url,
+
+        item?.video?.url,
+
         item?.videos?.showcase,
         item?.videos?.showcase?.url,
 
@@ -122,31 +327,31 @@ function findVideoUrl(item, entry) {
         item?.videos?.featured,
         item?.videos?.featured?.url,
 
-        // Entrée du shop
-        entry?.showcaseVideoUrl,
+        // Entrée shop
+        entry?.showcase_video,
+        entry?.showcaseVideo,
+
         entry?.showcase_video_url,
-
-        entry?.showcaseVideo?.url,
-        entry?.showcase_video?.url,
-
-        entry?.videoUrl,
-        entry?.video_url,
+        entry?.showcaseVideoUrl,
 
         entry?.video,
+        entry?.video_url,
+        entry?.videoUrl,
 
-        entry?.videos?.showcase,
-        entry?.videos?.showcase?.url,
-
-        entry?.videos?.preview,
-        entry?.videos?.preview?.url
+        entry?.showcase_video?.url,
+        entry?.showcaseVideo?.url
 
     ];
 
 
-    for (const value of possibleValues) {
+    for (
+        const value
+        of possibleValues
+    ) {
 
         if (
-            typeof value === "string" &&
+            typeof value ===
+            "string" &&
             value.startsWith("http")
         ) {
 
@@ -154,11 +359,32 @@ function findVideoUrl(item, entry) {
 
         }
 
+        if (
+            value &&
+            typeof value ===
+            "object"
+        ) {
+
+            const url =
+                value.url ||
+                value.videoUrl ||
+                value.video_url;
+
+            if (
+                typeof url ===
+                "string" &&
+                url.startsWith("http")
+            ) {
+
+                return url;
+
+            }
+
+        }
+
     }
 
-
     return null;
-
 }
 
 
@@ -172,65 +398,186 @@ function resetVideo() {
 
     modalVideo.pause();
 
-    modalVideo.removeAttribute("src");
+    modalVideo.removeAttribute(
+        "src"
+    );
 
     modalVideo.load();
 
-    modalVideo.classList.remove("visible");
+    modalVideo.classList.remove(
+        "visible"
+    );
 
-    modalVideo.onloadeddata = null;
-    modalVideo.onerror = null;
+    modalVideo.onloadeddata =
+        null;
 
+    modalVideo.onerror =
+        null;
 }
 
 
 // =========================================================
-// IMAGE DE SECOURS
+// RECUPERATION COSMETIQUE
 // =========================================================
 
-function showImagePreview() {
+async function getCompleteCosmetic(item) {
 
-    resetVideo();
+    if (!item?.id) {
+        return item;
+    }
 
-    modalImage.classList.remove("hidden");
+    try {
 
-    previewStatus.textContent =
-        "APERÇU DE L'OBJET";
+        const response =
+            await fetch(
+                COSMETIC_API_URL +
+                encodeURIComponent(
+                    item.id
+                )
+            );
 
+        if (!response.ok) {
+
+            console.warn(
+                "Erreur cosmétique :",
+                response.status
+            );
+
+            return item;
+        }
+
+        const result =
+            await response.json();
+
+        if (
+            Array.isArray(
+                result.data
+            ) &&
+            result.data.length
+        ) {
+
+            return result.data[0];
+
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Impossible de récupérer la fiche cosmétique :",
+            error
+        );
+
+    }
+
+    return item;
 }
 
 
 // =========================================================
-// CHARGER VIDEO
+// INFOS SUPPLEMENTAIRES
+// =========================================================
+
+function updateExtraInfo(item) {
+
+    if (!modalExtraInfo) {
+        return;
+    }
+
+    modalExtraInfo.innerHTML =
+        "";
+
+    const infos = [];
+
+    const type =
+        item?.type?.displayValue ||
+        item?.type?.value ||
+        item?.displayType;
+
+    const rarity =
+        item?.rarity?.displayValue ||
+        item?.rarity?.value ||
+        item?.displayRarity;
+
+    const series =
+        item?.series?.name ||
+        item?.series?.displayValue ||
+        item?.series?.value;
+
+    const set =
+        item?.set?.text ||
+        item?.set?.name ||
+        item?.set?.value;
+
+    if (type) {
+        infos.push(type);
+    }
+
+    if (rarity) {
+        infos.push(rarity);
+    }
+
+    if (series) {
+        infos.push(series);
+    }
+
+    if (set) {
+        infos.push(set);
+    }
+
+    infos.forEach(
+        info => {
+
+            const pill =
+                document.createElement(
+                    "span"
+                );
+
+            pill.className =
+                "info-pill";
+
+            pill.textContent =
+                info;
+
+            modalExtraInfo.appendChild(
+                pill
+            );
+
+        }
+    );
+}
+
+
+// =========================================================
+// CHARGER UNE VIDEO
 // =========================================================
 
 function loadVideo(videoUrl) {
 
-    if (
-        !videoUrl ||
-        !modalVideo
-    ) {
+    if (!videoUrl) {
 
-        showImagePreview();
+        hasVideo = false;
+
+        createCarouselDots(
+            false
+        );
+
+        showSlide(1);
 
         return;
 
     }
 
-
     resetVideo();
 
-
-    modalVideo.src =
-        videoUrl;
+    hasVideo = true;
 
     modalVideo.muted =
         true;
 
-    modalVideo.loop =
+    modalVideo.autoplay =
         true;
 
-    modalVideo.autoplay =
+    modalVideo.loop =
         true;
 
     modalVideo.playsInline =
@@ -238,6 +585,36 @@ function loadVideo(videoUrl) {
 
     modalVideo.controls =
         true;
+
+    modalVideo.setAttribute(
+        "muted",
+        ""
+    );
+
+    modalVideo.setAttribute(
+        "playsinline",
+        ""
+    );
+
+    modalVideo.src =
+        videoUrl;
+
+
+    modalVideo.onloadedmetadata =
+        () => {
+
+            console.log(
+                "Vidéo trouvée :",
+                videoUrl
+            );
+
+            createCarouselDots(
+                true
+            );
+
+            showSlide(0);
+
+        };
 
 
     modalVideo.onloadeddata =
@@ -254,10 +631,16 @@ function loadVideo(videoUrl) {
             previewStatus.textContent =
                 "APERÇU ANIMÉ";
 
-
             modalVideo
                 .play()
-                .catch(() => {});
+                .catch(error => {
+
+                    console.warn(
+                        "Autoplay bloqué :",
+                        error
+                    );
+
+                });
 
         };
 
@@ -266,11 +649,19 @@ function loadVideo(videoUrl) {
         () => {
 
             console.warn(
-                "Vidéo impossible à charger :",
+                "La vidéo n'a pas pu être chargée :",
                 videoUrl
             );
 
-            showImagePreview();
+            hasVideo = false;
+
+            resetVideo();
+
+            createCarouselDots(
+                false
+            );
+
+            showSlide(1);
 
         };
 
@@ -281,167 +672,7 @@ function loadVideo(videoUrl) {
 
 
 // =========================================================
-// RECUPERATION FICHE COSMETIQUE
-// =========================================================
-
-async function getCompleteCosmetic(item) {
-
-    const id =
-        item?.id;
-
-    if (!id) {
-
-        return item;
-
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-                COSMETIC_API_URL +
-                encodeURIComponent(id)
-            );
-
-
-        if (!response.ok) {
-
-            console.warn(
-                "Impossible de récupérer le cosmétique :",
-                response.status
-            );
-
-            return item;
-
-        }
-
-
-        const result =
-            await response.json();
-
-
-        const cosmetics =
-            result.data;
-
-
-        if (
-            Array.isArray(cosmetics) &&
-            cosmetics.length > 0
-        ) {
-
-            return cosmetics[0];
-
-        }
-
-
-        return item;
-
-    }
-
-    catch (error) {
-
-        console.warn(
-            "Erreur récupération cosmétique :",
-            error
-        );
-
-        return item;
-
-    }
-
-}
-
-
-// =========================================================
-// INFOS SUPPLEMENTAIRES
-// =========================================================
-
-function updateExtraInfo(item) {
-
-    if (!modalExtraInfo) return;
-
-
-    modalExtraInfo.innerHTML = "";
-
-
-    const infos = [];
-
-
-    const type =
-        item?.type?.displayValue ||
-        item?.type?.value ||
-        item?.displayType;
-
-
-    const rarity =
-        item?.rarity?.displayValue ||
-        item?.rarity?.value ||
-        item?.displayRarity;
-
-
-    const series =
-        item?.series?.name ||
-        item?.series?.displayValue ||
-        item?.series?.value;
-
-
-    const set =
-        item?.set?.text ||
-        item?.set?.name ||
-        item?.set?.value;
-
-
-    if (type) {
-
-        infos.push(type);
-
-    }
-
-
-    if (rarity) {
-
-        infos.push(rarity);
-
-    }
-
-
-    if (series) {
-
-        infos.push(series);
-
-    }
-
-
-    if (set) {
-
-        infos.push(set);
-
-    }
-
-
-    infos.forEach(info => {
-
-        const pill =
-            document.createElement("span");
-
-        pill.className =
-            "info-pill";
-
-        pill.textContent =
-            info;
-
-        modalExtraInfo.appendChild(
-            pill
-        );
-
-    });
-
-}
-
-
-// =========================================================
-// OUVRIR MODAL
+// OUVRIR LE MODAL
 // =========================================================
 
 async function openItemModal(
@@ -450,26 +681,31 @@ async function openItemModal(
     entry
 ) {
 
-    if (
-        !itemModal ||
-        !item
-    ) {
-
+    if (!itemModal || !item) {
         return;
-
     }
-
 
     const image =
         item.images?.featured ||
         item.images?.icon;
 
-
-    if (!image) return;
+    if (!image) {
+        return;
+    }
 
 
     // -----------------------------------------------------
-    // AFFICHAGE IMMEDIAT
+    // RESET
+    // -----------------------------------------------------
+
+    hasVideo = false;
+    currentSlide = 0;
+
+    resetVideo();
+
+
+    // -----------------------------------------------------
+    // IMAGE
     // -----------------------------------------------------
 
     modalImage.src =
@@ -484,13 +720,20 @@ async function openItemModal(
     );
 
 
+    // -----------------------------------------------------
+    // NOM
+    // -----------------------------------------------------
+
     modalName.textContent =
         item.name ||
         "Objet Fortnite";
 
 
-    modalPrice.innerHTML = `
+    // -----------------------------------------------------
+    // PRIX
+    // -----------------------------------------------------
 
+    modalPrice.innerHTML = `
         <img
             class="vbucks-icon"
             src="${getVbucksIcon()}"
@@ -504,13 +747,15 @@ async function openItemModal(
         <span>
             V-Bucks
         </span>
-
     `;
 
 
+    // -----------------------------------------------------
+    // DESCRIPTION
+    // -----------------------------------------------------
+
     modalDescription.textContent =
         "Chargement des informations...";
-
 
     modalDescription.classList.remove(
         "empty"
@@ -519,8 +764,10 @@ async function openItemModal(
 
     updateExtraInfo(item);
 
-    showImagePreview();
 
+    // -----------------------------------------------------
+    // MODAL
+    // -----------------------------------------------------
 
     itemModal.classList.add(
         "active"
@@ -541,7 +788,9 @@ async function openItemModal(
     // -----------------------------------------------------
 
     const completeItem =
-        await getCompleteCosmetic(item);
+        await getCompleteCosmetic(
+            item
+        );
 
 
     // -----------------------------------------------------
@@ -553,19 +802,12 @@ async function openItemModal(
         completeItem?.introduction?.text ||
         "";
 
-
     if (description) {
 
         modalDescription.textContent =
             description;
 
-        modalDescription.classList.remove(
-            "empty"
-        );
-
-    }
-
-    else {
+    } else {
 
         modalDescription.textContent =
             "";
@@ -597,17 +839,34 @@ async function openItemModal(
         );
 
 
+    console.log(
+        "Vidéo de",
+        completeItem.name,
+        ":",
+        videoUrl
+    );
+
+
     if (videoUrl) {
 
         loadVideo(
             videoUrl
         );
 
-    }
+    } else {
 
-    else {
+        console.log(
+            "Aucune vidéo disponible pour",
+            completeItem.name
+        );
 
-        showImagePreview();
+        hasVideo = false;
+
+        createCarouselDots(
+            false
+        );
+
+        showSlide(1);
 
     }
 
@@ -620,32 +879,32 @@ async function openItemModal(
 
 function closeItemModal() {
 
-    if (!itemModal) return;
-
+    if (!itemModal) {
+        return;
+    }
 
     itemModal.classList.remove(
         "active"
     );
-
 
     itemModal.setAttribute(
         "aria-hidden",
         "true"
     );
 
-
     document.body.classList.remove(
         "modal-open"
     );
 
-
     resetVideo();
+
+    hasVideo = false;
 
 }
 
 
 // =========================================================
-// EVENTS MODAL
+// EVENTS
 // =========================================================
 
 if (modalClose) {
@@ -657,7 +916,6 @@ if (modalClose) {
 
 }
 
-
 if (modalBackdrop) {
 
     modalBackdrop.addEventListener(
@@ -667,13 +925,13 @@ if (modalBackdrop) {
 
 }
 
-
 document.addEventListener(
     "keydown",
     event => {
 
         if (
-            event.key === "Escape"
+            event.key ===
+            "Escape"
         ) {
 
             closeItemModal();
@@ -685,29 +943,53 @@ document.addEventListener(
 
 
 // =========================================================
-// SHOP
+// SWIPE EVENTS
+// =========================================================
+
+const modalMedia =
+    document.querySelector(
+        ".modal-media"
+    );
+
+if (modalMedia) {
+
+    modalMedia.addEventListener(
+        "touchstart",
+        handleTouchStart,
+        {
+            passive: true
+        }
+    );
+
+    modalMedia.addEventListener(
+        "touchend",
+        handleTouchEnd,
+        {
+            passive: true
+        }
+    );
+
+}
+
+
+// =========================================================
+// CHARGEMENT SHOP
 // =========================================================
 
 async function loadShop() {
 
     status.innerHTML = `
-
         <div class="loading-container">
-
             <div class="loading-spinner"></div>
 
             <span>
                 Chargement de la boutique...
             </span>
-
         </div>
-
     `;
-
 
     shopContainer.innerHTML =
         "";
-
 
     try {
 
@@ -715,7 +997,6 @@ async function loadShop() {
             await fetch(
                 API_URL
             );
-
 
         if (!response.ok) {
 
@@ -725,15 +1006,12 @@ async function loadShop() {
 
         }
 
-
         const result =
             await response.json();
-
 
         const entries =
             result.data?.entries ||
             [];
-
 
         const displayedItems =
             new Set();
@@ -745,24 +1023,20 @@ async function loadShop() {
                 const item =
                     entry.brItems?.[0];
 
-
-                if (!item) return;
-
+                if (!item) {
+                    return;
+                }
 
                 const name =
                     item.name;
-
 
                 if (
                     displayedItems.has(
                         name
                     )
                 ) {
-
                     return;
-
                 }
-
 
                 displayedItems.add(
                     name
@@ -773,8 +1047,9 @@ async function loadShop() {
                     item.images?.featured ||
                     item.images?.icon;
 
-
-                if (!image) return;
+                if (!image) {
+                    return;
+                }
 
 
                 const price =
@@ -782,19 +1057,13 @@ async function loadShop() {
                     "?";
 
 
-                // -------------------------------------------------
-                // CARD
-                // -------------------------------------------------
-
                 const card =
                     document.createElement(
                         "div"
                     );
 
-
                 card.className =
                     "card";
-
 
                 card.style.animationDelay =
                     `${Math.min(
@@ -804,7 +1073,6 @@ async function loadShop() {
 
 
                 card.innerHTML = `
-
                     <div class="card-image-wrapper">
 
                         <img
@@ -821,13 +1089,11 @@ async function loadShop() {
 
                     </div>
 
-
                     <div class="card-info">
 
                         <h2>
                             ${escapeHTML(name)}
                         </h2>
-
 
                         <div class="price">
 
@@ -844,13 +1110,8 @@ async function loadShop() {
                         </div>
 
                     </div>
-
                 `;
 
-
-                // -------------------------------------------------
-                // CLICK
-                // -------------------------------------------------
 
                 card.addEventListener(
                     "click",
@@ -866,15 +1127,10 @@ async function loadShop() {
                 );
 
 
-                // -------------------------------------------------
-                // CLAVIER
-                // -------------------------------------------------
-
                 card.setAttribute(
                     "tabindex",
                     "0"
                 );
-
 
                 card.setAttribute(
                     "role",
@@ -894,7 +1150,6 @@ async function loadShop() {
                         ) {
 
                             event.preventDefault();
-
 
                             openItemModal(
                                 item,
@@ -916,10 +1171,6 @@ async function loadShop() {
         );
 
 
-        // -----------------------------------------------------
-        // RESULTAT
-        // -----------------------------------------------------
-
         if (
             shopContainer.children.length ===
             0
@@ -928,9 +1179,7 @@ async function loadShop() {
             status.textContent =
                 "Aucun objet trouvé.";
 
-        }
-
-        else {
+        } else {
 
             status.textContent =
                 "";
@@ -938,15 +1187,12 @@ async function loadShop() {
         }
 
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "Erreur boutique :",
             error
         );
-
 
         status.textContent =
             "❌ Impossible de charger la boutique. Réessaie dans quelques secondes.";
@@ -980,13 +1226,15 @@ if (
             navigator.serviceWorker
                 .register("./sw.js")
 
-                .then(() => {
+                .then(
+                    () => {
 
-                    console.log(
-                        "Service worker activé"
-                    );
+                        console.log(
+                            "Service worker activé"
+                        );
 
-                })
+                    }
+                )
 
                 .catch(
                     error => {
