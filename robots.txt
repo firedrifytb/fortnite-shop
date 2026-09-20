@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fortnite-shop.fr/sitemap.xml
