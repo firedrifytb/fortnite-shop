@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="theme-color" content="#111827">
+    <meta name="theme-color" content="#070b18">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -17,28 +17,142 @@
 
 <body>
 
-    <header>
-        <h1>FORTNITE SHOP</h1>
-
-        <div id="date"></div>
-
-        <div class="account">
-            <a
-                class="login-button"
-                href="https://fortnite-shop.firedrifytb.workers.dev/login"
-            >
-                🎮 Se connecter avec Epic Games
-            </a>
-        </div>
-
-        <button onclick="loadShop()">🔄 Actualiser</button>
-    </header>
-
-    <div id="status">
-        Chargement de la boutique...
+    <!-- Background -->
+    <div class="background">
+        <div class="orb orb-blue"></div>
+        <div class="orb orb-purple"></div>
+        <div class="grid-background"></div>
     </div>
 
-    <main id="shop"></main>
+    <!-- Header -->
+    <header>
+
+        <div class="header-inner">
+
+            <!-- Logo -->
+            <div class="brand">
+                <div class="brand-logo">
+                    ⚡
+                </div>
+
+                <div class="brand-text">
+                    <h1>
+                        FORTNITE <span>SHOP</span>
+                    </h1>
+
+                    <p>
+                        Boutique quotidienne
+                    </p>
+                </div>
+            </div>
+
+            <!-- Date -->
+            <div class="date-box">
+                <span class="date-label">
+                    BOUTIQUE DU
+                </span>
+
+                <div id="date"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+
+                <a
+                    class="login-button"
+                    href="https://fortnite-shop.firedrifytb.workers.dev/login"
+                >
+                    <span class="epic-icon">🎮</span>
+
+                    <span class="login-content">
+                        <small>COMPTE EPIC</small>
+                        Se connecter
+                    </span>
+                </a>
+
+                <button
+                    class="refresh-button"
+                    onclick="loadShop()"
+                    aria-label="Actualiser la boutique"
+                >
+                    <span class="refresh-icon">↻</span>
+                    <span class="refresh-text">Actualiser</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- Main -->
+    <main>
+
+        <!-- Shop title -->
+        <section class="shop-heading">
+
+            <div class="heading-content">
+
+                <span class="section-label">
+                    FORTNITE
+                </span>
+
+                <h2>
+                    Boutique d'objets
+                </h2>
+
+                <p>
+                    Découvrez les objets disponibles aujourd'hui.
+                </p>
+
+            </div>
+
+            <div class="live-badge">
+                <span></span>
+                EN DIRECT
+            </div>
+
+        </section>
+
+
+        <!-- Status -->
+        <div id="status">
+
+            <div class="loading-container">
+
+                <div class="loading-spinner"></div>
+
+                <span>
+                    Chargement de la boutique...
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Shop -->
+        <section id="shop"></section>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer>
+
+        <div class="footer-logo">
+            FORTNITE SHOP
+        </div>
+
+        <div class="footer-line"></div>
+
+        <p>
+            Non affilié à Epic Games.
+        </p>
+
+    </footer>
+
 
     <script src="app.js"></script>
 
