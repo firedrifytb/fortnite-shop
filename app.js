@@ -101,7 +101,7 @@ async function loadShop() {
 
                         <img
                             class="vbucks-icon"
-                            src="IMG_2258.png"
+                            src="https://firedrifytb.github.io/fortnite-shop/IMG_2258.png"
                             alt="V-Bucks"
                         >
 
