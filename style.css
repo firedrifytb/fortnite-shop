@@ -8,12 +8,10 @@
     padding: 0;
 }
 
-
 html {
     min-height: 100%;
     background: #050712;
 }
-
 
 body {
     min-height: 100vh;
@@ -28,12 +26,10 @@ body {
 
     color: #ffffff;
 
-    background:
-        #050712;
+    background: #050712;
 
     overflow-x: hidden;
 }
-
 
 body.modal-open {
     overflow: hidden;
@@ -46,7 +42,6 @@ body.modal-open {
 
 .background {
     position: fixed;
-
     inset: 0;
 
     z-index: -10;
@@ -62,10 +57,8 @@ body.modal-open {
         #050712;
 }
 
-
 .grid-background {
     position: absolute;
-
     inset: 0;
 
     opacity: 0.22;
@@ -81,8 +74,7 @@ body.modal-open {
             transparent 1px
         );
 
-    background-size:
-        50px 50px;
+    background-size: 50px 50px;
 
     mask-image:
         linear-gradient(
@@ -91,7 +83,6 @@ body.modal-open {
             transparent 80%
         );
 }
-
 
 .orb {
     position: absolute;
@@ -104,7 +95,6 @@ body.modal-open {
 
     pointer-events: none;
 }
-
 
 .orb-blue {
     width: 420px;
@@ -119,7 +109,6 @@ body.modal-open {
         floatBlue 12s ease-in-out infinite;
 }
 
-
 .orb-purple {
     width: 360px;
     height: 360px;
@@ -133,45 +122,25 @@ body.modal-open {
         floatPurple 15s ease-in-out infinite;
 }
 
-
 @keyframes floatBlue {
-
     0%,
     100% {
-        transform: translate3d(
-            0,
-            0,
-            0
-        );
+        transform: translate3d(0, 0, 0);
     }
 
     50% {
-        transform: translate3d(
-            80px,
-            40px,
-            0
-        );
+        transform: translate3d(80px, 40px, 0);
     }
 }
 
-
 @keyframes floatPurple {
-
     0%,
     100% {
-        transform: translate3d(
-            0,
-            0,
-            0
-        );
+        transform: translate3d(0, 0, 0);
     }
 
     50% {
-        transform: translate3d(
-            -70px,
-            50px,
-            0
-        );
+        transform: translate3d(-70px, 50px, 0);
     }
 }
 
@@ -182,14 +151,11 @@ body.modal-open {
 
 header {
     position: sticky;
-
     top: 0;
 
     z-index: 50;
 
-    padding:
-        18px
-        22px;
+    padding: 18px 22px;
 
     border-bottom:
         1px solid
@@ -205,12 +171,8 @@ header {
         blur(20px);
 }
 
-
 .header-inner {
-    width: min(
-        1450px,
-        100%
-    );
+    width: min(1450px, 100%);
 
     margin: auto;
 
@@ -223,7 +185,6 @@ header {
     gap: 24px;
 }
 
-
 .brand {
     display: flex;
 
@@ -231,7 +192,6 @@ header {
 
     gap: 13px;
 }
-
 
 .brand-logo {
     width: 46px;
@@ -257,7 +217,6 @@ header {
         rgba(51, 92, 255, 0.28);
 }
 
-
 .brand-text h1 {
     font-size: 16px;
 
@@ -266,11 +225,9 @@ header {
     letter-spacing: 1.4px;
 }
 
-
 .brand-text h1 span {
     color: #79a1ff;
 }
-
 
 .brand-text p {
     margin-top: 2px;
@@ -283,11 +240,9 @@ header {
     letter-spacing: 0.5px;
 }
 
-
 .date-box {
     text-align: center;
 }
-
 
 .date-label {
     display: block;
@@ -304,13 +259,11 @@ header {
     letter-spacing: 1.5px;
 }
 
-
 #date {
     font-size: 13px;
 
     font-weight: 700;
 }
-
 
 .actions {
     display: flex;
@@ -319,7 +272,6 @@ header {
 
     gap: 10px;
 }
-
 
 .login-button,
 .refresh-button {
@@ -339,7 +291,6 @@ header {
         border-color 0.2s ease;
 }
 
-
 .login-button {
     display: flex;
 
@@ -347,9 +298,7 @@ header {
 
     gap: 9px;
 
-    padding:
-        7px
-        14px;
+    padding: 7px 14px;
 
     color: white;
 
@@ -360,7 +309,6 @@ header {
             rgba(111, 54, 255, 0.2)
         );
 }
-
 
 .login-button:hover,
 .refresh-button:hover {
@@ -373,11 +321,9 @@ header {
         rgba(255, 255, 255, 0.08);
 }
 
-
 .epic-icon {
     font-size: 18px;
 }
-
 
 .login-content {
     display: flex;
@@ -391,7 +337,6 @@ header {
     font-weight: 800;
 }
 
-
 .login-content small {
     color:
         rgba(255, 255, 255, 0.4);
@@ -401,7 +346,6 @@ header {
     letter-spacing: 1px;
 }
 
-
 .refresh-button {
     display: flex;
 
@@ -409,8 +353,7 @@ header {
 
     gap: 7px;
 
-    padding:
-        0 13px;
+    padding: 0 13px;
 
     border:
         1px solid
@@ -424,11 +367,9 @@ header {
     cursor: pointer;
 }
 
-
 .refresh-icon {
     font-size: 20px;
 }
-
 
 .refresh-text {
     font-size: 11px;
@@ -442,18 +383,17 @@ header {
    ========================================================= */
 
 main {
-    width: min(
-        1450px,
-        calc(100% - 44px)
-    );
+    width:
+        min(
+            1450px,
+            calc(100% - 44px)
+        );
 
-    margin:
-        0 auto;
+    margin: 0 auto;
 
     padding:
         50px 0 80px;
 }
-
 
 .shop-heading {
     display: flex;
@@ -466,7 +406,6 @@ main {
 
     margin-bottom: 30px;
 }
-
 
 .section-label {
     display: block;
@@ -482,7 +421,6 @@ main {
     letter-spacing: 2px;
 }
 
-
 .heading-content h2 {
     font-size:
         clamp(
@@ -496,7 +434,6 @@ main {
     letter-spacing: -1.8px;
 }
 
-
 .heading-content p {
     margin-top: 11px;
 
@@ -505,7 +442,6 @@ main {
 
     font-size: 13px;
 }
-
 
 .live-badge {
     display: flex;
@@ -536,7 +472,6 @@ main {
     letter-spacing: 1px;
 }
 
-
 .live-badge span,
 .loaded-dot {
     width: 7px;
@@ -554,9 +489,7 @@ main {
         pulse 2s infinite;
 }
 
-
 @keyframes pulse {
-
     0%,
     100% {
         opacity: 1;
@@ -578,7 +511,6 @@ main {
     margin-bottom: 20px;
 }
 
-
 .loading-container,
 .loaded-status,
 .error-status {
@@ -598,7 +530,6 @@ main {
     font-size: 12px;
 }
 
-
 .loading-spinner {
     width: 18px;
     height: 18px;
@@ -616,26 +547,21 @@ main {
         spin 0.8s linear infinite;
 }
 
-
 @keyframes spin {
-
     to {
         transform: rotate(360deg);
     }
 }
 
-
 .loaded-status {
     gap: 8px;
 }
-
 
 .error-status {
     flex-direction: column;
 
     color: #ff8d9b;
 }
-
 
 .error-status button {
     padding:
@@ -675,7 +601,7 @@ main {
 
 
 /* =========================================================
-   CARD
+   CARDS
    ========================================================= */
 
 .card {
@@ -703,12 +629,7 @@ main {
 
     animation:
         cardIn 0.5s
-        cubic-bezier(
-            .22,
-            .61,
-            .36,
-            1
-        )
+        cubic-bezier(.22,.61,.36,1)
         forwards;
 
     transition:
@@ -717,9 +638,7 @@ main {
         box-shadow 0.25s ease;
 }
 
-
 @keyframes cardIn {
-
     to {
         opacity: 1;
 
@@ -727,7 +646,6 @@ main {
             translateY(0);
     }
 }
-
 
 .card:hover {
     transform:
@@ -742,7 +660,6 @@ main {
         0 0 30px
         rgba(53, 91, 255, 0.1);
 }
-
 
 .card-image {
     position: relative;
@@ -759,7 +676,6 @@ main {
         );
 }
 
-
 .card-image img {
     width: 100%;
     height: 100%;
@@ -772,12 +688,10 @@ main {
         transform 0.45s ease;
 }
 
-
 .card:hover .card-image img {
     transform:
         scale(1.055);
 }
-
 
 .card-overlay {
     position: absolute;
@@ -798,11 +712,9 @@ main {
         );
 }
 
-
 .card-info {
     width: 100%;
 }
-
 
 .card-info h3 {
     overflow: hidden;
@@ -816,7 +728,6 @@ main {
     font-weight: 800;
 }
 
-
 .card-bottom {
     display: flex;
 
@@ -826,7 +737,6 @@ main {
 
     margin-top: 6px;
 }
-
 
 .price {
     display: flex;
@@ -839,7 +749,6 @@ main {
 
     font-weight: 900;
 }
-
 
 .vbucks-symbol {
     display: inline-grid;
@@ -859,7 +768,6 @@ main {
 
     font-weight: 900;
 }
-
 
 .no-image {
     width: 100%;
@@ -881,7 +789,7 @@ main {
 
 
 /* =========================================================
-   MODALE PLEIN ÉCRAN
+   MODALE FULLSCREEN
    ========================================================= */
 
 .item-modal {
@@ -892,10 +800,6 @@ main {
     z-index: 1000;
 
     display: flex;
-
-    align-items: stretch;
-
-    justify-content: stretch;
 
     visibility: hidden;
 
@@ -908,7 +812,6 @@ main {
         visibility 0.25s ease;
 }
 
-
 .item-modal.open {
     visibility: visible;
 
@@ -917,14 +820,13 @@ main {
     pointer-events: auto;
 }
 
-
 .modal-backdrop {
     position: absolute;
 
     inset: 0;
 
     background:
-        rgba(0, 0, 0, 0.92);
+        rgba(0, 0, 0, 0.94);
 
     backdrop-filter:
         blur(18px);
@@ -932,7 +834,6 @@ main {
     -webkit-backdrop-filter:
         blur(18px);
 }
-
 
 .modal-content {
     position: relative;
@@ -950,7 +851,7 @@ main {
 
 
 /* =========================================================
-   BOUTON FERMER
+   FERMETURE
    ========================================================= */
 
 .modal-close {
@@ -989,15 +890,12 @@ main {
 
     font-weight: 200;
 
-    line-height: 1;
-
     cursor: pointer;
 
     transition:
         background 0.2s ease,
         transform 0.2s ease;
 }
-
 
 .modal-close:hover {
     transform:
@@ -1024,15 +922,14 @@ main {
 
     touch-action: pan-y;
 
-    background: #000;
+    background:
+        #000;
 }
-
 
 .preview-track {
     display: flex;
 
     width: 200%;
-
     height: 100%;
 
     transform:
@@ -1041,7 +938,6 @@ main {
     will-change:
         transform;
 }
-
 
 .preview-slide {
     position: relative;
@@ -1064,9 +960,7 @@ main {
         #000;
 }
 
-
 .modal-video,
-.modal-youtube,
 .modal-image {
     position: absolute;
 
@@ -1079,39 +973,22 @@ main {
 
     object-fit: contain;
 
-    background: #000;
+    background:
+        #000;
 }
-
 
 .modal-video {
     display: none;
 }
-
-
-.modal-youtube {
-    display: none;
-}
-
 
 .modal-image {
     display: block;
 }
 
 
-/*
-   Sur grand écran on remplit davantage
-   l'espace tout en conservant les proportions.
-*/
-
-@media (min-width: 900px) {
-
-    .modal-video,
-    .modal-youtube,
-    .modal-image {
-        object-fit: contain;
-    }
-}
-
+/* =========================================================
+   GRADIENT
+   ========================================================= */
 
 .modal-gradient {
     position: absolute;
@@ -1128,13 +1005,13 @@ main {
             rgba(0, 0, 0, 0.38),
             transparent 22%,
             transparent 58%,
-            rgba(0, 0, 0, 0.86) 100%
+            rgba(0, 0, 0, 0.88) 100%
         );
 }
 
 
 /* =========================================================
-   FALLBACK VIDÉO
+   FALLBACK
    ========================================================= */
 
 .video-fallback {
@@ -1163,11 +1040,9 @@ main {
     font-size: 12px;
 }
 
-
 .video-fallback.visible {
     display: flex;
 }
-
 
 .fallback-icon {
     font-size: 40px;
@@ -1178,7 +1053,7 @@ main {
 
 
 /* =========================================================
-   LABEL APERÇU
+   LABEL
    ========================================================= */
 
 .preview-status {
@@ -1219,7 +1094,7 @@ main {
 
 
 /* =========================================================
-   DOTS
+   POINTS
    ========================================================= */
 
 .carousel-dots {
@@ -1240,7 +1115,6 @@ main {
     transform:
         translateX(-50%);
 }
-
 
 .carousel-dot {
     width: 7px;
@@ -1263,7 +1137,6 @@ main {
         transform 0.2s ease;
 }
 
-
 .carousel-dot.active {
     width: 9px;
     height: 9px;
@@ -1277,7 +1150,7 @@ main {
 
 
 /* =========================================================
-   INFOS MODALE
+   INFORMATIONS
    ========================================================= */
 
 .modal-info {
@@ -1302,7 +1175,6 @@ main {
     pointer-events: none;
 }
 
-
 .modal-label {
     display: block;
 
@@ -1317,7 +1189,6 @@ main {
 
     letter-spacing: 1.8px;
 }
-
 
 .modal-info h2 {
     max-width: 800px;
@@ -1338,7 +1209,6 @@ main {
         rgba(0, 0, 0, 0.7);
 }
 
-
 .modal-info .price {
     margin-top: 10px;
 
@@ -1350,7 +1220,6 @@ main {
         );
 }
 
-
 .modal-extra-info {
     margin-top: 7px;
 
@@ -1359,7 +1228,6 @@ main {
 
     font-size: 11px;
 }
-
 
 .modal-description {
     max-width: 650px;
@@ -1380,13 +1248,13 @@ main {
    ========================================================= */
 
 footer {
-    width: min(
-        1450px,
-        calc(100% - 44px)
-    );
+    width:
+        min(
+            1450px,
+            calc(100% - 44px)
+        );
 
-    margin:
-        0 auto;
+    margin: 0 auto;
 
     padding:
         30px 0 40px;
@@ -1397,7 +1265,6 @@ footer {
     text-align: center;
 }
 
-
 .footer-logo {
     font-size: 11px;
 
@@ -1405,7 +1272,6 @@ footer {
 
     letter-spacing: 2px;
 }
-
 
 .footer-line {
     width: 80px;
@@ -1418,7 +1284,6 @@ footer {
     background:
         rgba(255, 255, 255, 0.1);
 }
-
 
 footer p {
     font-size: 10px;
@@ -1436,18 +1301,15 @@ footer p {
             12px 14px;
     }
 
-
     .header-inner {
         gap: 10px;
     }
-
 
     .brand-text p,
     .date-box,
     .refresh-text {
         display: none;
     }
-
 
     .brand-logo {
         width: 40px;
@@ -1456,32 +1318,26 @@ footer p {
         border-radius: 12px;
     }
 
-
     .brand-text h1 {
         font-size: 13px;
     }
 
-
     .actions {
         margin-left: auto;
     }
-
 
     .login-button {
         padding:
             6px 10px;
     }
 
-
     .login-content {
         font-size: 10px;
     }
 
-
     .login-content small {
         font-size: 7px;
     }
-
 
     .refresh-button {
         width: 40px;
@@ -1492,11 +1348,9 @@ footer p {
         justify-content: center;
     }
 
-
     .refresh-icon {
         font-size: 19px;
     }
-
 
     main {
         width:
@@ -1506,28 +1360,23 @@ footer p {
             32px 0 60px;
     }
 
-
     .shop-heading {
         align-items: flex-start;
 
         margin-bottom: 22px;
     }
 
-
     .heading-content h2 {
         font-size: 29px;
     }
-
 
     .heading-content p {
         font-size: 11px;
     }
 
-
     .live-badge {
         display: none;
     }
-
 
     #shop {
         grid-template-columns:
@@ -1542,26 +1391,21 @@ footer p {
         gap: 10px;
     }
 
-
     .card {
         border-radius: 14px;
     }
-
 
     .card-overlay {
         padding: 10px;
     }
 
-
     .card-info h3 {
         font-size: 11px;
     }
 
-
     .card .price {
         font-size: 11px;
     }
-
 
     .vbucks-symbol {
         width: 14px;
@@ -1569,7 +1413,6 @@ footer p {
 
         font-size: 7px;
     }
-
 
     .modal-close {
         top: 13px;
@@ -1581,7 +1424,6 @@ footer p {
         font-size: 28px;
     }
 
-
     .preview-status {
         top: 16px;
         left: 16px;
@@ -1590,11 +1432,9 @@ footer p {
             7px 10px;
     }
 
-
     .carousel-dots {
         bottom: 19px;
     }
-
 
     .modal-info {
         padding:
@@ -1603,11 +1443,9 @@ footer p {
             55px;
     }
 
-
     .modal-info h2 {
         font-size: 26px;
     }
-
 
     .modal-description {
         max-width: 95%;
@@ -1625,11 +1463,9 @@ footer p {
         gap: 8px;
     }
 
-
     .card-info h3 {
         font-size: 10px;
     }
-
 
     .modal-info h2 {
         font-size: 23px;
@@ -1638,7 +1474,7 @@ footer p {
 
 
 /* =========================================================
-   ACCESSIBILITÉ / REDUCED MOTION
+   REDUCED MOTION
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1646,12 +1482,16 @@ footer p {
     *,
     *::before,
     *::after {
-        animation-duration: 0.01ms !important;
+        animation-duration:
+            0.01ms !important;
 
-        animation-iteration-count: 1 !important;
+        animation-iteration-count:
+            1 !important;
 
-        scroll-behavior: auto !important;
+        scroll-behavior:
+            auto !important;
 
-        transition-duration: 0.01ms !important;
+        transition-duration:
+            0.01ms !important;
     }
 }
