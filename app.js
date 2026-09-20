@@ -5,9 +5,9 @@ const COSMETIC_API_URL =
     "https://fortnite-api.com/v2/cosmetics/br/search/ids?language=fr&id=";
 
 
-// =========================================================
+// ================================
 // ELEMENTS
-// =========================================================
+// ================================
 
 const shopContainer =
     document.getElementById("shop");
@@ -18,9 +18,6 @@ const status =
 const dateElement =
     document.getElementById("date");
 
-
-// Modal
-
 const itemModal =
     document.getElementById("item-modal");
 
@@ -30,11 +27,11 @@ const modalClose =
 const modalBackdrop =
     document.querySelector(".modal-backdrop");
 
-
-// Media
-
 const modalMedia =
     document.getElementById("modal-media");
+
+const previewTrack =
+    document.getElementById("preview-track");
 
 const modalYoutube =
     document.getElementById("modal-youtube");
@@ -47,9 +44,6 @@ const previewStatus =
 
 const carouselDots =
     document.getElementById("carousel-dots");
-
-
-// Infos
 
 const modalName =
     document.getElementById("modal-name");
@@ -64,9 +58,9 @@ const modalExtraInfo =
     document.getElementById("modal-extra-info");
 
 
-// =========================================================
-// ETAT CAROUSEL
-// =========================================================
+// ================================
+// VARIABLES
+// ================================
 
 let hasVideo = false;
 
@@ -77,9 +71,9 @@ let touchStartX = 0;
 let touchEndX = 0;
 
 
-// =========================================================
+// ================================
 // DATE
-// =========================================================
+// ================================
 
 function displayDate() {
 
@@ -99,20 +93,19 @@ function displayDate() {
 }
 
 
-// =========================================================
+// ================================
 // V-BUCKS
-// =========================================================
+// ================================
 
 function getVbucksIcon() {
 
     return "./IMG_2258.png";
-
 }
 
 
-// =========================================================
+// ================================
 // SECURITE HTML
-// =========================================================
+// ================================
 
 function escapeHTML(value) {
 
@@ -120,39 +113,21 @@ function escapeHTML(value) {
         value === null ||
         value === undefined
     ) {
-
         return "";
-
     }
 
     return String(value)
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 
-// =========================================================
-// RECUPERATION DE L'ID VIDEO
-// =========================================================
+// ================================
+// RECHERCHE VIDEO
+// ================================
 
 function findShowcaseVideo(item) {
 
@@ -174,16 +149,13 @@ function findShowcaseVideo(item) {
 
 
     for (
-        const value
-        of possibleValues
+        const value of possibleValues
     ) {
 
         if (
             typeof value !== "string"
         ) {
-
             continue;
-
         }
 
 
@@ -196,9 +168,7 @@ function findShowcaseVideo(item) {
         }
 
 
-        // -----------------------------------------------------
-        // ID YOUTUBE DIRECT
-        // -----------------------------------------------------
+        // ID YouTube directement
 
         if (
             /^[a-zA-Z0-9_-]{11}$/
@@ -210,9 +180,7 @@ function findShowcaseVideo(item) {
         }
 
 
-        // -----------------------------------------------------
-        // URL YOUTUBE
-        // -----------------------------------------------------
+        // URL YouTube
 
         try {
 
@@ -227,9 +195,8 @@ function findShowcaseVideo(item) {
             ) {
 
                 const id =
-                    url.searchParams.get(
-                        "v"
-                    );
+                    url.searchParams.get("v");
+
 
                 if (
                     id &&
@@ -244,17 +211,17 @@ function findShowcaseVideo(item) {
             }
 
 
+            // youtu.be
+
             if (
                 url.hostname ===
-                    "youtu.be"
+                "youtu.be"
             ) {
 
                 const id =
                     url.pathname
-                        .replace(
-                            "/",
-                            ""
-                        );
+                        .replace("/", "");
+
 
                 if (
                     /^[a-zA-Z0-9_-]{11}$/
@@ -269,28 +236,23 @@ function findShowcaseVideo(item) {
 
         } catch {
 
-            // Pas une URL valide
-
         }
 
     }
 
 
     return null;
-
 }
 
 
-// =========================================================
-// RECUPERATION COSMETIQUE COMPLET
-// =========================================================
+// ================================
+// INFORMATIONS COSMETIQUE
+// ================================
 
 async function getCompleteCosmetic(item) {
 
     if (!item?.id) {
-
         return item;
-
     }
 
 
@@ -343,13 +305,12 @@ async function getCompleteCosmetic(item) {
 
 
     return item;
-
 }
 
 
-// =========================================================
+// ================================
 // INFOS SUPPLEMENTAIRES
-// =========================================================
+// ================================
 
 function updateExtraInfo(item) {
 
@@ -358,8 +319,7 @@ function updateExtraInfo(item) {
     }
 
 
-    modalExtraInfo.innerHTML =
-        "";
+    modalExtraInfo.innerHTML = "";
 
 
     const infos = [];
@@ -393,13 +353,16 @@ function updateExtraInfo(item) {
         infos.push(type);
     }
 
+
     if (rarity) {
         infos.push(rarity);
     }
 
+
     if (series) {
         infos.push(series);
     }
+
 
     if (set) {
         infos.push(set);
@@ -414,11 +377,14 @@ function updateExtraInfo(item) {
                     "span"
                 );
 
+
             pill.className =
                 "info-pill";
 
+
             pill.textContent =
                 info;
+
 
             modalExtraInfo.appendChild(
                 pill
@@ -426,33 +392,34 @@ function updateExtraInfo(item) {
 
         }
     );
-
 }
 
 
-// =========================================================
-// RESET MEDIA
-// =========================================================
+// ================================
+// RESET APERCU
+// ================================
 
 function resetMedia() {
 
-    if (modalYoutube) {
+    currentSlide = 0;
 
-        modalYoutube.src =
-            "";
+    hasVideo = false;
 
-        modalYoutube.classList.remove(
-            "visible"
-        );
+
+    if (previewTrack) {
+
+        previewTrack.style.transform =
+            "translateX(0%)";
 
     }
 
 
-    if (modalImage) {
+    if (modalYoutube) {
 
-        modalImage.classList.remove(
-            "hidden"
-        );
+        modalYoutube.src = "";
+
+        modalYoutube.dataset.videoSrc =
+            "";
 
     }
 
@@ -464,19 +431,12 @@ function resetMedia() {
 
     }
 
-
-    hasVideo =
-        false;
-
-    currentSlide =
-        0;
-
 }
 
 
-// =========================================================
-// CREER LES DOTS
-// =========================================================
+// ================================
+// CREATION DES POINTS
+// ================================
 
 function createDots() {
 
@@ -489,119 +449,116 @@ function createDots() {
         "";
 
 
-    // Pas de vidéo
+    /*
+     * S'il n'y a pas de vidéo,
+     * un seul point.
+     */
+
     if (!hasVideo) {
+
+        const dot =
+            document.createElement(
+                "span"
+            );
+
+
+        dot.className =
+            "carousel-dot active";
+
+
+        carouselDots.appendChild(
+            dot
+        );
+
+
+        return;
+    }
+
+
+    /*
+     * 0 = vidéo
+     * 1 = image
+     */
+
+    for (
+        let i = 0;
+        i < 2;
+        i++
+    ) {
 
         const dot =
             document.createElement(
                 "button"
             );
 
+
         dot.className =
-            "carousel-dot active";
+            "carousel-dot";
+
+
+        if (
+            i === currentSlide
+        ) {
+
+            dot.classList.add(
+                "active"
+            );
+
+        }
+
 
         dot.setAttribute(
             "aria-label",
-            "Image"
+            i === 0
+                ? "Voir la vidéo"
+                : "Voir l'image"
         );
+
+
+        dot.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                showSlide(i);
+
+            }
+        );
+
 
         carouselDots.appendChild(
             dot
         );
 
-        return;
-
     }
-
-
-    // Vidéo + image
-
-    const labels = [
-        "Vidéo",
-        "Image"
-    ];
-
-
-    labels.forEach(
-        (label, index) => {
-
-            const dot =
-                document.createElement(
-                    "button"
-                );
-
-            dot.className =
-                "carousel-dot";
-
-
-            if (
-                index ===
-                currentSlide
-            ) {
-
-                dot.classList.add(
-                    "active"
-                );
-
-            }
-
-
-            dot.setAttribute(
-                "aria-label",
-                `Afficher ${label}`
-            );
-
-
-            dot.addEventListener(
-                "click",
-                event => {
-
-                    event.stopPropagation();
-
-                    showSlide(
-                        index
-                    );
-
-                }
-            );
-
-
-            carouselDots.appendChild(
-                dot
-            );
-
-        }
-    );
 
 }
 
 
-// =========================================================
-// AFFICHER SLIDE
-// =========================================================
+// ================================
+// CHANGEMENT D'ECRAN
+// ================================
 
 function showSlide(slide) {
 
+    /*
+     * Aucun système vidéo :
+     * on reste sur l'image.
+     */
+
     if (!hasVideo) {
 
-        currentSlide =
-            0;
+        currentSlide = 0;
 
-        if (modalYoutube) {
 
-            modalYoutube.classList.remove(
-                "visible"
-            );
+        if (previewTrack) {
 
-        }
-
-        if (modalImage) {
-
-            modalImage.classList.remove(
-                "hidden"
-            );
+            previewTrack.style.transform =
+                "translateX(0%)";
 
         }
+
 
         if (previewStatus) {
 
@@ -610,12 +567,20 @@ function showSlide(slide) {
 
         }
 
+
         createDots();
 
         return;
 
     }
 
+
+    /*
+     * Limite :
+     *
+     * 0 = vidéo
+     * 1 = image
+     */
 
     currentSlide =
         Math.max(
@@ -626,6 +591,39 @@ function showSlide(slide) {
             )
         );
 
+
+    /*
+     * Déplacement du carousel.
+     *
+     * Le track fait 200%.
+     * Chaque écran fait 50%.
+     */
+
+    if (previewTrack) {
+
+        previewTrack.style.transform =
+            `translateX(-${currentSlide * 50}%)`;
+
+    }
+
+
+    /*
+     * Texte du petit badge.
+     */
+
+    if (previewStatus) {
+
+        previewStatus.textContent =
+            currentSlide === 0
+                ? "APERÇU ANIMÉ"
+                : "APERÇU DE L'OBJET";
+
+    }
+
+
+    /*
+     * Mise à jour des points.
+     */
 
     const dots =
         carouselDots
@@ -640,88 +638,72 @@ function showSlide(slide) {
 
             dot.classList.toggle(
                 "active",
-                index ===
-                currentSlide
+                index === currentSlide
             );
 
         }
     );
 
 
-    // =====================================================
-    // VIDEO
-    // =====================================================
+    /*
+     * Si on passe à l'image,
+     * on arrête complètement
+     * la vidéo.
+     */
 
     if (
-        currentSlide === 0
+        currentSlide === 1 &&
+        modalYoutube
     ) {
 
-        if (modalImage) {
+        if (
+            modalYoutube.src
+        ) {
 
-            modalImage.classList.add(
-                "hidden"
-            );
-
-        }
-
-
-        if (modalYoutube) {
-
-            modalYoutube.classList.add(
-                "visible"
-            );
+            modalYoutube.dataset.videoSrc =
+                modalYoutube.src;
 
         }
 
 
-        if (previewStatus) {
+        modalYoutube.src =
+            "";
 
-            previewStatus.textContent =
-                "APERÇU ANIMÉ";
+    }
+
+
+    /*
+     * Si on revient à la vidéo,
+     * on la recharge.
+     */
+
+    if (
+        currentSlide === 0 &&
+        modalYoutube
+    ) {
+
+        const savedVideo =
+            modalYoutube.dataset.videoSrc;
+
+
+        if (
+            savedVideo &&
+            !modalYoutube.src
+        ) {
+
+            modalYoutube.src =
+                savedVideo;
 
         }
-
-
-        return;
-
-    }
-
-
-    // =====================================================
-    // IMAGE
-    // =====================================================
-
-    if (modalYoutube) {
-
-        modalYoutube.classList.remove(
-            "visible"
-        );
-
-    }
-
-
-    if (modalImage) {
-
-        modalImage.classList.remove(
-            "hidden"
-        );
-
-    }
-
-
-    if (previewStatus) {
-
-        previewStatus.textContent =
-            "APERÇU DE L'OBJET";
 
     }
 
 }
 
 
-// =========================================================
-// CHARGER VIDEO YOUTUBE
-// =========================================================
+// ================================
+// CHARGER VIDEO
+// ================================
 
 function loadYoutubeVideo(videoId) {
 
@@ -730,8 +712,7 @@ function loadYoutubeVideo(videoId) {
         !modalYoutube
     ) {
 
-        hasVideo =
-            false;
+        hasVideo = false;
 
         createDots();
 
@@ -742,30 +723,17 @@ function loadYoutubeVideo(videoId) {
     }
 
 
-    hasVideo =
-        true;
+    hasVideo = true;
 
-    currentSlide =
-        0;
+    currentSlide = 0;
 
 
     /*
-        mute=1 :
-        nécessaire pour que l'autoplay
-        fonctionne correctement sur mobile
-        et la plupart des navigateurs.
-
-        playsinline=1 :
-        évite le plein écran automatique
-        sur certains appareils.
-
-        autoplay=1 :
-        démarre directement.
-
-        controls=1 :
-        permet à l'utilisateur de contrôler
-        la vidéo.
-    */
+     * Interface YouTube masquée.
+     *
+     * La vidéo reste simplement
+     * comme aperçu animé.
+     */
 
     const youtubeUrl =
         "https://www.youtube.com/embed/" +
@@ -773,8 +741,12 @@ function loadYoutubeVideo(videoId) {
         "?autoplay=1" +
         "&mute=1" +
         "&playsinline=1" +
-        "&controls=1" +
+        "&controls=0" +
         "&rel=0";
+
+
+    modalYoutube.dataset.videoSrc =
+        youtubeUrl;
 
 
     modalYoutube.src =
@@ -788,9 +760,9 @@ function loadYoutubeVideo(videoId) {
 }
 
 
-// =========================================================
-// OUVRIR MODAL
-// =========================================================
+// ================================
+// OUVRIR OBJET
+// ================================
 
 async function openItemModal(
     item,
@@ -801,9 +773,7 @@ async function openItemModal(
         !itemModal ||
         !item
     ) {
-
         return;
-
     }
 
 
@@ -813,43 +783,38 @@ async function openItemModal(
 
 
     if (!image) {
-
         return;
-
     }
 
-
-    // =====================================================
-    // RESET
-    // =====================================================
 
     resetMedia();
 
 
-    // =====================================================
-    // IMAGE
-    // =====================================================
+    /*
+     * Image de l'objet
+     */
 
     modalImage.src =
         image;
+
 
     modalImage.alt =
         item.name ||
         "Objet Fortnite";
 
 
-    // =====================================================
-    // NOM
-    // =====================================================
+    /*
+     * Nom
+     */
 
     modalName.textContent =
         item.name ||
         "Objet Fortnite";
 
 
-    // =====================================================
-    // PRIX
-    // =====================================================
+    /*
+     * Prix
+     */
 
     modalPrice.innerHTML = `
 
@@ -870,44 +835,47 @@ async function openItemModal(
     `;
 
 
-    // =====================================================
-    // DESCRIPTION
-    // =====================================================
+    /*
+     * Description temporaire
+     */
 
     modalDescription.textContent =
         "Chargement des informations...";
+
 
     modalDescription.classList.remove(
         "empty"
     );
 
 
-    updateExtraInfo(
-        item
-    );
+    updateExtraInfo(item);
 
 
-    // =====================================================
-    // OUVERTURE
-    // =====================================================
+    /*
+     * Ouvre immédiatement
+     * la popup.
+     */
 
     itemModal.classList.add(
         "active"
     );
+
 
     itemModal.setAttribute(
         "aria-hidden",
         "false"
     );
 
+
     document.body.classList.add(
         "modal-open"
     );
 
 
-    // =====================================================
-    // RECUPERATION COMPLETE
-    // =====================================================
+    /*
+     * Récupération des infos
+     * complètes du cosmétique.
+     */
 
     const completeItem =
         await getCompleteCosmetic(
@@ -915,9 +883,9 @@ async function openItemModal(
         );
 
 
-    // =====================================================
-    // DESCRIPTION
-    // =====================================================
+    /*
+     * Description
+     */
 
     const description =
         completeItem?.description ||
@@ -946,18 +914,18 @@ async function openItemModal(
     }
 
 
-    // =====================================================
-    // INFOS
-    // =====================================================
+    /*
+     * Infos supplémentaires
+     */
 
     updateExtraInfo(
         completeItem
     );
 
 
-    // =====================================================
-    // VIDEO
-    // =====================================================
+    /*
+     * Recherche vidéo
+     */
 
     const videoId =
         findShowcaseVideo(
@@ -970,11 +938,16 @@ async function openItemModal(
         completeItem.name
     );
 
+
     console.log(
         "ID vidéo :",
         videoId
     );
 
+
+    /*
+     * Vidéo trouvée
+     */
 
     if (videoId) {
 
@@ -982,14 +955,21 @@ async function openItemModal(
             videoId
         );
 
-    } else {
+    }
+
+    /*
+     * Pas de vidéo
+     */
+
+    else {
 
         console.log(
             "Aucune vidéo de présentation disponible."
         );
 
-        hasVideo =
-            false;
+
+        hasVideo = false;
+
 
         createDots();
 
@@ -1000,9 +980,9 @@ async function openItemModal(
 }
 
 
-// =========================================================
-// FERMER MODAL
-// =========================================================
+// ================================
+// FERMER OBJET
+// ================================
 
 function closeItemModal() {
 
@@ -1014,6 +994,7 @@ function closeItemModal() {
     itemModal.classList.remove(
         "active"
     );
+
 
     itemModal.setAttribute(
         "aria-hidden",
@@ -1031,9 +1012,9 @@ function closeItemModal() {
 }
 
 
-// =========================================================
+// ================================
 // BOUTON FERMER
-// =========================================================
+// ================================
 
 if (modalClose) {
 
@@ -1045,9 +1026,9 @@ if (modalClose) {
 }
 
 
-// =========================================================
+// ================================
 // BACKDROP
-// =========================================================
+// ================================
 
 if (modalBackdrop) {
 
@@ -1059,9 +1040,9 @@ if (modalBackdrop) {
 }
 
 
-// =========================================================
+// ================================
 // ESCAPE
-// =========================================================
+// ================================
 
 document.addEventListener(
     "keydown",
@@ -1080,9 +1061,9 @@ document.addEventListener(
 );
 
 
-// =========================================================
+// ================================
 // SWIPE
-// =========================================================
+// ================================
 
 if (modalMedia) {
 
@@ -1115,6 +1096,11 @@ if (modalMedia) {
                 touchEndX;
 
 
+            /*
+             * Petit mouvement :
+             * on ignore.
+             */
+
             if (
                 Math.abs(difference) <
                 50
@@ -1125,18 +1111,31 @@ if (modalMedia) {
             }
 
 
+            /*
+             * Swipe gauche :
+             *
+             * vidéo → image
+             */
+
             if (
                 difference > 0
             ) {
 
-                // Swipe gauche
                 showSlide(
                     currentSlide + 1
                 );
 
-            } else {
+            }
 
-                // Swipe droite
+
+            /*
+             * Swipe droite :
+             *
+             * image → vidéo
+             */
+
+            else {
+
                 showSlide(
                     currentSlide - 1
                 );
@@ -1152,9 +1151,9 @@ if (modalMedia) {
 }
 
 
-// =========================================================
-// CHARGEMENT SHOP
-// =========================================================
+// ================================
+// CHARGER LA BOUTIQUE
+// ================================
 
 async function loadShop() {
 
@@ -1223,6 +1222,10 @@ async function loadShop() {
                     item.name;
 
 
+                /*
+                 * Évite les doublons.
+                 */
+
                 if (
                     displayedItems.has(
                         name
@@ -1254,9 +1257,9 @@ async function loadShop() {
                     "?";
 
 
-                // =================================================
-                // CARD
-                // =================================================
+                /*
+                 * Création de la carte.
+                 */
 
                 const card =
                     document.createElement(
@@ -1324,9 +1327,9 @@ async function loadShop() {
                 `;
 
 
-                // =================================================
-                // CLICK
-                // =================================================
+                /*
+                 * Clic
+                 */
 
                 card.addEventListener(
                     "click",
@@ -1341,9 +1344,9 @@ async function loadShop() {
                 );
 
 
-                // =================================================
-                // CLAVIER
-                // =================================================
+                /*
+                 * Accessibilité
+                 */
 
                 card.setAttribute(
                     "tabindex",
@@ -1370,6 +1373,7 @@ async function loadShop() {
 
                             event.preventDefault();
 
+
                             openItemModal(
                                 item,
                                 price
@@ -1389,9 +1393,9 @@ async function loadShop() {
         );
 
 
-        // =====================================================
-        // RESULTAT
-        // =====================================================
+        /*
+         * Aucun objet
+         */
 
         if (
             shopContainer.children.length ===
@@ -1401,7 +1405,9 @@ async function loadShop() {
             status.textContent =
                 "Aucun objet trouvé.";
 
-        } else {
+        }
+
+        else {
 
             status.textContent =
                 "";
@@ -1425,18 +1431,18 @@ async function loadShop() {
 }
 
 
-// =========================================================
+// ================================
 // INITIALISATION
-// =========================================================
+// ================================
 
 displayDate();
 
 loadShop();
 
 
-// =========================================================
+// ================================
 // SERVICE WORKER
-// =========================================================
+// ================================
 
 if (
     "serviceWorker" in navigator
@@ -1447,9 +1453,7 @@ if (
         () => {
 
             navigator.serviceWorker
-                .register(
-                    "./sw.js"
-                )
+                .register("./sw.js")
                 .then(
                     () => {
 
