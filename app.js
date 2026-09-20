@@ -10,30 +10,56 @@ const COSMETIC_API =
 
 
 // =========================================================
-// ÉLÉMENTS DOM
+// DOM
 // =========================================================
 
-const shopElement = document.getElementById("shop");
-const statusElement = document.getElementById("status");
-const dateElement = document.getElementById("date");
+const shopElement =
+    document.getElementById("shop");
 
-const modal = document.getElementById("item-modal");
-const modalMedia = document.getElementById("modal-media");
-const modalClose = document.getElementById("modal-close");
+const statusElement =
+    document.getElementById("status");
 
-const modalName = document.getElementById("modal-name");
-const modalPrice = document.getElementById("modal-price");
-const modalExtraInfo = document.getElementById("modal-extra-info");
-const modalDescription = document.getElementById("modal-description");
+const dateElement =
+    document.getElementById("date");
 
-const previewTrack = document.getElementById("preview-track");
-const modalVideo = document.getElementById("modal-video");
-const modalYoutube = document.getElementById("modal-youtube");
-const modalImage = document.getElementById("modal-image");
+const modal =
+    document.getElementById("item-modal");
 
-const previewStatus = document.getElementById("preview-status");
-const carouselDots = document.getElementById("carousel-dots");
-const videoFallback = document.getElementById("video-fallback");
+const modalMedia =
+    document.getElementById("modal-media");
+
+const modalClose =
+    document.getElementById("modal-close");
+
+const modalName =
+    document.getElementById("modal-name");
+
+const modalPrice =
+    document.getElementById("modal-price");
+
+const modalExtraInfo =
+    document.getElementById("modal-extra-info");
+
+const modalDescription =
+    document.getElementById("modal-description");
+
+const previewTrack =
+    document.getElementById("preview-track");
+
+const modalVideo =
+    document.getElementById("modal-video");
+
+const modalImage =
+    document.getElementById("modal-image");
+
+const previewStatus =
+    document.getElementById("preview-status");
+
+const carouselDots =
+    document.getElementById("carousel-dots");
+
+const videoFallback =
+    document.getElementById("video-fallback");
 
 
 // =========================================================
@@ -44,16 +70,17 @@ let currentItem = null;
 
 let currentSlide = 0;
 
+let hasVideo = false;
+
+let currentVideoUrl = null;
+
 let touchStartX = 0;
+
 let touchStartY = 0;
 
 let touchCurrentX = 0;
 
 let isDragging = false;
-
-let hasVideo = false;
-
-let currentVideoUrl = null;
 
 
 // =========================================================
@@ -65,16 +92,19 @@ function updateDate() {
     const now = new Date();
 
     dateElement.textContent =
-        now.toLocaleDateString("fr-FR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric"
-        });
+        now.toLocaleDateString(
+            "fr-FR",
+            {
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            }
+        );
 }
 
 
 // =========================================================
-// CHARGEMENT BOUTIQUE
+// CHARGER LA BOUTIQUE
 // =========================================================
 
 async function loadShop() {
@@ -92,27 +122,36 @@ async function loadShop() {
 
     try {
 
-        const response = await fetch(SHOP_API, {
-            cache: "no-store"
-        });
+        const response =
+            await fetch(
+                SHOP_API,
+                {
+                    cache: "no-store"
+                }
+            );
 
         if (!response.ok) {
+
             throw new Error(
                 `Erreur HTTP ${response.status}`
             );
         }
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
         const entries =
             data?.data?.entries ||
             data?.data?.shop ||
             [];
 
-        if (!Array.isArray(entries) || entries.length === 0) {
+        if (
+            !Array.isArray(entries) ||
+            entries.length === 0
+        ) {
 
             throw new Error(
-                "Aucun objet trouvé dans la boutique."
+                "Aucun objet trouvé."
             );
         }
 
@@ -128,13 +167,14 @@ async function loadShop() {
     } catch (error) {
 
         console.error(
-            "Erreur chargement boutique :",
+            "Erreur boutique :",
             error
         );
 
         statusElement.innerHTML = `
             <div class="error-status">
                 Impossible de charger la boutique.
+
                 <button onclick="loadShop()">
                     Réessayer
                 </button>
@@ -145,33 +185,37 @@ async function loadShop() {
 
 
 // =========================================================
-// RENDU DE LA BOUTIQUE
+// RENDU SHOP
 // =========================================================
 
 function renderShop(entries) {
 
     shopElement.innerHTML = "";
 
-    entries.forEach((entry, index) => {
+    entries.forEach(
+        (entry, index) => {
 
-        const item = extractShopItem(entry);
+            const item =
+                extractShopItem(entry);
 
-        if (!item) {
-            return;
+            if (!item) {
+                return;
+            }
+
+            const card =
+                createCard(
+                    item,
+                    index
+                );
+
+            shopElement.appendChild(card);
         }
-
-        const card = createCard(
-            item,
-            index
-        );
-
-        shopElement.appendChild(card);
-    });
+    );
 }
 
 
 // =========================================================
-// EXTRACTION OBJET SHOP
+// EXTRACTION OBJET
 // =========================================================
 
 function extractShopItem(entry) {
@@ -265,14 +309,16 @@ function extractShopItem(entry) {
 
 
 // =========================================================
-// CRÉATION CARTE
+// CARTE
 // =========================================================
 
 function createCard(item, index) {
 
-    const card = document.createElement("article");
+    const card =
+        document.createElement("article");
 
-    card.className = "card";
+    card.className =
+        "card";
 
     card.style.animationDelay =
         `${Math.min(index * 35, 500)}ms`;
@@ -290,15 +336,21 @@ function createCard(item, index) {
         const image =
             document.createElement("img");
 
-        image.src = item.image;
+        image.src =
+            item.image;
 
-        image.alt = item.name;
+        image.alt =
+            item.name;
 
-        image.loading = "lazy";
+        image.loading =
+            "lazy";
 
-        image.decoding = "async";
+        image.decoding =
+            "async";
 
-        imageContainer.appendChild(image);
+        imageContainer.appendChild(
+            image
+        );
 
     } else {
 
@@ -344,24 +396,35 @@ function createCard(item, index) {
     price.className =
         "price";
 
-
     price.innerHTML = `
         ${formatPrice(item.price)}
         <span class="vbucks-symbol">V</span>
     `;
 
 
-    bottom.appendChild(price);
+    bottom.appendChild(
+        price
+    );
 
-    info.appendChild(name);
+    info.appendChild(
+        name
+    );
 
-    info.appendChild(bottom);
+    info.appendChild(
+        bottom
+    );
 
-    overlay.appendChild(info);
+    overlay.appendChild(
+        info
+    );
 
-    imageContainer.appendChild(overlay);
+    imageContainer.appendChild(
+        overlay
+    );
 
-    card.appendChild(imageContainer);
+    card.appendChild(
+        imageContainer
+    );
 
 
     card.addEventListener(
@@ -395,7 +458,9 @@ function formatPrice(price) {
         return String(price);
     }
 
-    return number.toLocaleString("fr-FR");
+    return number.toLocaleString(
+        "fr-FR"
+    );
 }
 
 
@@ -405,21 +470,26 @@ function formatPrice(price) {
 
 async function openModal(item) {
 
-    currentItem = item;
+    currentItem =
+        item;
 
-    currentSlide = 0;
+    currentSlide =
+        0;
 
-    hasVideo = false;
+    hasVideo =
+        false;
 
-    currentVideoUrl = null;
+    currentVideoUrl =
+        null;
 
 
     document.body.classList.add(
         "modal-open"
     );
 
-
-    modal.classList.add("open");
+    modal.classList.add(
+        "open"
+    );
 
     modal.setAttribute(
         "aria-hidden",
@@ -463,7 +533,6 @@ async function openModal(item) {
     modalImage.src =
         item.image || "";
 
-
     modalImage.alt =
         item.name;
 
@@ -473,102 +542,100 @@ async function openModal(item) {
 
     createDots();
 
-
     updateSlide(
         0,
         false
     );
 
 
-    /*
-       On récupère les informations complètes
-       du cosmétique afin de trouver la vidéo.
-    */
-
-    if (item.id) {
-
-        try {
-
-            const cosmetic =
-                await fetchCosmetic(
-                    item.id
-                );
+    if (!item.id) {
+        return;
+    }
 
 
-            if (
-                currentItem !== item ||
-                !modal.classList.contains("open")
-            ) {
-                return;
-            }
+    try {
 
-
-            const video =
-                findShowcaseVideo(
-                    cosmetic
-                );
-
-
-            if (video) {
-
-                hasVideo = true;
-
-                currentVideoUrl =
-                    video;
-
-                loadVideo(
-                    video
-                );
-
-                previewStatus.textContent =
-                    "APERÇU ANIMÉ";
-
-            } else {
-
-                hasVideo = false;
-
-                previewStatus.textContent =
-                    "APERÇU";
-
-                showVideoFallback(
-                    false
-                );
-            }
-
-
-            createDots();
-
-            updateSlide(
-                currentSlide,
-                false
+        const cosmetic =
+            await fetchCosmetic(
+                item.id
             );
 
 
-        } catch (error) {
+        if (
+            currentItem !== item ||
+            !modal.classList.contains("open")
+        ) {
+            return;
+        }
 
-            console.warn(
-                "Vidéo indisponible :",
-                error
+
+        const videoUrl =
+            findDirectVideo(
+                cosmetic
             );
 
-            hasVideo = false;
+
+        if (videoUrl) {
+
+            hasVideo =
+                true;
+
+            currentVideoUrl =
+                videoUrl;
+
+            loadDirectVideo(
+                videoUrl
+            );
+
+            previewStatus.textContent =
+                "APERÇU ANIMÉ";
+
+        } else {
+
+            hasVideo =
+                false;
 
             previewStatus.textContent =
                 "APERÇU";
 
-            createDots();
-
-            updateSlide(
-                0,
-                false
-            );
+            resetVideo();
         }
+
+
+        createDots();
+
+        updateSlide(
+            currentSlide,
+            false
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Impossible de récupérer la vidéo :",
+            error
+        );
+
+        hasVideo =
+            false;
+
+        resetVideo();
+
+        previewStatus.textContent =
+            "APERÇU";
+
+        createDots();
+
+        updateSlide(
+            0,
+            false
+        );
     }
 }
 
 
 // =========================================================
-// FERMER MODALE
+// FERMER
 // =========================================================
 
 function closeModal() {
@@ -589,7 +656,8 @@ function closeModal() {
 
     resetVideo();
 
-    currentItem = null;
+    currentItem =
+        null;
 }
 
 
@@ -599,35 +667,20 @@ function closeModal() {
 
 function resetVideo() {
 
-    if (modalVideo) {
+    modalVideo.pause();
 
-        modalVideo.pause();
-
-        modalVideo.removeAttribute(
-            "src"
-        );
-
-        modalVideo.load();
-
-        modalVideo.style.display =
-            "none";
-    }
-
-
-    if (modalYoutube) {
-
-        modalYoutube.src =
-            "about:blank";
-
-        modalYoutube.style.display =
-            "none";
-    }
-
-
-    showVideoFallback(
-        false
+    modalVideo.removeAttribute(
+        "src"
     );
 
+    modalVideo.load();
+
+    modalVideo.style.display =
+        "none";
+
+    videoFallback.classList.remove(
+        "visible"
+    );
 
     currentVideoUrl =
         null;
@@ -674,10 +727,10 @@ async function fetchCosmetic(id) {
 
 
 // =========================================================
-// TROUVER VIDÉO
+// TROUVER UNE VRAIE VIDÉO DIRECTE
 // =========================================================
 
-function findShowcaseVideo(cosmetic) {
+function findDirectVideo(cosmetic) {
 
     if (!cosmetic) {
         return null;
@@ -685,13 +738,12 @@ function findShowcaseVideo(cosmetic) {
 
 
     /*
-       FortniteAPI documente notamment :
+       On accepte UNIQUEMENT des URLs
+       de fichiers vidéo.
 
-       showcase_video_id
-       showcase_video_url
-
-       Certaines réponses peuvent également
-       utiliser le camelCase showcaseVideo.
+       Aucun YouTube.
+       Aucun iframe.
+       Aucun ID YouTube.
     */
 
     const candidates = [
@@ -702,11 +754,7 @@ function findShowcaseVideo(cosmetic) {
 
         cosmetic.showcase_video,
 
-        cosmetic.showcaseVideo,
-
-        cosmetic.showcase_video_id,
-
-        cosmetic.showcaseVideoId
+        cosmetic.showcaseVideo
 
     ];
 
@@ -729,27 +777,9 @@ function findShowcaseVideo(cosmetic) {
         }
 
 
-        /*
-           Si c'est déjà une URL,
-           on la conserve.
-        */
-
         if (
-            /^https?:\/\//i.test(value)
+            isDirectVideoUrl(value)
         ) {
-            return value;
-        }
-
-
-        /*
-           Sinon on considère que c'est
-           un ID YouTube.
-        */
-
-        if (
-            /^[a-zA-Z0-9_-]{6,}$/.test(value)
-        ) {
-
             return value;
         }
     }
@@ -760,231 +790,130 @@ function findShowcaseVideo(cosmetic) {
 
 
 // =========================================================
-// CHARGER VIDÉO
+// VÉRIFIER URL VIDÉO
 // =========================================================
 
-function loadVideo(value) {
-
-    resetVideo();
-
-
-    if (!value) {
-
-        showVideoFallback(
-            true
-        );
-
-        return;
-    }
-
-
-    const youtubeId =
-        getYoutubeId(value);
-
-
-    /*
-       YOUTUBE
-    */
-
-    if (youtubeId) {
-
-        modalYoutube.style.display =
-            "block";
-
-
-        modalYoutube.src =
-            `https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&playsinline=1&rel=0&modestbranding=1`;
-
-
-        return;
-    }
-
-
-    /*
-       VIDÉO DIRECTE
-    */
-
-    if (
-        /^https?:\/\//i.test(value)
-    ) {
-
-        modalVideo.style.display =
-            "block";
-
-
-        modalVideo.src =
-            value;
-
-
-        modalVideo.muted =
-            true;
-
-
-        modalVideo.autoplay =
-            true;
-
-
-        modalVideo.loop =
-            true;
-
-
-        modalVideo.playsInline =
-            true;
-
-
-        modalVideo.load();
-
-
-        const playPromise =
-            modalVideo.play();
-
-
-        if (
-            playPromise &&
-            typeof playPromise.catch === "function"
-        ) {
-
-            playPromise.catch(
-                () => {
-                    showVideoFallback(true);
-                }
-            );
-        }
-
-
-        return;
-    }
-
-
-    showVideoFallback(
-        true
-    );
-}
-
-
-// =========================================================
-// EXTRAIRE ID YOUTUBE
-// =========================================================
-
-function getYoutubeId(value) {
-
-    if (
-        typeof value !== "string"
-    ) {
-        return null;
-    }
-
-
-    const clean =
-        value.trim();
-
-
-    /*
-       ID YouTube direct
-    */
-
-    if (
-        /^[a-zA-Z0-9_-]{11}$/.test(clean)
-    ) {
-
-        return clean;
-    }
-
+function isDirectVideoUrl(value) {
 
     try {
 
         const url =
-            new URL(clean);
+            new URL(value);
 
-
-        const hostname =
-            url.hostname
-                .replace(/^www\./, "")
-                .toLowerCase();
-
-
-        /*
-           youtube.com/watch?v=
-        */
 
         if (
-            hostname === "youtube.com" ||
-            hostname === "m.youtube.com"
+            url.protocol !== "https:" &&
+            url.protocol !== "http:"
         ) {
-
-            const id =
-                url.searchParams.get("v");
-
-            if (id) {
-                return id;
-            }
+            return false;
         }
 
 
-        /*
-           youtu.be/ID
-        */
-
-        if (
-            hostname === "youtu.be"
-        ) {
-
-            const id =
-                url.pathname
-                    .replace("/", "")
-                    .trim();
-
-            if (id) {
-                return id;
-            }
-        }
+        const pathname =
+            url.pathname.toLowerCase();
 
 
-        /*
-           youtube.com/embed/ID
-        */
+        const extensions = [
+            ".mp4",
+            ".webm",
+            ".mov",
+            ".m4v",
+            ".ogv"
+        ];
 
-        if (
-            hostname === "youtube.com"
-        ) {
 
-            const match =
-                url.pathname.match(
-                    /\/embed\/([^/]+)/
-                );
-
-            if (
-                match &&
-                match[1]
-            ) {
-
-                return match[1];
-            }
-        }
+        return extensions.some(
+            extension =>
+                pathname.endsWith(extension)
+        );
 
     } catch {
-        return null;
+
+        return false;
     }
-
-
-    return null;
 }
 
 
 // =========================================================
-// FALLBACK VIDÉO
+// CHARGER VIDÉO DIRECTE
 // =========================================================
 
-function showVideoFallback(show) {
+function loadDirectVideo(url) {
 
-    if (!videoFallback) {
+    resetVideo();
+
+
+    if (
+        !isDirectVideoUrl(url)
+    ) {
+
         return;
     }
 
 
-    videoFallback.classList.toggle(
-        "visible",
-        Boolean(show)
+    currentVideoUrl =
+        url;
+
+
+    modalVideo.style.display =
+        "block";
+
+
+    modalVideo.muted =
+        true;
+
+    modalVideo.autoplay =
+        true;
+
+    modalVideo.loop =
+        true;
+
+    modalVideo.playsInline =
+        true;
+
+
+    modalVideo.src =
+        url;
+
+
+    modalVideo.load();
+
+
+    const playPromise =
+        modalVideo.play();
+
+
+    if (
+        playPromise &&
+        typeof playPromise.catch === "function"
+    ) {
+
+        playPromise.catch(
+            error => {
+
+                console.warn(
+                    "Lecture vidéo impossible :",
+                    error
+                );
+
+                showVideoFallback();
+            }
+        );
+    }
+}
+
+
+// =========================================================
+// FALLBACK
+// =========================================================
+
+function showVideoFallback() {
+
+    modalVideo.style.display =
+        "none";
+
+    videoFallback.classList.add(
+        "visible"
     );
 }
 
@@ -995,11 +924,14 @@ function showVideoFallback(show) {
 
 function createDots() {
 
-    carouselDots.innerHTML = "";
+    carouselDots.innerHTML =
+        "";
 
 
     const count =
-        hasVideo ? 2 : 1;
+        hasVideo
+            ? 2
+            : 1;
 
 
     for (
@@ -1009,7 +941,9 @@ function createDots() {
     ) {
 
         const dot =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
 
 
         dot.className =
@@ -1028,13 +962,15 @@ function createDots() {
 
         dot.setAttribute(
             "aria-label",
-            `Afficher ${i === 0 && hasVideo ? "la vidéo" : "l'image"}`
+            i === 0 && hasVideo
+                ? "Afficher la vidéo"
+                : "Afficher l'image"
         );
 
 
         dot.addEventListener(
             "click",
-            (event) => {
+            event => {
 
                 event.stopPropagation();
 
@@ -1051,16 +987,15 @@ function createDots() {
 
 
 // =========================================================
-// SLIDE
+// CHANGER SLIDE
 // =========================================================
 
-function goToSlide(
-    index
-) {
+function goToSlide(index) {
 
     if (!hasVideo) {
 
-        currentSlide = 0;
+        currentSlide =
+            0;
 
     } else {
 
@@ -1095,17 +1030,14 @@ function updateSlide(
         index;
 
 
-    if (previewTrack) {
-
-        previewTrack.style.transition =
-            animate
-                ? "transform 0.35s cubic-bezier(.22,.61,.36,1)"
-                : "none";
+    previewTrack.style.transition =
+        animate
+            ? "transform 0.35s cubic-bezier(.22,.61,.36,1)"
+            : "none";
 
 
-        previewTrack.style.transform =
-            `translateX(-${index * 50}%)`;
-    }
+    previewTrack.style.transform =
+        `translateX(-${index * 50}%)`;
 
 
     const dots =
@@ -1127,16 +1059,10 @@ function updateSlide(
 
     if (index === 0) {
 
-        if (hasVideo) {
-
-            previewStatus.textContent =
-                "APERÇU ANIMÉ";
-
-        } else {
-
-            previewStatus.textContent =
-                "APERÇU";
-        }
+        previewStatus.textContent =
+            hasVideo
+                ? "APERÇU ANIMÉ"
+                : "APERÇU";
 
 
         playCurrentVideo();
@@ -1152,117 +1078,62 @@ function updateSlide(
 
 
 // =========================================================
-// PLAY VIDÉO
+// PLAY
 // =========================================================
 
 function playCurrentVideo() {
 
-    if (!hasVideo) {
+    if (
+        !hasVideo ||
+        !currentVideoUrl
+    ) {
         return;
     }
 
 
+    modalVideo.style.display =
+        "block";
+
+
+    modalVideo.muted =
+        true;
+
+
+    const promise =
+        modalVideo.play();
+
+
     if (
-        modalYoutube.style.display !== "none" &&
-        modalYoutube.src !== "about:blank"
+        promise &&
+        typeof promise.catch === "function"
     ) {
 
-        return;
-    }
-
-
-    if (
-        modalVideo.style.display !== "none" &&
-        modalVideo.src
-    ) {
-
-        modalVideo.muted =
-            true;
-
-
-        const promise =
-            modalVideo.play();
-
-
-        if (
-            promise &&
-            typeof promise.catch === "function"
-        ) {
-
-            promise.catch(
-                () => {}
-            );
-        }
+        promise.catch(
+            () => {}
+        );
     }
 }
 
 
 // =========================================================
-// PAUSE VIDÉO
+// PAUSE
 // =========================================================
 
 function pauseCurrentVideo() {
 
-    if (modalVideo) {
-
-        modalVideo.pause();
-    }
-
-
-    /*
-       Pour YouTube, on ne garde pas
-       la lecture active lorsqu'on passe
-       sur l'image.
-    */
-
-    if (
-        modalYoutube &&
-        modalYoutube.src !== "about:blank"
-    ) {
-
-        const currentSrc =
-            modalYoutube.src;
-
-
-        modalYoutube.src =
-            "about:blank";
-
-
-        /*
-           On recharge la vidéo lorsqu'on
-           revient sur l'écran vidéo.
-        */
-
-        if (currentVideoUrl) {
-
-            setTimeout(
-                () => {
-
-                    if (
-                        modal.classList.contains("open") &&
-                        currentSlide === 0
-                    ) {
-
-                        loadVideo(
-                            currentVideoUrl
-                        );
-                    }
-
-                },
-                50
-            );
-        }
-    }
+    modalVideo.pause();
 }
 
 
 // =========================================================
-// SWIPE
+// TOUCH START
 // =========================================================
 
 function handleTouchStart(event) {
 
-    if (!modal.classList.contains("open")) {
+    if (
+        !modal.classList.contains("open")
+    ) {
         return;
     }
 
@@ -1274,14 +1145,11 @@ function handleTouchStart(event) {
     touchStartX =
         touch.clientX;
 
-
     touchStartY =
         touch.clientY;
 
-
     touchCurrentX =
         touchStartX;
-
 
     isDragging =
         true;
@@ -1291,6 +1159,10 @@ function handleTouchStart(event) {
         "none";
 }
 
+
+// =========================================================
+// TOUCH MOVE
+// =========================================================
 
 function handleTouchMove(event) {
 
@@ -1316,11 +1188,6 @@ function handleTouchMove(event) {
         touch.clientY -
         touchStartY;
 
-
-    /*
-       Si le geste est principalement
-       vertical, on ne force pas le swipe.
-    */
 
     if (
         Math.abs(deltaY) >
@@ -1349,24 +1216,24 @@ function handleTouchMove(event) {
         base - percentage;
 
 
-    if (
-        position < -5
-    ) {
-        position = -5;
-    }
-
-
-    if (
-        position > 105
-    ) {
-        position = 105;
-    }
+    position =
+        Math.max(
+            -5,
+            Math.min(
+                105,
+                position
+            )
+        );
 
 
     previewTrack.style.transform =
         `translateX(-${position}%)`;
 }
 
+
+// =========================================================
+// TOUCH END
+// =========================================================
 
 function handleTouchEnd() {
 
@@ -1439,9 +1306,7 @@ function handleKeyDown(event) {
         event.key === "ArrowLeft"
     ) {
 
-        goToSlide(
-            0
-        );
+        goToSlide(0);
     }
 
 
@@ -1450,9 +1315,7 @@ function handleKeyDown(event) {
         hasVideo
     ) {
 
-        goToSlide(
-            1
-        );
+        goToSlide(1);
     }
 }
 
@@ -1467,12 +1330,12 @@ modalClose.addEventListener(
 );
 
 
-document.querySelector(
-    ".modal-backdrop"
-).addEventListener(
-    "click",
-    closeModal
-);
+document
+    .querySelector(".modal-backdrop")
+    .addEventListener(
+        "click",
+        closeModal
+    );
 
 
 document.addEventListener(
@@ -1509,26 +1372,18 @@ modalMedia.addEventListener(
 
 
 // =========================================================
-// GESTION ERREUR VIDÉO
+// ERREUR VIDÉO
 // =========================================================
 
 modalVideo.addEventListener(
     "error",
     () => {
 
-        /*
-           Si le navigateur ne peut pas lire
-           l'URL directement, on ne casse pas
-           toute la modale.
-        */
-
         if (
             currentSlide === 0
         ) {
 
-            showVideoFallback(
-                true
-            );
+            showVideoFallback();
         }
     }
 );
@@ -1538,8 +1393,8 @@ modalVideo.addEventListener(
     "loadeddata",
     () => {
 
-        showVideoFallback(
-            false
+        videoFallback.classList.remove(
+            "visible"
         );
     }
 );
