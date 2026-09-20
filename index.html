@@ -69,18 +69,25 @@
         </div>
     </header>
 
+
     <main>
 
         <section class="shop-heading">
 
             <div class="heading-content">
-                <span class="section-label">FORTNITE</span>
 
-                <h2>Boutique d'objets</h2>
+                <span class="section-label">
+                    FORTNITE
+                </span>
+
+                <h2>
+                    Boutique d'objets
+                </h2>
 
                 <p>
                     Découvrez les objets disponibles aujourd'hui.
                 </p>
+
             </div>
 
             <div class="live-badge">
@@ -90,14 +97,19 @@
 
         </section>
 
+
         <div id="status">
 
             <div class="loading-container">
                 <div class="loading-spinner"></div>
-                <span>Chargement de la boutique...</span>
+
+                <span>
+                    Chargement de la boutique...
+                </span>
             </div>
 
         </div>
+
 
         <section id="shop"></section>
 
@@ -105,7 +117,7 @@
 
 
     <!-- =====================================================
-         FENÊTRE DE DÉTAIL DE L'OBJET
+         MODAL OBJET
     ====================================================== -->
 
     <div
@@ -115,6 +127,7 @@
     >
 
         <div class="modal-backdrop"></div>
+
 
         <div
             class="modal-content"
@@ -131,15 +144,38 @@
                 ×
             </button>
 
-            <div class="modal-image-container">
 
+            <div class="modal-media">
+
+                <!-- Vidéo de présentation -->
+                <video
+                    id="modal-video"
+                    class="modal-video"
+                    muted
+                    loop
+                    playsinline
+                    preload="metadata"
+                ></video>
+
+
+                <!-- Image de secours -->
                 <img
                     id="modal-image"
+                    class="modal-image"
                     src=""
                     alt=""
                 >
 
+
+                <div
+                    id="preview-status"
+                    class="preview-status"
+                >
+                    Aperçu de l'objet
+                </div>
+
             </div>
+
 
             <div class="modal-info">
 
@@ -147,11 +183,19 @@
                     OBJET FORTNITE
                 </span>
 
+
                 <h2 id="modal-name"></h2>
+
 
                 <div
                     id="modal-price"
                     class="price"
+                ></div>
+
+
+                <div
+                    id="modal-description"
+                    class="modal-description"
                 ></div>
 
             </div>
@@ -174,6 +218,7 @@
         </p>
 
     </footer>
+
 
     <script src="app.js"></script>
 
