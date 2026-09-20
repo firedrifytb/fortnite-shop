@@ -692,6 +692,14 @@ main {
 }
 
 
+.card:focus-visible {
+    outline:
+        2px solid var(--blue);
+
+    outline-offset: 3px;
+}
+
+
 .card > img {
     width: 100%;
 
@@ -833,7 +841,7 @@ main {
     inset: 0;
 
     background:
-        rgba(2, 5, 15, 0.82);
+        rgba(2, 5, 15, 0.84);
 
     backdrop-filter:
         blur(18px);
@@ -853,11 +861,11 @@ main {
     z-index: 2;
 
     width:
-        min(900px, 100%);
+        min(980px, 100%);
 
-    max-height: 92vh;
+    max-height: 94vh;
 
-    overflow: hidden;
+    overflow-y: auto;
 
     border:
         1px solid
@@ -903,7 +911,7 @@ main {
     top: 15px;
     right: 15px;
 
-    z-index: 10;
+    z-index: 20;
 
     width: 42px;
     height: 42px;
@@ -921,7 +929,7 @@ main {
     color: white;
 
     background:
-        rgba(0,0,0,0.45);
+        rgba(0,0,0,0.5);
 
     font-size: 25px;
 
@@ -994,13 +1002,11 @@ main {
 
     from {
         transform: scale(0.8);
-
         opacity: 0.4;
     }
 
     to {
         transform: scale(1.2);
-
         opacity: 1;
     }
 
@@ -1040,6 +1046,8 @@ main {
 
 .modal-video.visible {
     opacity: 1;
+
+    pointer-events: auto;
 }
 
 
@@ -1090,6 +1098,150 @@ main {
 
 
 /* =========================================================
+   VIDEO OVERLAY
+========================================================= */
+
+.video-overlay {
+    position: absolute;
+
+    right: 20px;
+    bottom: 18px;
+
+    z-index: 10;
+
+    display: flex;
+
+    gap: 8px;
+
+    opacity: 0;
+
+    transform:
+        translateY(8px);
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+}
+
+
+.video-overlay.visible {
+    opacity: 1;
+
+    transform:
+        translateY(0);
+
+    pointer-events: auto;
+}
+
+
+.media-button {
+    width: 42px;
+    height: 42px;
+
+    display: grid;
+
+    place-items: center;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.15);
+
+    border-radius: 12px;
+
+    color: white;
+
+    background:
+        rgba(5,8,18,0.72);
+
+    backdrop-filter:
+        blur(10px);
+
+    cursor: pointer;
+
+    font-size: 17px;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.media-button:hover {
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(54,169,255,0.2);
+}
+
+
+/* =========================================================
+   VIDEO LOADING
+========================================================= */
+
+.video-loading {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 8;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    color: var(--muted);
+
+    background:
+        rgba(7,11,24,0.2);
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.2s ease;
+}
+
+
+.video-loading.visible {
+    opacity: 1;
+}
+
+
+.video-loading-spinner {
+    width: 32px;
+    height: 32px;
+
+    border:
+        3px solid
+        rgba(255,255,255,0.1);
+
+    border-top-color:
+        var(--blue);
+
+    border-radius: 50%;
+
+    animation:
+        spin 0.8s linear infinite;
+}
+
+
+.video-loading span {
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
    PREVIEW STATUS
 ========================================================= */
 
@@ -1097,9 +1249,9 @@ main {
     position: absolute;
 
     left: 18px;
-    bottom: 15px;
+    bottom: 18px;
 
-    z-index: 5;
+    z-index: 12;
 
     padding:
         7px 10px;
@@ -1113,7 +1265,10 @@ main {
     color: var(--muted);
 
     background:
-        rgba(0,0,0,0.35);
+        rgba(0,0,0,0.42);
+
+    backdrop-filter:
+        blur(8px);
 
     font-size: 9px;
 
@@ -1131,15 +1286,24 @@ main {
 
 .modal-info {
     padding:
-        20px 25px 25px;
+        22px 26px 28px;
+}
+
+
+.modal-top-line {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 8px;
 }
 
 
 .modal-label {
-    display: block;
-
-    margin-bottom: 7px;
-
     color: var(--blue-light);
 
     font-size: 9px;
@@ -1150,22 +1314,206 @@ main {
 }
 
 
-.modal-info h2 {
-    margin-bottom: 12px;
+.modal-rarity {
+    display: none;
 
-    font-size:
-        clamp(22px, 4vw, 34px);
+    padding:
+        5px 9px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.1);
+
+    border-radius: 999px;
+
+    color: white;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    font-size: 8px;
 
     font-weight: 900;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
 }
 
 
-.modal-description {
-    margin-top: 12px;
+.modal-rarity.visible {
+    display: inline-flex;
+}
 
+
+/* Raretés */
+
+.modal-rarity[data-rarity*="legendary"] {
+    color: #ffb83d;
+    border-color: rgba(255,184,61,0.3);
+    background: rgba(255,184,61,0.08);
+}
+
+
+.modal-rarity[data-rarity*="epic"] {
+    color: #c084fc;
+    border-color: rgba(192,132,252,0.3);
+    background: rgba(192,132,252,0.08);
+}
+
+
+.modal-rarity[data-rarity*="rare"] {
+    color: #60a5fa;
+    border-color: rgba(96,165,250,0.3);
+    background: rgba(96,165,250,0.08);
+}
+
+
+.modal-rarity[data-rarity*="uncommon"] {
+    color: #6ee7b7;
+    border-color: rgba(110,231,183,0.3);
+    background: rgba(110,231,183,0.08);
+}
+
+
+.modal-rarity[data-rarity*="common"] {
+    color: #d1d5db;
+    border-color: rgba(209,213,219,0.2);
+    background: rgba(209,213,219,0.06);
+}
+
+
+.modal-info h2 {
+    margin-bottom: 13px;
+
+    font-size:
+        clamp(24px, 4vw, 36px);
+
+    line-height: 1.05;
+
+    font-weight: 900;
+
+    letter-spacing: -0.7px;
+}
+
+
+/* =========================================================
+   MODAL PRICE
+========================================================= */
+
+.modal-price {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    color: white;
+
+    font-size: 15px;
+}
+
+
+.modal-price strong {
+    font-size: 18px;
+}
+
+
+/* =========================================================
+   TAGS
+========================================================= */
+
+.modal-tags {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 16px;
+}
+
+
+.info-tag {
+    padding:
+        6px 9px;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius: 8px;
+
+    color: #cbd5e1;
+
+    background:
+        rgba(255,255,255,0.04);
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+}
+
+
+/* =========================================================
+   DESCRIPTION / INFO
+========================================================= */
+
+.modal-description,
+.modal-introduction,
+.modal-set {
+    display: none;
+
+    margin-top: 18px;
+
+    padding-top: 15px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,0.07);
+}
+
+
+.modal-description.visible,
+.modal-introduction.visible,
+.modal-set.visible {
+    display: block;
+}
+
+
+.info-title {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: var(--blue-light);
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+    letter-spacing: 1.5px;
+}
+
+
+.modal-description p,
+.modal-introduction p {
     color: var(--muted);
 
     font-size: 12px;
+
+    line-height: 1.6;
+}
+
+
+.modal-set strong {
+    color: var(--text);
+
+    font-size: 13px;
 }
 
 
@@ -1365,23 +1713,35 @@ footer p {
 
 
     .item-modal {
-        padding: 12px;
+        padding: 10px;
     }
 
 
     .modal-content {
+        width: 100%;
+
+        max-height: 95vh;
+
         border-radius: 20px;
     }
 
 
     .modal-media {
-        height: 55vh;
+        height: 52vh;
+
+        min-height: 300px;
+    }
+
+
+    .modal-video,
+    .modal-image {
+        padding: 12px;
     }
 
 
     .modal-info {
         padding:
-            16px 18px 20px;
+            17px 18px 22px;
     }
 
 
@@ -1391,6 +1751,66 @@ footer p {
 
         width: 38px;
         height: 38px;
+    }
+
+
+    .media-button {
+        width: 38px;
+        height: 38px;
+
+        border-radius: 10px;
+    }
+
+
+    .video-overlay {
+        right: 12px;
+        bottom: 12px;
+    }
+
+
+    .preview-status {
+        left: 12px;
+        bottom: 12px;
+    }
+
+
+    .modal-top-line {
+        align-items: flex-start;
+    }
+
+
+    .modal-rarity {
+        max-width: 120px;
+
+        text-align: center;
+    }
+
+}
+
+
+/* =========================================================
+   TRÈS PETITS ÉCRANS
+========================================================= */
+
+@media (max-width: 390px) {
+
+    #shop {
+        gap: 8px;
+    }
+
+
+    .card > img {
+        height: 155px;
+    }
+
+
+    .card-info h2 {
+        font-size: 11px;
+    }
+
+
+    .modal-media {
+        height: 47vh;
     }
 
 }
