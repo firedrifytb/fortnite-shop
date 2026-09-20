@@ -72,15 +72,14 @@ let hasVideo = false;
 
 let currentVideoUrl = null;
 
-let touchStartX = 0;
-
-let touchStartY = 0;
-
-let touchCurrentX = 0;
+// Swipe / pointer
+let pointerStartX = 0;
+let pointerStartY = 0;
+let pointerCurrentX = 0;
 
 let isDragging = false;
-
-let swipeCancelled = false;
+let swipeDirectionLocked = false;
+let activePointerId = null;
 
 // =========================================================
 // DATE
@@ -225,16 +224,91 @@ function extractShopItem(entry) {
         return null;
     }
 
-    let item =
-        entry.brItems?.[0] ||
-        entry.items?.[0] ||
-        entry.brItems ||
-        entry.items ||
-        null;
+    /*
+     * IMPORTANT :
+     * Certains objets de la boutique sont dans brItems,
+     * mais les musiques peuvent être dans "tracks".
+     */
 
-    if (Array.isArray(item)) {
-        item = item[0];
+    let item = null;
+
+    let itemCategory = "";
+
+    if (
+        Array.isArray(entry.brItems) &&
+        entry.brItems.length > 0
+    ) {
+
+        item =
+            entry.brItems[0];
+
+        itemCategory =
+            "br";
+
+    } else if (
+        Array.isArray(entry.items) &&
+        entry.items.length > 0
+    ) {
+
+        item =
+            entry.items[0];
+
+        itemCategory =
+            "item";
+
+    } else if (
+        Array.isArray(entry.tracks) &&
+        entry.tracks.length > 0
+    ) {
+
+        item =
+            entry.tracks[0];
+
+        itemCategory =
+            "track";
+
+    } else if (
+        Array.isArray(entry.instruments) &&
+        entry.instruments.length > 0
+    ) {
+
+        item =
+            entry.instruments[0];
+
+        itemCategory =
+            "instrument";
+
+    } else if (
+        entry.brItems &&
+        typeof entry.brItems === "object"
+    ) {
+
+        item =
+            entry.brItems;
+
+        itemCategory =
+            "br";
+
+    } else if (
+        entry.items &&
+        typeof entry.items === "object"
+    ) {
+
+        item =
+            entry.items;
+
+        itemCategory =
+            "item";
+
+    } else {
+
+        item =
+            null;
     }
+
+    // =====================================================
+    // ID
+    // =====================================================
 
     const id =
         item?.id ||
@@ -242,14 +316,24 @@ function extractShopItem(entry) {
         entry?.offerId ||
         null;
 
+    // =====================================================
+    // NOM
+    // =====================================================
+
     const name =
         item?.name ||
+        item?.title ||
         entry?.displayName ||
         entry?.name ||
         "Objet Fortnite";
 
+    // =====================================================
+    // DESCRIPTION
+    // =====================================================
+
     const description =
         item?.description ||
+        entry?.description ||
         "";
 
     // =====================================================
@@ -262,9 +346,12 @@ function extractShopItem(entry) {
         item?.images?.smallIcon ||
         item?.images?.full_background ||
         item?.images?.background ||
+        item?.albumArt ||
+        item?.albumArtUrl ||
         entry?.newDisplayAsset?.renderImages?.[0]?.image ||
         entry?.bundle?.image ||
         entry?.tracks?.[0]?.albumArt ||
+        entry?.tracks?.[0]?.images?.icon ||
         null;
 
     // =====================================================
@@ -285,25 +372,56 @@ function extractShopItem(entry) {
     const rarity =
         item?.rarity?.displayValue ||
         item?.rarity?.value ||
+        entry?.rarity?.displayValue ||
+        entry?.rarity?.value ||
         "";
 
     // =====================================================
     // TYPE
     // =====================================================
 
-    const rawType =
-        item?.type?.displayValue ||
-        item?.type?.value ||
-        entry?.type?.displayValue ||
-        entry?.type?.value ||
-        "";
+    let type = "";
 
-    const type =
-        normalizeItemType(
-            rawType,
-            item,
-            entry
-        );
+    /*
+     * Une entrée contenant "tracks" est une musique.
+     * On le traite AVANT item.type pour éviter
+     * "Objet Fortnite".
+     */
+
+    if (
+        itemCategory === "track" ||
+        (
+            Array.isArray(entry.tracks) &&
+            entry.tracks.length > 0
+        )
+    ) {
+
+        type =
+            "Musique";
+
+    } else if (
+        itemCategory === "instrument"
+    ) {
+
+        type =
+            "Instrument";
+
+    } else {
+
+        const rawType =
+            item?.type?.displayValue ||
+            item?.type?.value ||
+            item?.displayType ||
+            entry?.type?.displayValue ||
+            entry?.type?.value ||
+            entry?.displayType ||
+            "";
+
+        type =
+            normalizeItemType(
+                rawType
+            );
+    }
 
     // =====================================================
     // SÉRIE
@@ -324,7 +442,8 @@ function extractShopItem(entry) {
         type,
         series,
         raw: entry,
-        cosmetic: item
+        cosmetic: item,
+        category: itemCategory
     };
 }
 
@@ -332,35 +451,26 @@ function extractShopItem(entry) {
 // NORMALISER LE TYPE
 // =========================================================
 
-function normalizeItemType(
-    rawType,
-    item,
-    entry
-) {
+function normalizeItemType(rawType) {
+
+    if (!rawType) {
+        return "";
+    }
 
     const value =
-        String(rawType || "")
+        String(rawType)
             .trim()
             .toLowerCase();
-
-    // -----------------------------------------------------
-    // MUSIQUE
-    // -----------------------------------------------------
 
     if (
         value.includes("music") ||
         value.includes("musique") ||
         value.includes("jam track") ||
-        value.includes("piste musicale") ||
-        item?.type?.value === "music"
+        value.includes("track")
     ) {
 
         return "Musique";
     }
-
-    // -----------------------------------------------------
-    // TENUE
-    // -----------------------------------------------------
 
     if (
         value === "outfit" ||
@@ -370,21 +480,14 @@ function normalizeItemType(
         return "Tenue";
     }
 
-    // -----------------------------------------------------
-    // PIoche
-    // -----------------------------------------------------
-
     if (
         value === "pickaxe" ||
-        value.includes("pioche")
+        value.includes("pioche") ||
+        value.includes("harvesting tool")
     ) {
 
         return "Pioche";
     }
-
-    // -----------------------------------------------------
-    // PLANEUR
-    // -----------------------------------------------------
 
     if (
         value === "glider" ||
@@ -393,10 +496,6 @@ function normalizeItemType(
 
         return "Planeur";
     }
-
-    // -----------------------------------------------------
-    // EMOTE
-    // -----------------------------------------------------
 
     if (
         value === "emote" ||
@@ -407,22 +506,14 @@ function normalizeItemType(
         return "Emote";
     }
 
-    // -----------------------------------------------------
-    // REVÊTEMENT
-    // -----------------------------------------------------
-
     if (
         value === "wrap" ||
-        value.includes("revêtement") ||
+        value.includes("wrap") ||
         value.includes("revêtement")
     ) {
 
         return "Revêtement";
     }
-
-    // -----------------------------------------------------
-    // DOS
-    // -----------------------------------------------------
 
     if (
         value === "backpack" ||
@@ -433,10 +524,6 @@ function normalizeItemType(
         return "Dos";
     }
 
-    // -----------------------------------------------------
-    // AÉROSPRAY / GRAFFITI
-    // -----------------------------------------------------
-
     if (
         value.includes("spray") ||
         value.includes("graffiti")
@@ -444,10 +531,6 @@ function normalizeItemType(
 
         return "Aérosol";
     }
-
-    // -----------------------------------------------------
-    // ÉCRAN DE CHARGEMENT
-    // -----------------------------------------------------
 
     if (
         value.includes("loading screen") ||
@@ -457,10 +540,6 @@ function normalizeItemType(
         return "Écran de chargement";
     }
 
-    // -----------------------------------------------------
-    // BANNIÈRE
-    // -----------------------------------------------------
-
     if (
         value.includes("banner") ||
         value.includes("bannière")
@@ -469,30 +548,7 @@ function normalizeItemType(
         return "Bannière";
     }
 
-    // -----------------------------------------------------
-    // OUTIL DE COLLECTE
-    // -----------------------------------------------------
-
-    if (
-        value.includes("harvesting tool")
-    ) {
-
-        return "Pioche";
-    }
-
-    // -----------------------------------------------------
-    // SI LE TYPE EST DÉJÀ CORRECT
-    // -----------------------------------------------------
-
-    if (rawType) {
-        return rawType;
-    }
-
-    // -----------------------------------------------------
-    // FALLBACK
-    // -----------------------------------------------------
-
-    return "";
+    return rawType;
 }
 
 // =========================================================
@@ -535,8 +591,12 @@ function createCard(item, index) {
 
         image.onerror = () => {
 
-            image.remove();
+            console.warn(
+                "Image impossible à charger :",
+                item.image
+            );
 
+            image.remove();
         };
 
         imageContainer.appendChild(
@@ -658,8 +718,11 @@ async function openModal(item) {
     isDragging =
         false;
 
-    swipeCancelled =
+    swipeDirectionLocked =
         false;
+
+    activePointerId =
+        null;
 
     document.body.classList.add(
         "modal-open"
@@ -718,6 +781,22 @@ async function openModal(item) {
     );
 
     if (!item.id) {
+        return;
+    }
+
+    /*
+     * Les musiques / tracks ne sont pas forcément
+     * récupérables via l'endpoint BR.
+     *
+     * On ne cherche donc la vidéo que pour
+     * les cosmétiques BR classiques.
+     */
+
+    if (
+        item.category === "track" ||
+        item.category === "instrument"
+    ) {
+
         return;
     }
 
@@ -823,6 +902,9 @@ function closeModal() {
 
     isDragging =
         false;
+
+    activePointerId =
+        null;
 }
 
 // =========================================================
@@ -1031,7 +1113,7 @@ function loadDirectVideo(url) {
 }
 
 // =========================================================
-// FALLBACK
+// FALLBACK VIDÉO
 // =========================================================
 
 function showVideoFallback() {
@@ -1200,7 +1282,7 @@ function updateSlide(
 }
 
 // =========================================================
-// PLAY
+// PLAY VIDÉO
 // =========================================================
 
 function playCurrentVideo() {
@@ -1233,7 +1315,7 @@ function playCurrentVideo() {
 }
 
 // =========================================================
-// PAUSE
+// PAUSE VIDÉO
 // =========================================================
 
 function pauseCurrentVideo() {
@@ -1242,10 +1324,10 @@ function pauseCurrentVideo() {
 }
 
 // =========================================================
-// TOUCH START
+// POINTER DOWN
 // =========================================================
 
-function handleTouchStart(event) {
+function handlePointerDown(event) {
 
     if (
         !modal.classList.contains("open") ||
@@ -1254,120 +1336,160 @@ function handleTouchStart(event) {
         return;
     }
 
-    if (!event.touches.length) {
+    /*
+     * On ne déclenche le swipe qu'avec
+     * le doigt / stylet.
+     */
+
+    if (
+        event.pointerType === "mouse"
+    ) {
         return;
     }
 
-    const touch =
-        event.touches[0];
+    activePointerId =
+        event.pointerId;
 
-    touchStartX =
-        touch.clientX;
+    pointerStartX =
+        event.clientX;
 
-    touchStartY =
-        touch.clientY;
+    pointerStartY =
+        event.clientY;
 
-    touchCurrentX =
-        touchStartX;
+    pointerCurrentX =
+        event.clientX;
 
     isDragging =
         true;
 
-    swipeCancelled =
+    swipeDirectionLocked =
         false;
 
     previewTrack.style.transition =
         "none";
+
+    try {
+
+        modalMedia.setPointerCapture(
+            event.pointerId
+        );
+
+    } catch {
+        // Rien
+    }
 }
 
 // =========================================================
-// TOUCH MOVE
+// POINTER MOVE
 // =========================================================
 
-function handleTouchMove(event) {
+function handlePointerMove(event) {
 
     if (
         !isDragging ||
-        swipeCancelled
+        event.pointerId !== activePointerId
     ) {
         return;
     }
 
-    if (!event.touches.length) {
-        return;
-    }
-
-    const touch =
-        event.touches[0];
-
-    touchCurrentX =
-        touch.clientX;
+    pointerCurrentX =
+        event.clientX;
 
     const deltaX =
-        touchCurrentX -
-        touchStartX;
+        pointerCurrentX -
+        pointerStartX;
 
     const deltaY =
-        touch.clientY -
-        touchStartY;
+        event.clientY -
+        pointerStartY;
 
-    // -----------------------------------------------------
-    // Si le geste est vertical, on laisse le scroll naturel
-    // -----------------------------------------------------
+    /*
+     * On attend quelques pixels avant
+     * de décider si le geste est horizontal.
+     */
 
     if (
-        Math.abs(deltaY) >
-        Math.abs(deltaX)
+        !swipeDirectionLocked
     ) {
 
-        isDragging =
-            false;
+        if (
+            Math.abs(deltaX) < 8 &&
+            Math.abs(deltaY) < 8
+        ) {
+            return;
+        }
 
-        swipeCancelled =
+        if (
+            Math.abs(deltaY) >
+            Math.abs(deltaX)
+        ) {
+
+            swipeDirectionLocked =
+                true;
+
+            isDragging =
+                false;
+
+            previewTrack.style.transition =
+                "transform 0.25s ease";
+
+            previewTrack.style.transform =
+                `translate3d(-${currentSlide * 50}%, 0, 0)`;
+
+            return;
+        }
+
+        swipeDirectionLocked =
             true;
-
-        updateSlide(
-            currentSlide,
-            true
-        );
-
-        return;
     }
+
+    /*
+     * Le geste est horizontal.
+     */
 
     event.preventDefault();
 
     const width =
         modalMedia.clientWidth;
 
-    if (!width) {
+    if (
+        width <= 0
+    ) {
         return;
     }
 
-    // Une largeur d'écran = 50% du track
-    const movement =
+    /*
+     * Une slide = 50% du track.
+     */
+
+    const movementPercent =
         (deltaX / width) * 50;
 
     const basePosition =
         currentSlide * 50;
 
     let position =
-        basePosition - movement;
+        basePosition - movementPercent;
 
-    // -----------------------------------------------------
-    // Résistance aux extrémités
-    // -----------------------------------------------------
+    /*
+     * Résistance aux extrémités.
+     */
 
-    if (position < 0) {
+    if (
+        position < 0
+    ) {
 
         position =
-            position * 0.20;
+            position * 0.18;
     }
 
-    if (position > 50) {
+    if (
+        position > 50
+    ) {
 
         position =
             50 +
-            (position - 50) * 0.20;
+            (position - 50) * 0.18;
     }
 
     previewTrack.style.transform =
@@ -1375,75 +1497,69 @@ function handleTouchMove(event) {
 }
 
 // =========================================================
-// TOUCH END
+// POINTER UP
 // =========================================================
 
-function handleTouchEnd() {
+function handlePointerUp(event) {
 
     if (
         !isDragging ||
-        swipeCancelled
+        event.pointerId !== activePointerId
     ) {
-
-        isDragging =
-            false;
-
         return;
     }
+
+    const deltaX =
+        pointerCurrentX -
+        pointerStartX;
+
+    const width =
+        modalMedia.clientWidth;
+
+    const threshold =
+        Math.max(
+            45,
+            width * 0.15
+        );
 
     isDragging =
         false;
 
-    const deltaX =
-        touchCurrentX -
-        touchStartX;
+    activePointerId =
+        null;
 
-    const deltaY =
-        Math.abs(
-            touchCurrentX -
-            touchStartX
-        );
-
-    const threshold =
-        Math.max(
-            50,
-            modalMedia.clientWidth * 0.15
-        );
-
-    // -----------------------------------------------------
-    // SWIPE VERS LA GAUCHE
-    // -----------------------------------------------------
+    /*
+     * Swipe gauche = vidéo -> image
+     */
 
     if (
-        deltaX < -threshold
+        deltaX < -threshold &&
+        currentSlide === 0
     ) {
 
-        goToSlide(
-            currentSlide + 1
-        );
+        goToSlide(1);
 
         return;
     }
 
-    // -----------------------------------------------------
-    // SWIPE VERS LA DROITE
-    // -----------------------------------------------------
+    /*
+     * Swipe droite = image -> vidéo
+     */
 
     if (
-        deltaX > threshold
+        deltaX > threshold &&
+        currentSlide === 1
     ) {
 
-        goToSlide(
-            currentSlide - 1
-        );
+        goToSlide(0);
 
         return;
     }
 
-    // -----------------------------------------------------
-    // PAS ASSEZ LOIN :
-    // RETOUR À LA SLIDE ACTUELLE
-    // -----------------------------------------------------
+    /*
+     * Pas assez de déplacement :
+     * retour propre à la slide actuelle.
+     */
 
     updateSlide(
         currentSlide,
@@ -1452,16 +1568,22 @@ function handleTouchEnd() {
 }
 
 // =========================================================
-// TOUCH CANCEL
+// POINTER CANCEL
 // =========================================================
 
-function handleTouchCancel() {
+function handlePointerCancel(event) {
+
+    if (
+        event.pointerId !== activePointerId
+    ) {
+        return;
+    }
 
     isDragging =
         false;
 
-    swipeCancelled =
-        false;
+    activePointerId =
+        null;
 
     updateSlide(
         currentSlide,
@@ -1518,45 +1640,56 @@ modalClose.addEventListener(
     closeModal
 );
 
-document
-    .querySelector(".modal-backdrop")
-    .addEventListener(
+const modalBackdrop =
+    document.querySelector(
+        ".modal-backdrop"
+    );
+
+if (modalBackdrop) {
+
+    modalBackdrop.addEventListener(
         "click",
         closeModal
     );
+}
 
 document.addEventListener(
     "keydown",
     handleKeyDown
 );
 
+/*
+ * Nouveau système de swipe :
+ * Pointer Events.
+ */
+
 modalMedia.addEventListener(
-    "touchstart",
-    handleTouchStart,
+    "pointerdown",
+    handlePointerDown,
     {
         passive: true
     }
 );
 
 modalMedia.addEventListener(
-    "touchmove",
-    handleTouchMove,
+    "pointermove",
+    handlePointerMove,
     {
         passive: false
     }
 );
 
 modalMedia.addEventListener(
-    "touchend",
-    handleTouchEnd,
+    "pointerup",
+    handlePointerUp,
     {
         passive: true
     }
 );
 
 modalMedia.addEventListener(
-    "touchcancel",
-    handleTouchCancel,
+    "pointercancel",
+    handlePointerCancel,
     {
         passive: true
     }
@@ -1578,6 +1711,10 @@ modalVideo.addEventListener(
         }
     }
 );
+
+// =========================================================
+// VIDÉO CHARGÉE
+// =========================================================
 
 modalVideo.addEventListener(
     "loadeddata",
