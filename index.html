@@ -107,6 +107,10 @@
 
     </main>
 
+    <!-- =====================================================
+         MODALE
+         ===================================================== -->
+
     <div
         id="item-modal"
         class="item-modal"
@@ -131,17 +135,44 @@
                 ×
             </button>
 
+            <!-- =================================================
+                 MEDIA
+                 ================================================= -->
+
             <div
-                class="modal-media"
                 id="modal-media"
+                class="modal-media"
             >
 
                 <div
-                    class="preview-track"
                     id="preview-track"
+                    class="preview-track"
                 >
 
-                    <div class="preview-slide preview-video-slide">
+                    <!-- =============================================
+                         SLIDE 1 : IMAGE
+                         ============================================= -->
+
+                    <div
+                        class="preview-slide preview-image-slide"
+                    >
+
+                        <img
+                            id="modal-image"
+                            class="modal-image"
+                            src=""
+                            alt=""
+                        >
+
+                    </div>
+
+                    <!-- =============================================
+                         SLIDE 2 : VIDÉO
+                         ============================================= -->
+
+                    <div
+                        class="preview-slide preview-video-slide"
+                    >
 
                         <video
                             id="modal-video"
@@ -157,6 +188,7 @@
                             id="video-fallback"
                             class="video-fallback"
                         >
+
                             <div class="fallback-icon">
                                 ◌
                             </div>
@@ -164,18 +196,8 @@
                             <span>
                                 Aperçu vidéo indisponible
                             </span>
+
                         </div>
-
-                    </div>
-
-                    <div class="preview-slide preview-image-slide">
-
-                        <img
-                            id="modal-image"
-                            class="modal-image"
-                            src=""
-                            alt=""
-                        >
 
                     </div>
 
@@ -187,7 +209,7 @@
                     id="preview-status"
                     class="preview-status"
                 >
-                    APERÇU ANIMÉ
+                    IMAGE
                 </div>
 
                 <div
@@ -196,6 +218,10 @@
                 ></div>
 
             </div>
+
+            <!-- =================================================
+                 INFORMATIONS
+                 ================================================= -->
 
             <div class="modal-info">
 
