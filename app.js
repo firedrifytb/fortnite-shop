@@ -13,128 +13,293 @@ function displayDate() {
 
     const today = new Date();
 
-    dateElement.textContent = today.toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    });
+    dateElement.textContent =
+        today.toLocaleDateString("fr-FR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
 
 }
 
 
 // =========================================================
-// OUVRIR LE MODAL
+// MODAL
+// =========================================================
+
+const itemModal =
+    document.getElementById("item-modal");
+
+const modalClose =
+    document.getElementById("modal-close");
+
+const modalBackdrop =
+    document.querySelector(".modal-backdrop");
+
+const modalImage =
+    document.getElementById("modal-image");
+
+const modalVideo =
+    document.getElementById("modal-video");
+
+const modalName =
+    document.getElementById("modal-name");
+
+const modalPrice =
+    document.getElementById("modal-price");
+
+const previewStatus =
+    document.getElementById("preview-status");
+
+
+// =========================================================
+// OUVRIR OBJET
 // =========================================================
 
 function openItemModal(item, price) {
 
-    const modal = document.getElementById("item-modal");
-    const modalImage = document.getElementById("modal-image");
-    const modalName = document.getElementById("modal-name");
-    const modalPrice = document.getElementById("modal-price");
+    if (!itemModal) return;
 
-    if (!modal || !modalImage || !modalName || !modalPrice) {
-        console.error("Modal introuvable.");
-        return;
-    }
 
     const image =
         item.images?.featured ||
         item.images?.icon;
 
+
     if (!image) return;
 
+
+    // Image
     modalImage.src = image;
-    modalImage.alt = item.name;
 
-    modalName.textContent = item.name;
+    modalImage.alt =
+        item.name;
 
+
+    // Nom
+    modalName.textContent =
+        item.name;
+
+
+    // Prix
     modalPrice.innerHTML = `
         <img
             class="vbucks-icon"
             src="https://firedrifytb.github.io/fortnite-shop/IMG_2258.png"
             alt="V-Bucks"
         >
+
         <span>${price}</span>
+
         <span>V-Bucks</span>
     `;
 
-    modal.classList.add("active");
-    modal.setAttribute("aria-hidden", "false");
 
-    document.body.classList.add("modal-open");
+    // =====================================================
+    // RECHERCHE DE VIDÉO
+    // =====================================================
+
+    let videoUrl = null;
+
+
+    /*
+        Fortnite-API peut fournir différentes
+        propriétés selon le cosmétique.
+
+        On teste plusieurs formats possibles
+        sans empêcher le fonctionnement
+        du shop si aucune vidéo n'existe.
+    */
+
+    if (item.showcaseVideoUrl) {
+
+        videoUrl =
+            item.showcaseVideoUrl;
+
+    }
+
+    else if (
+        item.showcaseVideo?.url
+    ) {
+
+        videoUrl =
+            item.showcaseVideo.url;
+
+    }
+
+    else if (
+        item.videos?.showcase
+    ) {
+
+        videoUrl =
+            item.videos.showcase;
+
+    }
+
+
+    // =====================================================
+    // VIDÉO DISPONIBLE
+    // =====================================================
+
+    if (videoUrl) {
+
+        modalVideo.src =
+            videoUrl;
+
+
+        modalVideo.classList.add(
+            "visible"
+        );
+
+
+        modalImage.classList.add(
+            "hidden"
+        );
+
+
+        previewStatus.textContent =
+            "APERÇU ANIMÉ";
+
+
+        modalVideo
+            .play()
+            .catch(() => {});
+
+    }
+
+
+    // =====================================================
+    // PAS DE VIDÉO
+    // =====================================================
+
+    else {
+
+        modalVideo.pause();
+
+        modalVideo.removeAttribute(
+            "src"
+        );
+
+        modalVideo.load();
+
+
+        modalVideo.classList.remove(
+            "visible"
+        );
+
+
+        modalImage.classList.remove(
+            "hidden"
+        );
+
+
+        previewStatus.textContent =
+            "APERÇU DE L'OBJET";
+
+    }
+
+
+    // =====================================================
+    // AFFICHAGE
+    // =====================================================
+
+    itemModal.classList.add(
+        "active"
+    );
+
+
+    itemModal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
 }
 
 
 // =========================================================
-// FERMER LE MODAL
+// FERMER
 // =========================================================
 
 function closeItemModal() {
 
-    const modal = document.getElementById("item-modal");
+    if (!itemModal) return;
 
-    if (!modal) return;
 
-    modal.classList.remove("active");
-    modal.setAttribute("aria-hidden", "true");
+    itemModal.classList.remove(
+        "active"
+    );
 
-    document.body.classList.remove("modal-open");
+
+    itemModal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
+
+    if (modalVideo) {
+
+        modalVideo.pause();
+
+        modalVideo.removeAttribute(
+            "src"
+        );
+
+        modalVideo.load();
+
+    }
+
 }
 
 
 // =========================================================
-// INITIALISATION DU MODAL
+// EVENTS MODAL
 // =========================================================
 
-function setupModal() {
+if (modalClose) {
 
-    const modal = document.getElementById("item-modal");
+    modalClose.addEventListener(
+        "click",
+        closeItemModal
+    );
 
-    if (!modal) {
-        console.warn("Modal non trouvable.");
-        return;
-    }
-
-    const closeButton =
-        document.getElementById("modal-close");
-
-    const backdrop =
-        modal.querySelector(".modal-backdrop");
+}
 
 
-    if (closeButton) {
+if (modalBackdrop) {
 
-        closeButton.addEventListener(
-            "click",
-            closeItemModal
-        );
+    modalBackdrop.addEventListener(
+        "click",
+        closeItemModal
+    );
 
-    }
-
-
-    if (backdrop) {
-
-        backdrop.addEventListener(
-            "click",
-            closeItemModal
-        );
-
-    }
+}
 
 
-    document.addEventListener("keydown", (event) => {
+document.addEventListener(
+    "keydown",
+    (event) => {
 
-        if (event.key === "Escape") {
+        if (
+            event.key === "Escape"
+        ) {
 
             closeItemModal();
 
         }
 
-    });
-
-}
+    }
+);
 
 
 // =========================================================
@@ -145,20 +310,24 @@ async function loadShop() {
 
     status.innerHTML = `
         <div class="loading-container">
+
             <div class="loading-spinner"></div>
-            <span>Chargement de la boutique...</span>
+
+            <span>
+                Chargement de la boutique...
+            </span>
+
         </div>
     `;
+
 
     shopContainer.innerHTML = "";
 
 
     try {
 
-        console.log("Chargement de la boutique...");
-
-
-        const response = await fetch(API_URL);
+        const response =
+            await fetch(API_URL);
 
 
         if (!response.ok) {
@@ -170,10 +339,8 @@ async function loadShop() {
         }
 
 
-        const result = await response.json();
-
-
-        console.log("Boutique reçue :", result);
+        const result =
+            await response.json();
 
 
         const entries =
@@ -184,121 +351,109 @@ async function loadShop() {
             new Set();
 
 
-        entries.forEach((entry, index) => {
+        entries.forEach(
+            (entry, index) => {
 
-            const item =
-                entry.brItems?.[0];
-
-
-            if (!item) return;
+                const item =
+                    entry.brItems?.[0];
 
 
-            const name =
-                item.name;
+                if (!item) return;
 
 
-            if (displayedItems.has(name)) {
-                return;
-            }
+                const name =
+                    item.name;
 
 
-            displayedItems.add(name);
+                if (
+                    displayedItems.has(
+                        name
+                    )
+                ) {
+
+                    return;
+
+                }
 
 
-            const image =
-                item.images?.featured ||
-                item.images?.icon;
+                displayedItems.add(
+                    name
+                );
 
 
-            if (!image) return;
+                const image =
+                    item.images?.featured ||
+                    item.images?.icon;
 
 
-            const price =
-                entry.finalPrice ?? "?";
+                if (!image) return;
 
 
-            // =================================================
-            // CARD
-            // =================================================
-
-            const card =
-                document.createElement("div");
+                const price =
+                    entry.finalPrice ?? "?";
 
 
-            card.className =
-                "card";
+                // =================================================
+                // CARD
+                // =================================================
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
 
 
-            card.style.animationDelay =
-                `${Math.min(index * 0.045, 0.8)}s`;
+                card.className =
+                    "card";
 
 
-            card.innerHTML = `
-                <img
-                    src="${image}"
-                    alt="${name}"
-                    loading="lazy"
-                >
+                card.style.animationDelay =
+                    `${Math.min(
+                        index * 0.045,
+                        0.8
+                    )}s`;
 
-                <div class="card-info">
 
-                    <h2>${name}</h2>
+                card.innerHTML = `
 
-                    <div class="price">
+                    <img
+                        src="${image}"
+                        alt="${name}"
+                        loading="lazy"
+                    >
 
-                        <img
-                            class="vbucks-icon"
-                            src="https://firedrifytb.github.io/fortnite-shop/IMG_2258.png"
-                            alt="V-Bucks"
-                        >
+                    <div class="card-info">
 
-                        <span>${price}</span>
+                        <h2>
+                            ${name}
+                        </h2>
+
+                        <div class="price">
+
+                            <img
+                                class="vbucks-icon"
+                                src="https://firedrifytb.github.io/fortnite-shop/IMG_2258.png"
+                                alt="V-Bucks"
+                            >
+
+                            <span>
+                                ${price}
+                            </span>
+
+                        </div>
 
                     </div>
 
-                </div>
-            `;
+                `;
 
 
-            // =================================================
-            // CLIC SUR LA CARTE
-            // =================================================
+                // =================================================
+                // CLICK
+                // =================================================
 
-            card.addEventListener("click", () => {
-
-                openItemModal(
-                    item,
-                    price
-                );
-
-            });
-
-
-            // =================================================
-            // CLAVIER
-            // =================================================
-
-            card.setAttribute(
-                "tabindex",
-                "0"
-            );
-
-            card.setAttribute(
-                "role",
-                "button"
-            );
-
-
-            card.addEventListener(
-                "keydown",
-                (event) => {
-
-                    if (
-                        event.key === "Enter" ||
-                        event.key === " "
-                    ) {
-
-                        event.preventDefault();
+                card.addEventListener(
+                    "click",
+                    () => {
 
                         openItemModal(
                             item,
@@ -306,14 +461,56 @@ async function loadShop() {
                         );
 
                     }
-
-                }
-            );
+                );
 
 
-            shopContainer.appendChild(card);
+                // =================================================
+                // CLAVIER
+                // =================================================
 
-        });
+                card.setAttribute(
+                    "tabindex",
+                    "0"
+                );
+
+
+                card.setAttribute(
+                    "role",
+                    "button"
+                );
+
+
+                card.addEventListener(
+                    "keydown",
+                    (event) => {
+
+                        if (
+                            event.key ===
+                                "Enter" ||
+
+                            event.key ===
+                                " "
+                        ) {
+
+                            event.preventDefault();
+
+                            openItemModal(
+                                item,
+                                price
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                shopContainer.appendChild(
+                    card
+                );
+
+            }
+        );
 
 
         // =====================================================
@@ -327,14 +524,19 @@ async function loadShop() {
             status.textContent =
                 "Aucun objet trouvé.";
 
-        } else {
+        }
 
-            status.textContent = "";
+        else {
+
+            status.textContent =
+                "";
 
         }
 
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         console.error(
             "Erreur boutique :",
@@ -356,8 +558,6 @@ async function loadShop() {
 
 displayDate();
 
-setupModal();
-
 loadShop();
 
 
@@ -365,30 +565,37 @@ loadShop();
 // SERVICE WORKER
 // =========================================================
 
-if ("serviceWorker" in navigator) {
+if (
+    "serviceWorker" in navigator
+) {
 
-    window.addEventListener("load", () => {
+    window.addEventListener(
+        "load",
+        () => {
 
-        navigator.serviceWorker
-            .register("./sw.js")
+            navigator.serviceWorker
+                .register("./sw.js")
 
-            .then(() => {
+                .then(() => {
 
-                console.log(
-                    "Service worker activé"
+                    console.log(
+                        "Service worker activé"
+                    );
+
+                })
+
+                .catch(
+                    error => {
+
+                        console.error(
+                            "Service worker :",
+                            error
+                        );
+
+                    }
                 );
 
-            })
-
-            .catch(error => {
-
-                console.error(
-                    "Service worker :",
-                    error
-                );
-
-            });
-
-    });
+        }
+    );
 
 }
