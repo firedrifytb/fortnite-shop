@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,6 +103,64 @@
 
     </main>
 
+
+    <!-- =====================================================
+         FENÊTRE DE DÉTAIL DE L'OBJET
+    ====================================================== -->
+
+    <div
+        id="item-modal"
+        class="item-modal"
+        aria-hidden="true"
+    >
+
+        <div class="modal-backdrop"></div>
+
+        <div
+            class="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-name"
+        >
+
+            <button
+                id="modal-close"
+                class="modal-close"
+                aria-label="Fermer"
+            >
+                ×
+            </button>
+
+            <div class="modal-image-container">
+
+                <img
+                    id="modal-image"
+                    src=""
+                    alt=""
+                >
+
+            </div>
+
+            <div class="modal-info">
+
+                <span class="modal-label">
+                    OBJET FORTNITE
+                </span>
+
+                <h2 id="modal-name"></h2>
+
+                <div
+                    id="modal-price"
+                    class="price"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
     <footer>
 
         <div class="footer-logo">
@@ -119,4 +178,5 @@
     <script src="app.js"></script>
 
 </body>
+
 </html>
