@@ -69,6 +69,7 @@
         </div>
     </header>
 
+
     <main>
 
         <section class="shop-heading">
@@ -90,6 +91,7 @@
 
         </section>
 
+
         <div id="status">
 
             <div class="loading-container">
@@ -101,6 +103,7 @@
             </div>
 
         </div>
+
 
         <section id="shop"></section>
 
@@ -136,7 +139,7 @@
 
 
             <!-- =========================
-                 APERÇU
+                 APERÇU PLEIN ÉCRAN
             ========================== -->
 
             <div
@@ -153,18 +156,31 @@
 
                     <div class="preview-slide preview-video-slide">
 
+                        <video
+                            id="modal-video"
+                            class="modal-video"
+                            muted
+                            autoplay
+                            loop
+                            playsinline
+                            preload="metadata"
+                        ></video>
+
                         <iframe
                             id="modal-youtube"
                             class="modal-youtube"
                             title="Aperçu vidéo de l'objet"
-                            allow="
-                                autoplay;
-                                encrypted-media;
-                                picture-in-picture;
-                                fullscreen
-                            "
+                            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                             allowfullscreen
                         ></iframe>
+
+                        <div
+                            id="video-fallback"
+                            class="video-fallback"
+                        >
+                            <div class="fallback-icon">◌</div>
+                            <span>Aperçu vidéo indisponible</span>
+                        </div>
 
                     </div>
 
@@ -183,6 +199,11 @@
                     </div>
 
                 </div>
+
+
+                <!-- GRADIENT POUR LA LISIBILITÉ -->
+
+                <div class="modal-gradient"></div>
 
 
                 <!-- LABEL -->
