@@ -1,18 +1,24 @@
 const EPIC_REDIRECT_URI =
     "https://fortnite-shop.firedrifytb.workers.dev/callback";
 
+const SITE_URL =
+    "https://fortnite-shop.fr";
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
+        // Connexion Epic Games
         if (url.pathname === "/login") {
             return handleLogin(env);
         }
 
+        // Retour d'Epic Games
         if (url.pathname === "/callback") {
             return handleCallback(request, env);
         }
 
+        // Toutes les autres pages = site Fortnite Shop
         return env.ASSETS.fetch(request);
     }
 };
@@ -49,17 +55,16 @@ async function handleLogin(env) {
         await sha256Base64Url(codeVerifier);
 
     /*
-     * Un seul cookie contient les deux valeurs.
-     * Format :
-     * state.verifier
+     * On stocke le state et le verifier
+     * dans un seul cookie.
      */
     const oauthData =
         `${state}.${codeVerifier}`;
 
-    // Encodage sûr pour un cookie
     const oauthCookie =
         base64UrlEncode(oauthData);
 
+    // URL d'autorisation Epic
     const authorizeUrl =
         new URL(
             "https://www.epicgames.com/id/authorize"
@@ -100,19 +105,14 @@ async function handleLogin(env) {
         "S256"
     );
 
-    const headers = new Headers();
+    const headers =
+        new Headers();
 
     headers.set(
         "Location",
         authorizeUrl.toString()
     );
 
-    /*
-     * Cookie de session OAuth.
-     *
-     * SameSite=Lax permet au cookie d'être
-     * renvoyé lors du retour OAuth en GET.
-     */
     headers.append(
         "Set-Cookie",
         `epic_oauth=${oauthCookie}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`
@@ -169,7 +169,7 @@ async function handleCallback(request, env) {
 
 
     // --------------------------------------------------------
-    // Vérification des paramètres
+    // Vérification code + state
     // --------------------------------------------------------
 
     if (!code || !state) {
@@ -188,7 +188,7 @@ async function handleCallback(request, env) {
 
 
     // --------------------------------------------------------
-    // Lecture du cookie
+    // Lecture du cookie OAuth
     // --------------------------------------------------------
 
     const cookies =
@@ -244,7 +244,7 @@ async function handleCallback(request, env) {
 
 
     // --------------------------------------------------------
-    // Récupération state + verifier
+    // Séparation state / verifier
     // --------------------------------------------------------
 
     const separatorIndex =
@@ -380,6 +380,10 @@ async function handleCallback(request, env) {
         await tokenResponse.json();
 
 
+    // --------------------------------------------------------
+    // Erreur lors de l'échange du token
+    // --------------------------------------------------------
+
     if (!tokenResponse.ok) {
 
         return new Response(
@@ -401,7 +405,7 @@ async function handleCallback(request, env) {
 
 
     // ========================================================
-    // RÉCUPÉRATION DU PROFIL
+    // RÉCUPÉRATION DU PROFIL EPIC
     // ========================================================
 
     const userResponse =
@@ -435,22 +439,51 @@ async function handleCallback(request, env) {
     }
 
 
+    // ========================================================
+    // CONNEXION RÉUSSIE
+    // ========================================================
+
     const displayName =
         userData.displayName ||
         userData.preferred_username ||
         "Compte connecté";
 
 
-    // ========================================================
-    // SUCCÈS
-    // ========================================================
+    /*
+     * IMPORTANT :
+     *
+     * Pour cette première étape, on ne met PAS
+     * le token dans l'URL.
+     *
+     * On redirige simplement vers le site.
+     *
+     * La prochaine étape sera de créer une vraie
+     * session sécurisée côté Worker pour que le
+     * site puisse connaître le compte connecté.
+     */
+
+    const successUrl =
+        new URL(
+            SITE_URL
+        );
+
+    successUrl.searchParams.set(
+        "login",
+        "success"
+    );
+
+    successUrl.searchParams.set(
+        "name",
+        displayName
+    );
+
 
     const headers =
         new Headers();
 
     headers.set(
-        "Content-Type",
-        "text/plain; charset=utf-8"
+        "Location",
+        successUrl.toString()
     );
 
     headers.set(
@@ -458,27 +491,22 @@ async function handleCallback(request, env) {
         "no-store"
     );
 
-    // Suppression du cookie OAuth
+    // Suppression du cookie OAuth temporaire
     headers.append(
         "Set-Cookie",
         "epic_oauth=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
     );
 
 
-    return new Response(
-        `Connexion Epic réussie !
-
-Compte Epic : ${displayName}`,
-        {
-            status: 200,
-            headers
-        }
-    );
+    return new Response(null, {
+        status: 302,
+        headers
+    });
 }
 
 
 // ============================================================
-// RANDOM
+// RANDOM STRING
 // ============================================================
 
 function randomString(length) {
@@ -486,7 +514,9 @@ function randomString(length) {
     const bytes =
         new Uint8Array(length);
 
-    crypto.getRandomValues(bytes);
+    crypto.getRandomValues(
+        bytes
+    );
 
     return Array.from(bytes)
         .map(
@@ -521,8 +551,11 @@ async function sha256Base64Url(value) {
     let binary = "";
 
     for (const byte of bytes) {
+
         binary +=
-            String.fromCharCode(byte);
+            String.fromCharCode(
+                byte
+            );
     }
 
     return btoa(binary)
@@ -545,8 +578,11 @@ function base64UrlEncode(value) {
     let binary = "";
 
     for (const byte of bytes) {
+
         binary +=
-            String.fromCharCode(byte);
+            String.fromCharCode(
+                byte
+            );
     }
 
     return btoa(binary)
@@ -579,7 +615,8 @@ function base64UrlDecode(value) {
     const bytes =
         Uint8Array.from(
             binary,
-            char => char.charCodeAt(0)
+            char =>
+                char.charCodeAt(0)
         );
 
     return new TextDecoder()
