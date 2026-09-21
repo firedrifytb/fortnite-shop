@@ -67,11 +67,8 @@ const videoFallback =
 // =========================================================
 
 let currentItem = null;
-
 let currentSlide = 0;
-
 let hasVideo = false;
-
 let currentVideoUrl = null;
 
 
@@ -81,14 +78,10 @@ let currentVideoUrl = null;
 
 let pointerStartX = 0;
 let pointerStartY = 0;
-
 let pointerCurrentX = 0;
 let pointerCurrentY = 0;
-
 let isDragging = false;
-
 let swipeDirectionLocked = false;
-
 let activePointerId = null;
 
 
@@ -97,18 +90,14 @@ let activePointerId = null;
 // =========================================================
 
 function updateDate() {
-
     const now = new Date();
 
     dateElement.textContent =
-        now.toLocaleDateString(
-            "fr-FR",
-            {
-                day: "2-digit",
-                month: "long",
-                year: "numeric"
-            }
-        );
+        now.toLocaleDateString("fr-FR", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric"
+        });
 }
 
 
@@ -140,7 +129,6 @@ async function loadShop() {
             );
 
         if (!response.ok) {
-
             throw new Error(
                 `Erreur HTTP ${response.status}`
             );
@@ -160,7 +148,6 @@ async function loadShop() {
             !Array.isArray(entries) ||
             entries.length === 0
         ) {
-
             throw new Error(
                 "Aucun objet trouvé."
             );
@@ -212,9 +199,7 @@ function renderShop(entries) {
             const item =
                 extractShopItem(entry);
 
-            if (!item) {
-                return;
-            }
+            if (!item) return;
 
             const card =
                 createCard(
@@ -234,14 +219,10 @@ function renderShop(entries) {
 
 function extractShopItem(entry) {
 
-    if (!entry) {
-        return null;
-    }
+    if (!entry) return null;
 
     let item = null;
-
     let itemCategory = "";
-
 
     if (
         Array.isArray(entry.brItems) &&
@@ -310,26 +291,13 @@ function extractShopItem(entry) {
             "item";
     }
 
-
-    if (!item) {
-        return null;
-    }
-
-
-    // =====================================================
-    // ID
-    // =====================================================
+    if (!item) return null;
 
     const id =
         item?.id ||
         entry?.id ||
         entry?.offerId ||
         null;
-
-
-    // =====================================================
-    // NOM
-    // =====================================================
 
     const name =
         item?.name ||
@@ -338,20 +306,10 @@ function extractShopItem(entry) {
         entry?.name ||
         "Objet Fortnite";
 
-
-    // =====================================================
-    // DESCRIPTION
-    // =====================================================
-
     const description =
         item?.description ||
         entry?.description ||
         "";
-
-
-    // =====================================================
-    // IMAGE
-    // =====================================================
 
     const image =
         item?.images?.featured ||
@@ -367,11 +325,6 @@ function extractShopItem(entry) {
         entry?.tracks?.[0]?.images?.icon ||
         null;
 
-
-    // =====================================================
-    // PRIX
-    // =====================================================
-
     const price =
         entry?.finalPrice ??
         entry?.regularPrice ??
@@ -379,22 +332,12 @@ function extractShopItem(entry) {
         item?.price ??
         0;
 
-
-    // =====================================================
-    // RARETÉ
-    // =====================================================
-
     const rarity =
         item?.rarity?.displayValue ||
         item?.rarity?.value ||
         entry?.rarity?.displayValue ||
         entry?.rarity?.value ||
         "";
-
-
-    // =====================================================
-    // TYPE
-    // =====================================================
 
     let type = "";
 
@@ -406,15 +349,13 @@ function extractShopItem(entry) {
         )
     ) {
 
-        type =
-            "Musique";
+        type = "Musique";
 
     } else if (
         itemCategory === "instrument"
     ) {
 
-        type =
-            "Instrument";
+        type = "Instrument";
 
     } else {
 
@@ -433,18 +374,13 @@ function extractShopItem(entry) {
             );
     }
 
-
-    // =====================================================
-    // SÉRIE
-    // =====================================================
-
     const series =
         item?.series?.name ||
         item?.series?.value ||
         "";
 
-
     return {
+
         id,
         name,
         description,
@@ -453,6 +389,7 @@ function extractShopItem(entry) {
         rarity,
         type,
         series,
+
         raw: entry,
         cosmetic: item,
         category: itemCategory
@@ -466,15 +403,12 @@ function extractShopItem(entry) {
 
 function normalizeItemType(rawType) {
 
-    if (!rawType) {
-        return "";
-    }
+    if (!rawType) return "";
 
     const value =
         String(rawType)
             .trim()
             .toLowerCase();
-
 
     if (
         value.includes("music") ||
@@ -482,95 +416,75 @@ function normalizeItemType(rawType) {
         value.includes("jam track") ||
         value.includes("track")
     ) {
-
         return "Musique";
     }
-
 
     if (
         value === "outfit" ||
         value.includes("tenue")
     ) {
-
         return "Tenue";
     }
-
 
     if (
         value === "pickaxe" ||
         value.includes("pioche") ||
         value.includes("harvesting tool")
     ) {
-
         return "Pioche";
     }
-
 
     if (
         value === "glider" ||
         value.includes("planeur")
     ) {
-
         return "Planeur";
     }
-
 
     if (
         value === "emote" ||
         value.includes("emote") ||
         value.includes("danse")
     ) {
-
         return "Emote";
     }
-
 
     if (
         value === "wrap" ||
         value.includes("wrap") ||
         value.includes("revêtement")
     ) {
-
         return "Revêtement";
     }
-
 
     if (
         value === "backpack" ||
         value === "back bling" ||
         value.includes("dos")
     ) {
-
         return "Dos";
     }
-
 
     if (
         value.includes("spray") ||
         value.includes("graffiti")
     ) {
-
         return "Aérosol";
     }
-
 
     if (
         value.includes("loading screen") ||
         value.includes("écran de chargement")
     ) {
-
         return "Écran de chargement";
     }
-
 
     if (
         value.includes("banner") ||
         value.includes("bannière")
     ) {
-
         return "Bannière";
     }
-
 
     return rawType;
 }
@@ -591,13 +505,11 @@ function createCard(item, index) {
     card.style.animationDelay =
         `${Math.min(index * 35, 500)}ms`;
 
-
     const imageContainer =
         document.createElement("div");
 
     imageContainer.className =
         "card-image";
-
 
     if (item.image) {
 
@@ -616,7 +528,6 @@ function createCard(item, index) {
         image.decoding =
             "async";
 
-
         image.onerror = () => {
 
             console.warn(
@@ -627,12 +538,8 @@ function createCard(item, index) {
             image.remove();
         };
 
-
-        imageContainer.appendChild(
-            image
-        );
+        imageContainer.appendChild(image);
     }
-
 
     const overlay =
         document.createElement("div");
@@ -640,13 +547,11 @@ function createCard(item, index) {
     overlay.className =
         "card-overlay";
 
-
     const info =
         document.createElement("div");
 
     info.className =
         "card-info";
-
 
     const name =
         document.createElement("h3");
@@ -654,13 +559,11 @@ function createCard(item, index) {
     name.textContent =
         item.name;
 
-
     const bottom =
         document.createElement("div");
 
     bottom.className =
         "card-bottom";
-
 
     const price =
         document.createElement("div");
@@ -673,37 +576,21 @@ function createCard(item, index) {
         <span class="vbucks-symbol">V</span>
     `;
 
+    bottom.appendChild(price);
 
-    bottom.appendChild(
-        price
-    );
+    info.appendChild(name);
+    info.appendChild(bottom);
 
-    info.appendChild(
-        name
-    );
+    overlay.appendChild(info);
 
-    info.appendChild(
-        bottom
-    );
+    imageContainer.appendChild(overlay);
 
-    overlay.appendChild(
-        info
-    );
-
-    imageContainer.appendChild(
-        overlay
-    );
-
-    card.appendChild(
-        imageContainer
-    );
-
+    card.appendChild(imageContainer);
 
     card.addEventListener(
         "click",
         () => openModal(item)
     );
-
 
     return card;
 }
@@ -720,22 +607,17 @@ function formatPrice(price) {
         price === undefined ||
         price === ""
     ) {
-
         return "—";
     }
-
 
     const number =
         Number(price);
 
-
     if (
         Number.isNaN(number)
     ) {
-
         return String(price);
     }
-
 
     return number.toLocaleString(
         "fr-FR"
@@ -785,19 +667,13 @@ async function openModal(item) {
     );
 
 
-    // =====================================================
-    // INFORMATIONS
-    // =====================================================
-
     modalName.textContent =
         item.name;
-
 
     modalPrice.innerHTML = `
         ${formatPrice(item.price)}
         <span class="vbucks-symbol">V</span>
     `;
-
 
     modalDescription.textContent =
         item.description || "";
@@ -805,27 +681,33 @@ async function openModal(item) {
 
     const extraParts = [];
 
-
     if (item.type) {
-        extraParts.push(item.type);
+        extraParts.push(
+            item.type
+        );
     }
 
     if (item.rarity) {
-        extraParts.push(item.rarity);
+        extraParts.push(
+            item.rarity
+        );
     }
 
     if (item.series) {
-        extraParts.push(item.series);
+        extraParts.push(
+            item.series
+        );
     }
-
 
     modalExtraInfo.textContent =
         extraParts.join(" • ");
 
 
-    // =====================================================
-    // IMAGE
-    // =====================================================
+    /*
+     * IMPORTANT :
+     * L'image est préparée AVANT
+     * toute recherche vidéo.
+     */
 
     modalImage.style.display =
         "block";
@@ -837,23 +719,25 @@ async function openModal(item) {
         item.name;
 
 
-    // =====================================================
-    // RESET VIDÉO
-    // =====================================================
+    /*
+     * On force directement
+     * la première slide.
+     */
+
+    previewTrack.style.transition =
+        "none";
+
+    previewTrack.style.transform =
+        "translate3d(0, 0, 0)";
+
 
     resetVideo();
 
-
-    // =====================================================
-    // POINTS
-    // =====================================================
-
     createDots();
 
-
-    // =====================================================
-    // TOUJOURS COMMENCER SUR L'IMAGE
-    // =====================================================
+    /*
+     * IMAGE = SLIDE 0
+     */
 
     updateSlide(
         0,
@@ -861,21 +745,23 @@ async function openModal(item) {
     );
 
 
-    // =====================================================
-    // PAS D'ID
-    // =====================================================
+    /*
+     * Pas d'identifiant =
+     * pas de recherche vidéo.
+     */
 
     if (!item.id) {
 
         showVideoFallback();
 
+        updateSlide(
+            0,
+            false
+        );
+
         return;
     }
 
-
-    // =====================================================
-    // TRACK / INSTRUMENT
-    // =====================================================
 
     if (
         item.category === "track" ||
@@ -884,13 +770,14 @@ async function openModal(item) {
 
         showVideoFallback();
 
+        updateSlide(
+            0,
+            false
+        );
+
         return;
     }
 
-
-    // =====================================================
-    // RECHERCHE VIDÉO
-    // =====================================================
 
     try {
 
@@ -904,7 +791,6 @@ async function openModal(item) {
             currentItem !== item ||
             !modal.classList.contains("open")
         ) {
-
             return;
         }
 
@@ -941,11 +827,17 @@ async function openModal(item) {
         createDots();
 
 
+        /*
+         * IMPORTANT :
+         * On revient toujours
+         * sur l'image après
+         * le chargement des données.
+         */
+
         updateSlide(
-            currentSlide,
+            0,
             false
         );
-
 
     } catch (error) {
 
@@ -954,7 +846,6 @@ async function openModal(item) {
             error
         );
 
-
         hasVideo =
             false;
 
@@ -962,9 +853,7 @@ async function openModal(item) {
 
         showVideoFallback();
 
-
         createDots();
-
 
         updateSlide(
             0,
@@ -993,9 +882,7 @@ function closeModal() {
         "modal-open"
     );
 
-
     resetVideo();
-
 
     currentItem =
         null;
@@ -1021,13 +908,13 @@ function resetVideo() {
         return;
     }
 
-
     try {
+
         modalVideo.pause();
+
     } catch {
         // Rien
     }
-
 
     modalVideo.removeAttribute(
         "src"
@@ -1035,15 +922,12 @@ function resetVideo() {
 
     modalVideo.load();
 
-
     modalVideo.style.display =
         "none";
-
 
     videoFallback.classList.remove(
         "visible"
     );
-
 
     currentVideoUrl =
         null;
@@ -1059,7 +943,6 @@ async function fetchCosmetic(id) {
     const url =
         `${COSMETIC_API}?language=fr&id=${encodeURIComponent(id)}`;
 
-
     const response =
         await fetch(
             url,
@@ -1068,7 +951,6 @@ async function fetchCosmetic(id) {
             }
         );
 
-
     if (!response.ok) {
 
         throw new Error(
@@ -1076,10 +958,8 @@ async function fetchCosmetic(id) {
         );
     }
 
-
     const data =
         await response.json();
-
 
     return (
         data?.data?.[0] ||
@@ -1099,12 +979,6 @@ function findDirectVideo(cosmetic) {
         return null;
     }
 
-
-    /*
-     * On cherche plusieurs noms de propriétés
-     * possibles, sans jamais transformer un ID
-     * YouTube en URL.
-     */
 
     const directCandidates = [
 
@@ -1137,7 +1011,6 @@ function findDirectVideo(cosmetic) {
         cosmetic.assets?.videoUrl,
 
         cosmetic.assets?.video_url
-
     ];
 
 
@@ -1156,32 +1029,14 @@ function findDirectVideo(cosmetic) {
     }
 
 
-    /*
-     * Deuxième recherche :
-     * on parcourt récursivement les données.
-     *
-     * Cela permet de détecter une vraie URL vidéo
-     * si l'API la place dans une structure imbriquée.
-     */
-
     const recursiveResult =
         findVideoUrlDeep(
             cosmetic
         );
 
-
     if (recursiveResult) {
         return recursiveResult;
     }
-
-
-    /*
-     * IMPORTANT :
-     * showcase_video_id est volontairement ignoré.
-     *
-     * C'est un identifiant YouTube et nous ne voulons
-     * pas utiliser YouTube dans notre lecteur.
-     */
 
 
     return null;
@@ -1202,9 +1057,10 @@ function extractDirectVideoUrl(value) {
             value.trim();
 
         if (
-            isDirectVideoUrl(url)
+            isDirectVideoUrl(
+                url
+            )
         ) {
-
             return url;
         }
 
@@ -1227,7 +1083,6 @@ function extractDirectVideoUrl(value) {
             "video_url",
             "file",
             "path"
-
         ];
 
 
@@ -1242,11 +1097,11 @@ function extractDirectVideoUrl(value) {
                 const found =
                     value[key].trim();
 
-
                 if (
-                    isDirectVideoUrl(found)
+                    isDirectVideoUrl(
+                        found
+                    )
                 ) {
-
                     return found;
                 }
             }
@@ -1267,17 +1122,11 @@ function findVideoUrlDeep(
     depth = 0
 ) {
 
-    /*
-     * Sécurité pour éviter de parcourir
-     * des structures infinies ou énormes.
-     */
-
     if (
         depth > 8 ||
         value === null ||
         value === undefined
     ) {
-
         return null;
     }
 
@@ -1295,7 +1144,6 @@ function findVideoUrlDeep(
     if (
         typeof value !== "object"
     ) {
-
         return null;
     }
 
@@ -1324,19 +1172,14 @@ function findVideoUrlDeep(
 
 
     for (
-        const [key, child] of Object.entries(value)
+        const [key, child]
+        of Object.entries(value)
     ) {
 
         const lowerKey =
             String(key)
                 .toLowerCase();
 
-
-        /*
-         * On ne considère comme candidat vidéo
-         * que les propriétés qui ont un rapport
-         * avec une vidéo.
-         */
 
         const looksLikeVideo =
             lowerKey.includes("video") ||
@@ -1345,9 +1188,7 @@ function findVideoUrlDeep(
             lowerKey.includes("media");
 
 
-        if (
-            looksLikeVideo
-        ) {
+        if (looksLikeVideo) {
 
             const found =
                 extractDirectVideoUrl(
@@ -1359,12 +1200,6 @@ function findVideoUrlDeep(
             }
         }
 
-
-        /*
-         * On continue également dans les objets
-         * imbriqués, mais sans prendre un simple
-         * ID comme une URL.
-         */
 
         if (
             child &&
@@ -1397,7 +1232,6 @@ function isDirectVideoUrl(value) {
     if (
         typeof value !== "string"
     ) {
-
         return false;
     }
 
@@ -1412,7 +1246,6 @@ function isDirectVideoUrl(value) {
             url.protocol !== "https:" &&
             url.protocol !== "http:"
         ) {
-
             return false;
         }
 
@@ -1422,6 +1255,7 @@ function isDirectVideoUrl(value) {
 
 
         const extensions = [
+
             ".mp4",
             ".webm",
             ".mov",
@@ -1432,9 +1266,10 @@ function isDirectVideoUrl(value) {
 
         return extensions.some(
             extension =>
-                pathname.endsWith(extension)
+                pathname.endsWith(
+                    extension
+                )
         );
-
 
     } catch {
 
@@ -1455,7 +1290,6 @@ function loadDirectVideo(url) {
     if (
         !isDirectVideoUrl(url)
     ) {
-
         return;
     }
 
@@ -1533,8 +1367,7 @@ function showVideoFallback() {
 
 function createDots() {
 
-    carouselDots.innerHTML =
-        "";
+    carouselDots.innerHTML = "";
 
 
     /*
@@ -1543,7 +1376,6 @@ function createDots() {
      * 1 = IMAGE
      * 2 = VIDÉO / FALLBACK
      */
-
 
     for (
         let i = 0;
@@ -1658,19 +1490,13 @@ function updateSlide(
 
 
     /*
-     * Le track fait 200%.
-     *
-     * 0%  = image
-     * 50% = vidéo
+     * 0%  = IMAGE
+     * 50% = VIDÉO
      */
 
     previewTrack.style.transform =
         `translate3d(-${index * 50}%, 0, 0)`;
 
-
-    // =====================================================
-    // POINT ACTIF
-    // =====================================================
 
     const dots =
         carouselDots.querySelectorAll(
@@ -1689,17 +1515,27 @@ function updateSlide(
     );
 
 
-    // =====================================================
-    // IMAGE
-    // =====================================================
+    /* =====================================================
+       IMAGE
+       ===================================================== */
 
     if (
         index === 0
     ) {
 
+        /*
+         * L'image est explicitement
+         * rendue visible.
+         */
+
         modalImage.style.display =
             "block";
 
+
+        /*
+         * On masque complètement
+         * la vidéo.
+         */
 
         modalVideo.style.display =
             "none";
@@ -1721,9 +1557,9 @@ function updateSlide(
     }
 
 
-    // =====================================================
-    // VIDÉO / FALLBACK
-    // =====================================================
+    /* =====================================================
+       VIDÉO
+       ===================================================== */
 
     modalImage.style.display =
         "none";
@@ -1749,13 +1585,7 @@ function updateSlide(
 
         playCurrentVideo();
 
-
     } else {
-
-        /*
-         * Même sans vidéo réelle,
-         * la deuxième slide existe.
-         */
 
         previewStatus.textContent =
             "VIDÉO";
@@ -1782,7 +1612,6 @@ function playCurrentVideo() {
         !hasVideo ||
         !currentVideoUrl
     ) {
-
         return;
     }
 
@@ -1836,20 +1665,13 @@ function handlePointerDown(event) {
     if (
         !modal.classList.contains("open")
     ) {
-
         return;
     }
 
 
-    /*
-     * Le swipe est prévu pour tactile
-     * et stylet.
-     */
-
     if (
         event.pointerType === "mouse"
     ) {
-
         return;
     }
 
@@ -1864,7 +1686,6 @@ function handlePointerDown(event) {
     pointerStartY =
         event.clientY;
 
-
     pointerCurrentX =
         event.clientX;
 
@@ -1874,7 +1695,6 @@ function handlePointerDown(event) {
 
     isDragging =
         true;
-
 
     swipeDirectionLocked =
         false;
@@ -1906,7 +1726,6 @@ function handlePointerMove(event) {
         !isDragging ||
         event.pointerId !== activePointerId
     ) {
-
         return;
     }
 
@@ -1928,10 +1747,6 @@ function handlePointerMove(event) {
         pointerStartY;
 
 
-    // =====================================================
-    // VERROUILLAGE DIRECTION
-    // =====================================================
-
     if (
         !swipeDirectionLocked
     ) {
@@ -1940,16 +1755,9 @@ function handlePointerMove(event) {
             Math.abs(deltaX) < 8 &&
             Math.abs(deltaY) < 8
         ) {
-
             return;
         }
 
-
-        /*
-         * Si le mouvement est principalement
-         * vertical, on laisse le navigateur
-         * gérer le geste.
-         */
 
         if (
             Math.abs(deltaY) >
@@ -1990,15 +1798,9 @@ function handlePointerMove(event) {
     if (
         width <= 0
     ) {
-
         return;
     }
 
-
-    /*
-     * Une slide correspond à 50%
-     * du track complet.
-     */
 
     const movementPercent =
         (deltaX / width) * 50;
@@ -2013,10 +1815,6 @@ function handlePointerMove(event) {
         movementPercent;
 
 
-    // =====================================================
-    // RÉSISTANCE À GAUCHE
-    // =====================================================
-
     if (
         position < 0
     ) {
@@ -2025,10 +1823,6 @@ function handlePointerMove(event) {
             position * 0.18;
     }
 
-
-    // =====================================================
-    // RÉSISTANCE À DROITE
-    // =====================================================
 
     if (
         position > 50
@@ -2055,7 +1849,6 @@ function handlePointerUp(event) {
         !isDragging ||
         event.pointerId !== activePointerId
     ) {
-
         return;
     }
 
@@ -2084,10 +1877,6 @@ function handlePointerUp(event) {
         null;
 
 
-    // =====================================================
-    // IMAGE -> VIDÉO
-    // =====================================================
-
     if (
         deltaX < -threshold &&
         currentSlide === 0
@@ -2099,10 +1888,6 @@ function handlePointerUp(event) {
     }
 
 
-    // =====================================================
-    // VIDÉO -> IMAGE
-    // =====================================================
-
     if (
         deltaX > threshold &&
         currentSlide === 1
@@ -2113,10 +1898,6 @@ function handlePointerUp(event) {
         return;
     }
 
-
-    // =====================================================
-    // MOUVEMENT INSUFFISANT
-    // =====================================================
 
     updateSlide(
         currentSlide,
@@ -2134,14 +1915,12 @@ function handlePointerCancel(event) {
     if (
         event.pointerId !== activePointerId
     ) {
-
         return;
     }
 
 
     isDragging =
         false;
-
 
     activePointerId =
         null;
@@ -2163,7 +1942,6 @@ function handleKeyDown(event) {
     if (
         !modal.classList.contains("open")
     ) {
-
         return;
     }
 
@@ -2292,7 +2070,6 @@ modalVideo.addEventListener(
         ) {
 
             showVideoFallback();
-
 
             previewStatus.textContent =
                 "VIDÉO";
