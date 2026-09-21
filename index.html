@@ -21,26 +21,32 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fortnite-shop.fr/">
     <meta property="og:title" content="Fortnite Shop – Boutique Fortnite quotidienne">
+
     <meta
         property="og:description"
         content="Découvrez les objets disponibles aujourd'hui dans la boutique Fortnite."
     >
+
     <meta
         property="og:image"
         content="https://fortnite-shop.fr/IMG_2234.jpeg"
     >
+
     <meta property="og:locale" content="fr_FR">
 
     <!-- Partage -->
     <meta name="twitter:card" content="summary_large_image">
+
     <meta
         name="twitter:title"
         content="Fortnite Shop – Boutique Fortnite quotidienne"
     >
+
     <meta
         name="twitter:description"
         content="Découvrez les objets disponibles aujourd'hui dans la boutique Fortnite."
     >
+
     <meta
         name="twitter:image"
         content="https://fortnite-shop.fr/IMG_2234.jpeg"
@@ -48,10 +54,12 @@
 
     <!-- PWA -->
     <meta name="theme-color" content="#070b18">
+
     <meta
         name="apple-mobile-web-app-capable"
         content="yes"
     >
+
     <meta
         name="apple-mobile-web-app-status-bar-style"
         content="black-translucent"
@@ -75,32 +83,50 @@
     }
     </script>
 
-    <title>Fortnite Shop</title>
 </head>
 
 <body>
 
     <div class="background">
+
         <div class="orb orb-blue"></div>
         <div class="orb orb-purple"></div>
         <div class="grid-background"></div>
+
     </div>
 
     <header>
+
         <div class="header-inner">
 
             <div class="brand">
-                <div class="brand-logo">⚡</div>
+
+                <div class="brand-logo">
+                    ⚡
+                </div>
 
                 <div class="brand-text">
-                    <h1>FORTNITE <span>SHOP</span></h1>
-                    <p>Boutique quotidienne</p>
+
+                    <h1>
+                        FORTNITE <span>SHOP</span>
+                    </h1>
+
+                    <p>
+                        Boutique quotidienne
+                    </p>
+
                 </div>
+
             </div>
 
             <div class="date-box">
-                <span class="date-label">BOUTIQUE DU</span>
+
+                <span class="date-label">
+                    BOUTIQUE DU
+                </span>
+
                 <div id="date"></div>
+
             </div>
 
             <div class="actions">
@@ -109,12 +135,21 @@
                     class="login-button"
                     href="https://fortnite-shop.firedrifytb.workers.dev/login"
                 >
-                    <span class="epic-icon">🎮</span>
+
+                    <span class="epic-icon">
+                        🎮
+                    </span>
 
                     <span class="login-content">
-                        <small>COMPTE EPIC</small>
+
+                        <small>
+                            COMPTE EPIC
+                        </small>
+
                         Se connecter
+
                     </span>
+
                 </a>
 
                 <button
@@ -123,51 +158,74 @@
                     onclick="loadShop()"
                     aria-label="Actualiser la boutique"
                 >
-                    <span class="refresh-icon">↻</span>
-                    <span class="refresh-text">Actualiser</span>
+
+                    <span class="refresh-icon">
+                        ↻
+                    </span>
+
+                    <span class="refresh-text">
+                        Actualiser
+                    </span>
+
                 </button>
 
             </div>
 
         </div>
+
     </header>
+
 
     <main>
 
         <section class="shop-heading">
 
             <div class="heading-content">
-                <span class="section-label">FORTNITE</span>
 
-                <h2>Boutique d'objets</h2>
+                <span class="section-label">
+                    FORTNITE
+                </span>
+
+                <h2>
+                    Boutique d'objets
+                </h2>
 
                 <p>
                     Découvrez les objets disponibles aujourd'hui.
                 </p>
+
             </div>
 
             <div class="live-badge">
+
                 <span></span>
+
                 EN DIRECT
+
             </div>
 
         </section>
 
+
         <div id="status">
 
             <div class="loading-container">
+
                 <div class="loading-spinner"></div>
 
                 <span>
                     Chargement de la boutique...
                 </span>
+
             </div>
 
         </div>
 
+
         <section id="shop"></section>
 
     </main>
+
 
     <div
         id="item-modal"
@@ -193,6 +251,7 @@
                 ×
             </button>
 
+
             <div
                 class="modal-media"
                 id="modal-media"
@@ -204,6 +263,7 @@
                 >
 
                     <!-- SLIDE 1 : IMAGE -->
+
                     <div class="preview-slide preview-image-slide">
 
                         <img
@@ -215,7 +275,9 @@
 
                     </div>
 
+
                     <!-- SLIDE 2 : VIDÉO / FALLBACK -->
+
                     <div class="preview-slide preview-video-slide">
 
                         <video
@@ -228,10 +290,12 @@
                             preload="auto"
                         ></video>
 
+
                         <div
                             id="video-fallback"
                             class="video-fallback"
                         >
+
                             <div class="fallback-icon">
                                 ◌
                             </div>
@@ -239,13 +303,16 @@
                             <span>
                                 Aperçu vidéo indisponible
                             </span>
+
                         </div>
 
                     </div>
 
                 </div>
 
+
                 <div class="modal-gradient"></div>
+
 
                 <div
                     id="preview-status"
@@ -254,6 +321,7 @@
                     APERÇU ANIMÉ
                 </div>
 
+
                 <div
                     id="carousel-dots"
                     class="carousel-dots"
@@ -261,23 +329,28 @@
 
             </div>
 
+
             <div class="modal-info">
 
                 <span class="modal-label">
                     OBJET FORTNITE
                 </span>
 
+
                 <h2 id="modal-name"></h2>
+
 
                 <div
                     id="modal-price"
                     class="price"
                 ></div>
 
+
                 <div
                     id="modal-extra-info"
                     class="modal-extra-info"
                 ></div>
+
 
                 <div
                     id="modal-description"
@@ -289,6 +362,7 @@
         </div>
 
     </div>
+
 
     <footer>
 
@@ -302,12 +376,17 @@
             Non affilié à Epic Games.
         </p>
 
+        <a
+            href="/privacy.html"
+            class="privacy-link"
+        >
+            Politique de confidentialité
+        </a>
+
     </footer>
+
 
     <script src="app.js"></script>
 
 </body>
 </html>
-<a href="/privacy.html" class="privacy-link">
-    Politique de confidentialité
-</a>
