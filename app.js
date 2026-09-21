@@ -1100,45 +1100,286 @@ function findDirectVideo(cosmetic) {
     }
 
 
-    const candidates = [
+    /*
+     * On cherche plusieurs noms de propriétés
+     * possibles, sans jamais transformer un ID
+     * YouTube en URL.
+     */
+
+    const directCandidates = [
 
         cosmetic.showcase_video_url,
 
         cosmetic.showcaseVideoUrl,
 
-        cosmetic.showcase_video,
+        cosmetic.video_url,
 
-        cosmetic.showcaseVideo
+        cosmetic.videoUrl,
+
+        cosmetic.video,
+
+        cosmetic.preview_video_url,
+
+        cosmetic.previewVideoUrl,
+
+        cosmetic.preview_video,
+
+        cosmetic.previewVideo,
+
+        cosmetic.media?.video,
+
+        cosmetic.media?.videoUrl,
+
+        cosmetic.media?.video_url,
+
+        cosmetic.assets?.video,
+
+        cosmetic.assets?.videoUrl,
+
+        cosmetic.assets?.video_url
 
     ];
 
 
     for (
-        const candidate of candidates
+        const candidate of directCandidates
     ) {
 
+        const found =
+            extractDirectVideoUrl(
+                candidate
+            );
+
+        if (found) {
+            return found;
+        }
+    }
+
+
+    /*
+     * Deuxième recherche :
+     * on parcourt récursivement les données.
+     *
+     * Cela permet de détecter une vraie URL vidéo
+     * si l'API la place dans une structure imbriquée.
+     */
+
+    const recursiveResult =
+        findVideoUrlDeep(
+            cosmetic
+        );
+
+
+    if (recursiveResult) {
+        return recursiveResult;
+    }
+
+
+    /*
+     * IMPORTANT :
+     * showcase_video_id est volontairement ignoré.
+     *
+     * C'est un identifiant YouTube et nous ne voulons
+     * pas utiliser YouTube dans notre lecteur.
+     */
+
+
+    return null;
+}
+
+
+// =========================================================
+// EXTRAIRE URL DIRECTE
+// =========================================================
+
+function extractDirectVideoUrl(value) {
+
+    if (
+        typeof value === "string"
+    ) {
+
+        const url =
+            value.trim();
+
         if (
-            typeof candidate !== "string"
+            isDirectVideoUrl(url)
         ) {
 
-            continue;
+            return url;
+        }
+
+        return null;
+    }
+
+
+    if (
+        value &&
+        typeof value === "object"
+    ) {
+
+        const possibleKeys = [
+
+            "url",
+            "src",
+            "source",
+            "video",
+            "videoUrl",
+            "video_url",
+            "file",
+            "path"
+
+        ];
+
+
+        for (
+            const key of possibleKeys
+        ) {
+
+            if (
+                typeof value[key] === "string"
+            ) {
+
+                const found =
+                    value[key].trim();
+
+
+                if (
+                    isDirectVideoUrl(found)
+                ) {
+
+                    return found;
+                }
+            }
+        }
+    }
+
+
+    return null;
+}
+
+
+// =========================================================
+// RECHERCHE RÉCURSIVE D'UNE VIDÉO
+// =========================================================
+
+function findVideoUrlDeep(
+    value,
+    depth = 0
+) {
+
+    /*
+     * Sécurité pour éviter de parcourir
+     * des structures infinies ou énormes.
+     */
+
+    if (
+        depth > 8 ||
+        value === null ||
+        value === undefined
+    ) {
+
+        return null;
+    }
+
+
+    if (
+        typeof value === "string"
+    ) {
+
+        return isDirectVideoUrl(value)
+            ? value.trim()
+            : null;
+    }
+
+
+    if (
+        typeof value !== "object"
+    ) {
+
+        return null;
+    }
+
+
+    if (
+        Array.isArray(value)
+    ) {
+
+        for (
+            const child of value
+        ) {
+
+            const found =
+                findVideoUrlDeep(
+                    child,
+                    depth + 1
+                );
+
+            if (found) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+
+    for (
+        const [key, child] of Object.entries(value)
+    ) {
+
+        const lowerKey =
+            String(key)
+                .toLowerCase();
+
+
+        /*
+         * On ne considère comme candidat vidéo
+         * que les propriétés qui ont un rapport
+         * avec une vidéo.
+         */
+
+        const looksLikeVideo =
+            lowerKey.includes("video") ||
+            lowerKey.includes("movie") ||
+            lowerKey.includes("preview") ||
+            lowerKey.includes("media");
+
+
+        if (
+            looksLikeVideo
+        ) {
+
+            const found =
+                extractDirectVideoUrl(
+                    child
+                );
+
+            if (found) {
+                return found;
+            }
         }
 
 
-        const value =
-            candidate.trim();
-
-
-        if (!value) {
-            continue;
-        }
-
+        /*
+         * On continue également dans les objets
+         * imbriqués, mais sans prendre un simple
+         * ID comme une URL.
+         */
 
         if (
-            isDirectVideoUrl(value)
+            child &&
+            typeof child === "object"
         ) {
 
-            return value;
+            const found =
+                findVideoUrlDeep(
+                    child,
+                    depth + 1
+                );
+
+            if (found) {
+                return found;
+            }
         }
     }
 
@@ -1152,6 +1393,14 @@ function findDirectVideo(cosmetic) {
 // =========================================================
 
 function isDirectVideoUrl(value) {
+
+    if (
+        typeof value !== "string"
+    ) {
+
+        return false;
+    }
+
 
     try {
 
