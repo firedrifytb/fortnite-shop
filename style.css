@@ -1534,3 +1534,14 @@ footer p {
             0.01ms !important;
     }
 }
+
+.privacy-link {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s ease;
+}
+
+.privacy-link:hover {
+    color: #fff;
+}
