@@ -5,17 +5,14 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
-        // Connexion Epic Games
         if (url.pathname === "/login") {
-            return handleLogin(request, env);
+            return handleLogin(env);
         }
 
-        // Retour d'Epic Games après connexion
         if (url.pathname === "/callback") {
             return handleCallback(request, env);
         }
 
-        // Toutes les autres pages = site Fortnite Shop
         return env.ASSETS.fetch(request);
     }
 };
@@ -25,17 +22,18 @@ export default {
 // LOGIN
 // ============================================================
 
-async function handleLogin(request, env) {
+async function handleLogin(env) {
+
     if (!env.EPIC_CLIENT_ID) {
         return new Response(
-            "Erreur : EPIC_CLIENT_ID n'est pas configuré dans Cloudflare.",
+            "Erreur : EPIC_CLIENT_ID n'est pas configuré.",
             { status: 500 }
         );
     }
 
     if (!env.EPIC_CLIENT_SECRET) {
         return new Response(
-            "Erreur : EPIC_CLIENT_SECRET n'est pas configuré dans Cloudflare.",
+            "Erreur : EPIC_CLIENT_SECRET n'est pas configuré.",
             { status: 500 }
         );
     }
@@ -50,9 +48,22 @@ async function handleLogin(request, env) {
     const codeChallenge =
         await sha256Base64Url(codeVerifier);
 
-    const authorizeUrl = new URL(
-        "https://www.epicgames.com/id/authorize"
-    );
+    /*
+     * Un seul cookie contient les deux valeurs.
+     * Format :
+     * state.verifier
+     */
+    const oauthData =
+        `${state}.${codeVerifier}`;
+
+    // Encodage sûr pour un cookie
+    const oauthCookie =
+        base64UrlEncode(oauthData);
+
+    const authorizeUrl =
+        new URL(
+            "https://www.epicgames.com/id/authorize"
+        );
 
     authorizeUrl.searchParams.set(
         "client_id",
@@ -89,8 +100,6 @@ async function handleLogin(request, env) {
         "S256"
     );
 
-    // IMPORTANT :
-    // Chaque cookie doit avoir son propre Set-Cookie.
     const headers = new Headers();
 
     headers.set(
@@ -98,14 +107,15 @@ async function handleLogin(request, env) {
         authorizeUrl.toString()
     );
 
+    /*
+     * Cookie de session OAuth.
+     *
+     * SameSite=Lax permet au cookie d'être
+     * renvoyé lors du retour OAuth en GET.
+     */
     headers.append(
         "Set-Cookie",
-        `epic_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`
-    );
-
-    headers.append(
-        "Set-Cookie",
-        `epic_verifier=${codeVerifier}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`
+        `epic_oauth=${oauthCookie}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`
     );
 
     headers.set(
@@ -125,7 +135,9 @@ async function handleLogin(request, env) {
 // ============================================================
 
 async function handleCallback(request, env) {
-    const url = new URL(request.url);
+
+    const url =
+        new URL(request.url);
 
     const code =
         url.searchParams.get("code");
@@ -136,8 +148,13 @@ async function handleCallback(request, env) {
     const error =
         url.searchParams.get("error");
 
-    // Epic a refusé/annulé la connexion
+
+    // --------------------------------------------------------
+    // Erreur Epic
+    // --------------------------------------------------------
+
     if (error) {
+
         return new Response(
             `Connexion Epic annulée ou refusée : ${error}`,
             {
@@ -150,7 +167,13 @@ async function handleCallback(request, env) {
         );
     }
 
+
+    // --------------------------------------------------------
+    // Vérification des paramètres
+    // --------------------------------------------------------
+
     if (!code || !state) {
+
         return new Response(
             "Erreur : code ou state manquant.",
             {
@@ -163,19 +186,107 @@ async function handleCallback(request, env) {
         );
     }
 
-    // Récupération des cookies
-    const cookies = parseCookies(
-        request.headers.get("Cookie") || ""
-    );
+
+    // --------------------------------------------------------
+    // Lecture du cookie
+    // --------------------------------------------------------
+
+    const cookies =
+        parseCookies(
+            request.headers.get("Cookie") || ""
+        );
+
+    const oauthCookie =
+        cookies.epic_oauth;
+
+
+    if (!oauthCookie) {
+
+        return new Response(
+            "Erreur : session OAuth manquante. Recommence la connexion depuis le site.",
+            {
+                status: 400,
+                headers: {
+                    "Content-Type":
+                        "text/plain; charset=utf-8"
+                }
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // Décodage du cookie
+    // --------------------------------------------------------
+
+    let oauthData;
+
+    try {
+
+        oauthData =
+            base64UrlDecode(
+                oauthCookie
+            );
+
+    } catch {
+
+        return new Response(
+            "Erreur : cookie OAuth invalide.",
+            {
+                status: 400,
+                headers: {
+                    "Content-Type":
+                        "text/plain; charset=utf-8"
+                }
+            }
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // Récupération state + verifier
+    // --------------------------------------------------------
+
+    const separatorIndex =
+        oauthData.indexOf(".");
+
+
+    if (separatorIndex === -1) {
+
+        return new Response(
+            "Erreur : données PKCE invalides.",
+            {
+                status: 400,
+                headers: {
+                    "Content-Type":
+                        "text/plain; charset=utf-8"
+                }
+            }
+        );
+    }
+
 
     const savedState =
-        cookies.epic_state;
+        oauthData.slice(
+            0,
+            separatorIndex
+        );
 
     const codeVerifier =
-        cookies.epic_verifier;
+        oauthData.slice(
+            separatorIndex + 1
+        );
 
+
+    // --------------------------------------------------------
     // Vérification du state
-    if (!savedState || savedState !== state) {
+    // --------------------------------------------------------
+
+    if (
+        !savedState ||
+        savedState !== state
+    ) {
+
         return new Response(
             "Erreur de sécurité : state OAuth invalide.",
             {
@@ -188,8 +299,13 @@ async function handleCallback(request, env) {
         );
     }
 
-    // Vérification du PKCE verifier
+
+    // --------------------------------------------------------
+    // Vérification PKCE
+    // --------------------------------------------------------
+
     if (!codeVerifier) {
+
         return new Response(
             "Erreur : PKCE verifier manquant.",
             {
@@ -202,15 +318,18 @@ async function handleCallback(request, env) {
         );
     }
 
+
     // ========================================================
     // ÉCHANGE DU CODE CONTRE LE TOKEN
     // ========================================================
 
-    const credentials = btoa(
-        `${env.EPIC_CLIENT_ID}:${env.EPIC_CLIENT_SECRET}`
-    );
+    const credentials =
+        btoa(
+            `${env.EPIC_CLIENT_ID}:${env.EPIC_CLIENT_SECRET}`
+        );
 
-    const body = new URLSearchParams();
+    const body =
+        new URLSearchParams();
 
     body.set(
         "grant_type",
@@ -237,27 +356,32 @@ async function handleCallback(request, env) {
         "openid basic_profile"
     );
 
-    const tokenResponse = await fetch(
-        "https://api.epicgames.dev/epic/oauth/v2/token",
-        {
-            method: "POST",
 
-            headers: {
-                "Content-Type":
-                    "application/x-www-form-urlencoded",
+    const tokenResponse =
+        await fetch(
+            "https://api.epicgames.dev/epic/oauth/v2/token",
+            {
+                method: "POST",
 
-                "Authorization":
-                    `Basic ${credentials}`
-            },
+                headers: {
+                    "Content-Type":
+                        "application/x-www-form-urlencoded",
 
-            body
-        }
-    );
+                    "Authorization":
+                        `Basic ${credentials}`
+                },
+
+                body
+            }
+        );
+
 
     const tokenData =
         await tokenResponse.json();
 
+
     if (!tokenResponse.ok) {
+
         return new Response(
             "Erreur Epic lors de la récupération du token.\n\n" +
             JSON.stringify(
@@ -267,7 +391,6 @@ async function handleCallback(request, env) {
             ),
             {
                 status: 400,
-
                 headers: {
                     "Content-Type":
                         "text/plain; charset=utf-8"
@@ -276,24 +399,29 @@ async function handleCallback(request, env) {
         );
     }
 
+
     // ========================================================
-    // RÉCUPÉRATION DU PROFIL EPIC
+    // RÉCUPÉRATION DU PROFIL
     // ========================================================
 
-    const userResponse = await fetch(
-        "https://api.epicgames.dev/epic/oauth/v2/userInfo",
-        {
-            headers: {
-                "Authorization":
-                    `Bearer ${tokenData.access_token}`
+    const userResponse =
+        await fetch(
+            "https://api.epicgames.dev/epic/oauth/v2/userInfo",
+            {
+                headers: {
+                    "Authorization":
+                        `Bearer ${tokenData.access_token}`
+                }
             }
-        }
-    );
+        );
+
 
     const userData =
         await userResponse.json();
 
+
     if (!userResponse.ok) {
+
         return new Response(
             "Connexion réussie, mais impossible de récupérer le profil Epic.",
             {
@@ -306,16 +434,19 @@ async function handleCallback(request, env) {
         );
     }
 
+
     const displayName =
         userData.displayName ||
         userData.preferred_username ||
         "Compte connecté";
 
+
     // ========================================================
-    // NETTOYAGE DES COOKIES
+    // SUCCÈS
     // ========================================================
 
-    const headers = new Headers();
+    const headers =
+        new Headers();
 
     headers.set(
         "Content-Type",
@@ -327,17 +458,12 @@ async function handleCallback(request, env) {
         "no-store"
     );
 
-    // IMPORTANT :
-    // Suppression des deux cookies séparément.
+    // Suppression du cookie OAuth
     headers.append(
         "Set-Cookie",
-        "epic_state=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
+        "epic_oauth=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
     );
 
-    headers.append(
-        "Set-Cookie",
-        "epic_verifier=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
-    );
 
     return new Response(
         `Connexion Epic réussie !
@@ -352,20 +478,22 @@ Compte Epic : ${displayName}`,
 
 
 // ============================================================
-// RANDOM STRING
+// RANDOM
 // ============================================================
 
 function randomString(length) {
+
     const bytes =
         new Uint8Array(length);
 
     crypto.getRandomValues(bytes);
 
     return Array.from(bytes)
-        .map(byte =>
-            byte
-                .toString(16)
-                .padStart(2, "0")
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
         )
         .join("");
 }
@@ -376,8 +504,10 @@ function randomString(length) {
 // ============================================================
 
 async function sha256Base64Url(value) {
+
     const data =
-        new TextEncoder().encode(value);
+        new TextEncoder()
+            .encode(value);
 
     const hash =
         await crypto.subtle.digest(
@@ -391,7 +521,8 @@ async function sha256Base64Url(value) {
     let binary = "";
 
     for (const byte of bytes) {
-        binary += String.fromCharCode(byte);
+        binary +=
+            String.fromCharCode(byte);
     }
 
     return btoa(binary)
@@ -402,19 +533,78 @@ async function sha256Base64Url(value) {
 
 
 // ============================================================
+// BASE64URL ENCODE
+// ============================================================
+
+function base64UrlEncode(value) {
+
+    const bytes =
+        new TextEncoder()
+            .encode(value);
+
+    let binary = "";
+
+    for (const byte of bytes) {
+        binary +=
+            String.fromCharCode(byte);
+    }
+
+    return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+}
+
+
+// ============================================================
+// BASE64URL DECODE
+// ============================================================
+
+function base64UrlDecode(value) {
+
+    let base64 =
+        value
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+
+    while (
+        base64.length % 4 !== 0
+    ) {
+        base64 += "=";
+    }
+
+    const binary =
+        atob(base64);
+
+    const bytes =
+        Uint8Array.from(
+            binary,
+            char => char.charCodeAt(0)
+        );
+
+    return new TextDecoder()
+        .decode(bytes);
+}
+
+
+// ============================================================
 // PARSE COOKIES
 // ============================================================
 
 function parseCookies(cookieHeader) {
+
     const cookies = {};
 
     for (
-        const part of cookieHeader.split(";")
+        const part
+        of cookieHeader.split(";")
     ) {
+
         const [
             name,
             ...rest
-        ] = part.trim().split("=");
+        ] =
+            part.trim().split("=");
 
         if (!name) {
             continue;
