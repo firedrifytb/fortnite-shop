@@ -1,8 +1,16 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
+
   "name": "fortnite-shop",
+
   "main": "./worker.js",
+
   "compatibility_date": "2026-09-18",
+
+  "vars": {
+    "EPIC_CLIENT_ID": "TON_EPIC_CLIENT_ID"
+  },
+
   "assets": {
     "directory": ".",
     "binding": "ASSETS"
