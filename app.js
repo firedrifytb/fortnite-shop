@@ -180,15 +180,18 @@ async function loadShop() {
 }
 
 // =========================================================
-// RENDU SHOP PAR PACK / SET
+// RENDU SHOP
 // =========================================================
 
 function renderShop(entries) {
 
     shopElement.innerHTML = "";
 
-    const groups =
-        new Map();
+    const packGroups = new Map();
+    const musicItems = [];
+    const categoryGroups = new Map();
+    const setGroups = new Map();
+    const otherItems = [];
 
     entries.forEach(
         (entry, index) => {
@@ -199,120 +202,517 @@ function renderShop(entries) {
             if (!item) return;
 
             /*
-             * On utilise le set Fortnite
-             * comme nom de groupe.
-             *
-             * Les objets sans set vont
-             * dans "Autres objets".
+             * PRIORITÉ 1
+             * Vrais packs / bundles détectables
+             * dans l'offre de boutique.
              */
+            const packName =
+                getPackName(entry, item);
 
-            const groupName =
-                item.set ||
-                "Autres objets";
+            if (packName) {
 
-            if (
-                !groups.has(groupName)
-            ) {
-                groups.set(
-                    groupName,
-                    []
-                );
-            }
+                if (!packGroups.has(packName)) {
+                    packGroups.set(
+                        packName,
+                        []
+                    );
+                }
 
-            groups
-                .get(groupName)
-                .push({
+                packGroups.get(packName).push({
                     item,
                     originalIndex: index
                 });
+
+                return;
+            }
+
+            /*
+             * PRIORITÉ 2
+             * Toutes les musiques ensemble.
+             */
+            if (
+                item.category === "track" ||
+                item.type === "Musique"
+            ) {
+
+                musicItems.push({
+                    item,
+                    originalIndex: index
+                });
+
+                return;
+            }
+
+            /*
+             * PRIORITÉ 3
+             * Catégories classiques.
+             */
+            const category =
+                getCategoryGroup(item);
+
+            if (category) {
+
+                if (!categoryGroups.has(category)) {
+                    categoryGroups.set(
+                        category,
+                        []
+                    );
+                }
+
+                categoryGroups.get(category).push({
+                    item,
+                    originalIndex: index
+                });
+
+                return;
+            }
+
+            /*
+             * PRIORITÉ 4
+             * Sets Fortnite.
+             */
+            if (item.set) {
+
+                if (!setGroups.has(item.set)) {
+                    setGroups.set(
+                        item.set,
+                        []
+                    );
+                }
+
+                setGroups.get(item.set).push({
+                    item,
+                    originalIndex: index
+                });
+
+                return;
+            }
+
+            /*
+             * DERNIER RECOURS
+             */
+            otherItems.push({
+                item,
+                originalIndex: index
+            });
         }
     );
 
     let groupIndex = 0;
 
+    /*
+     * PACKS
+     */
     for (
-        const [
-            groupName,
-            groupItems
-        ] of groups
+        const [packName, groupItems]
+        of packGroups
     ) {
 
-        const section =
-            document.createElement(
-                "section"
-            );
-
-        section.className =
-            "shop-group";
-
-        section.style.animationDelay =
-            `${Math.min(
-                groupIndex * 45,
-                450
-            )}ms`;
-
-        const heading =
-            document.createElement(
-                "div"
-            );
-
-        heading.className =
-            "shop-group-heading";
-
-        const title =
-            document.createElement(
-                "h3"
-            );
-
-        title.textContent =
-            groupName;
-
-        const count =
-            document.createElement(
-                "span"
-            );
-
-        count.textContent =
-            `${groupItems.length} ${
-                groupItems.length > 1
-                    ? "objets"
-                    : "objet"
-            }`;
-
-        heading.appendChild(title);
-        heading.appendChild(count);
-
-        const grid =
-            document.createElement(
-                "div"
-            );
-
-        grid.className =
-            "shop-group-grid";
-
-        groupItems.forEach(
-            ({
-                item,
-                originalIndex
-            }) => {
-
-                const card =
-                    createCard(
-                        item,
-                        originalIndex
-                    );
-
-                grid.appendChild(card);
-            }
+        appendShopGroup(
+            `📦 ${packName}`,
+            groupItems,
+            groupIndex,
+            "pack"
         );
-
-        section.appendChild(heading);
-        section.appendChild(grid);
-
-        shopElement.appendChild(section);
 
         groupIndex++;
     }
+
+    /*
+     * MUSIQUES
+     */
+    if (musicItems.length > 0) {
+
+        appendShopGroup(
+            "🎵 Musiques",
+            musicItems,
+            groupIndex,
+            "music"
+        );
+
+        groupIndex++;
+    }
+
+    /*
+     * CATÉGORIES
+     */
+    const categoryOrder = [
+        "Tenues",
+        "Pioches",
+        "Planeurs",
+        "Dos",
+        "Emotes",
+        "Revêtements",
+        "Aérosols",
+        "Écrans de chargement",
+        "Bannières",
+        "Instruments"
+    ];
+
+    for (
+        const categoryName
+        of categoryOrder
+    ) {
+
+        if (
+            !categoryGroups.has(
+                categoryName
+            )
+        ) {
+            continue;
+        }
+
+        appendShopGroup(
+            getCategoryEmoji(categoryName) +
+            " " +
+            categoryName,
+            categoryGroups.get(
+                categoryName
+            ),
+            groupIndex,
+            "category"
+        );
+
+        groupIndex++;
+    }
+
+    /*
+     * AUTRES SETS
+     */
+    for (
+        const [setName, groupItems]
+        of setGroups
+    ) {
+
+        appendShopGroup(
+            `✨ ${setName}`,
+            groupItems,
+            groupIndex,
+            "set"
+        );
+
+        groupIndex++;
+    }
+
+    /*
+     * AUTRES OBJETS
+     */
+    if (otherItems.length > 0) {
+
+        appendShopGroup(
+            "Autres objets",
+            otherItems,
+            groupIndex,
+            "other"
+        );
+    }
+}
+
+// =========================================================
+// AJOUTER UN GROUPE
+// =========================================================
+
+function appendShopGroup(
+    groupName,
+    groupItems,
+    groupIndex,
+    groupType
+) {
+
+    const section =
+        document.createElement("section");
+
+    section.className =
+        "shop-group";
+
+    section.dataset.groupType =
+        groupType;
+
+    section.style.animationDelay =
+        `${Math.min(groupIndex * 40, 400)}ms`;
+
+    const heading =
+        document.createElement("div");
+
+    heading.className =
+        "shop-group-heading";
+
+    const title =
+        document.createElement("h3");
+
+    title.textContent =
+        groupName;
+
+    const count =
+        document.createElement("span");
+
+    count.textContent =
+        `${groupItems.length} ${
+            groupItems.length > 1
+                ? "objets"
+                : "objet"
+        }`;
+
+    heading.appendChild(title);
+    heading.appendChild(count);
+
+    const grid =
+        document.createElement("div");
+
+    grid.className =
+        "shop-group-grid";
+
+    groupItems.forEach(
+        ({ item, originalIndex }) => {
+
+            grid.appendChild(
+                createCard(
+                    item,
+                    originalIndex
+                )
+            );
+        }
+    );
+
+    section.appendChild(heading);
+    section.appendChild(grid);
+
+    shopElement.appendChild(section);
+}
+
+// =========================================================
+// DÉTECTER UN VRAI PACK
+// =========================================================
+
+function getPackName(entry, item) {
+
+    if (!entry) {
+        return "";
+    }
+
+    /*
+     * Certaines réponses peuvent contenir
+     * directement un bundle.
+     */
+    const bundle =
+        entry.bundle ||
+        entry.bundleData ||
+        entry.bundledItems ||
+        entry.bundleInfo ||
+        null;
+
+    if (bundle) {
+
+        const bundleName =
+            getObjectText(
+                bundle,
+                [
+                    "name",
+                    "displayName",
+                    "title",
+                    "text",
+                    "value"
+                ]
+            );
+
+        if (bundleName) {
+            return bundleName;
+        }
+    }
+
+    /*
+     * Détection de noms présents directement
+     * dans l'offre.
+     */
+    const directPackName =
+        getObjectText(
+            entry,
+            [
+                "bundleName",
+                "packName",
+                "offerName",
+                "displayName"
+            ]
+        );
+
+    /*
+     * On évite de transformer chaque offre
+     * normale en "pack".
+     */
+    if (
+        directPackName &&
+        (
+            entry.bundle ||
+            entry.bundleName ||
+            entry.packName ||
+            entry.isBundle === true ||
+            entry.isPack === true
+        )
+    ) {
+
+        return directPackName;
+    }
+
+    /*
+     * Certaines structures peuvent indiquer
+     * explicitement qu'il s'agit d'un bundle.
+     */
+    const flags = [
+        entry.isBundle,
+        entry.isPack,
+        entry.bundleType,
+        entry.offerType,
+        entry.kind
+    ];
+
+    const looksLikeBundle =
+        flags.some(
+            value =>
+                value === true ||
+                (
+                    typeof value === "string" &&
+                    /bundle|pack/i.test(value)
+                )
+        );
+
+    if (
+        looksLikeBundle &&
+        directPackName
+    ) {
+
+        return directPackName;
+    }
+
+    return "";
+}
+
+// =========================================================
+// TEXTE D'OBJET
+// =========================================================
+
+function getObjectText(
+    object,
+    keys
+) {
+
+    if (
+        !object ||
+        typeof object !== "object"
+    ) {
+        return "";
+    }
+
+    for (
+        const key of keys
+    ) {
+
+        const value =
+            object?.[key];
+
+        if (
+            typeof value === "string" &&
+            value.trim()
+        ) {
+
+            return value.trim();
+        }
+
+        if (
+            value &&
+            typeof value === "object"
+        ) {
+
+            const nested =
+                value.value ||
+                value.name ||
+                value.displayValue ||
+                value.text;
+
+            if (
+                typeof nested === "string" &&
+                nested.trim()
+            ) {
+
+                return nested.trim();
+            }
+        }
+    }
+
+    return "";
+}
+
+// =========================================================
+// GROUPE DE CATÉGORIE
+// =========================================================
+
+function getCategoryGroup(item) {
+
+    if (!item) {
+        return "";
+    }
+
+    if (
+        item.category === "instrument" ||
+        item.type === "Instrument"
+    ) {
+        return "Instruments";
+    }
+
+    switch (item.type) {
+
+        case "Tenue":
+            return "Tenues";
+
+        case "Pioche":
+            return "Pioches";
+
+        case "Planeur":
+            return "Planeurs";
+
+        case "Dos":
+            return "Dos";
+
+        case "Emote":
+            return "Emotes";
+
+        case "Revêtement":
+            return "Revêtements";
+
+        case "Aérosol":
+            return "Aérosols";
+
+        case "Écran de chargement":
+            return "Écrans de chargement";
+
+        case "Bannière":
+            return "Bannières";
+
+        default:
+            return "";
+    }
+}
+
+// =========================================================
+// EMOJIS CATÉGORIES
+// =========================================================
+
+function getCategoryEmoji(category) {
+
+    const emojis = {
+
+        "Tenues": "👕",
+        "Pioches": "⛏️",
+        "Planeurs": "🪂",
+        "Dos": "🎒",
+        "Emotes": "🕺",
+        "Revêtements": "🎨",
+        "Aérosols": "🖌️",
+        "Écrans de chargement": "🖼️",
+        "Bannières": "🏳️",
+        "Instruments": "🎸"
+    };
+
+    return emojis[category] || "✨";
 }
 
 // =========================================================
@@ -441,21 +841,6 @@ function extractShopItem(entry) {
         entry?.rarity?.value ||
         "";
 
-    /*
-     * SET / PACK
-     */
-
-    const set =
-        item?.set?.value ||
-        item?.set?.name ||
-        item?.set?.displayValue ||
-        item?.set?.text ||
-        entry?.set?.value ||
-        entry?.set?.name ||
-        entry?.set?.displayValue ||
-        entry?.set?.text ||
-        "";
-
     let type = "";
 
     if (
@@ -494,6 +879,17 @@ function extractShopItem(entry) {
     const series =
         item?.series?.name ||
         item?.series?.value ||
+        "";
+
+    const set =
+        item?.set?.value ||
+        item?.set?.name ||
+        item?.set?.displayValue ||
+        item?.set?.text ||
+        entry?.set?.value ||
+        entry?.set?.name ||
+        entry?.set?.displayValue ||
+        entry?.set?.text ||
         "";
 
     return {
@@ -813,12 +1209,6 @@ async function openModal(item) {
     modalExtraInfo.textContent =
         extraParts.join(" • ");
 
-    /*
-     * IMPORTANT :
-     * L'image est préparée AVANT
-     * toute recherche vidéo.
-     */
-
     modalImage.style.display =
         "block";
 
@@ -827,11 +1217,6 @@ async function openModal(item) {
 
     modalImage.alt =
         item.name;
-
-    /*
-     * On force directement
-     * la première slide.
-     */
 
     previewTrack.style.transition =
         "none";
@@ -843,19 +1228,10 @@ async function openModal(item) {
 
     createDots();
 
-    /*
-     * IMAGE = SLIDE 0
-     */
-
     updateSlide(
         0,
         false
     );
-
-    /*
-     * Pas d'identifiant =
-     * pas de recherche vidéo.
-     */
 
     if (!item.id) {
 
@@ -926,13 +1302,6 @@ async function openModal(item) {
         }
 
         createDots();
-
-        /*
-         * IMPORTANT :
-         * On revient toujours
-         * sur l'image après
-         * le chargement des données.
-         */
 
         updateSlide(
             0,
@@ -1431,13 +1800,6 @@ function createDots() {
 
     carouselDots.innerHTML = "";
 
-    /*
-     * TOUJOURS DEUX POINTS :
-     *
-     * 1 = IMAGE
-     * 2 = VIDÉO / FALLBACK
-     */
-
     for (
         let i = 0;
         i < 2;
@@ -1537,11 +1899,6 @@ function updateSlide(
             ? "transform 0.35s cubic-bezier(.22,.61,.36,1)"
             : "none";
 
-    /*
-     * 0%  = IMAGE
-     * 50% = VIDÉO
-     */
-
     previewTrack.style.transform =
         `translate3d(-${index * 50}%, 0, 0)`;
 
@@ -1559,10 +1916,6 @@ function updateSlide(
             );
         }
     );
-
-    /* =====================================================
-       IMAGE
-       ===================================================== */
 
     if (
         index === 0
@@ -1585,10 +1938,6 @@ function updateSlide(
 
         return;
     }
-
-    /* =====================================================
-       VIDÉO
-       ===================================================== */
 
     modalImage.style.display =
         "none";
