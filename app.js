@@ -1,15 +1,14 @@
 const SHOP_API = "https://fortnite-api.com/v2/shop?language=fr";
-const COSMETIC_API = "https://fortnite-api.com/v2/cosmetics/br/search/ids";
+const COSMETIC_API =
+    "https://fortnite-api.com/v2/cosmetics/br/search/ids";
 
 const shopEl = document.getElementById("shop");
-const statusEl = document.getElementById("status");
-const shopDateEl = document.getElementById("shop-date");
-const refreshBtn = document.getElementById("refresh-btn");
+const shopStatus = document.getElementById("shop-status");
+const shopDate = document.getElementById("shop-date");
+const refreshBtn = document.getElementById("refresh-shop");
 
 const modal = document.getElementById("item-modal");
-const modalBackdrop = document.querySelector(".modal-backdrop");
 const modalClose = document.getElementById("modal-close");
-
 const modalName = document.getElementById("modal-name");
 const modalPrice = document.getElementById("modal-price");
 const modalExtra = document.getElementById("modal-extra");
@@ -19,7 +18,6 @@ const previewTrack = document.getElementById("preview-track");
 const previewImage = document.getElementById("preview-image");
 const previewVideo = document.getElementById("preview-video");
 const previewVideoSource = document.getElementById("preview-video-source");
-
 const previewStatus = document.getElementById("preview-status");
 const previewDots = document.getElementById("preview-dots");
 
@@ -31,24 +29,19 @@ const packCarouselNext = document.getElementById("pack-carousel-next");
 let currentModalItem = null;
 let currentPreviewIndex = 0;
 let hasVideo = false;
-
 let currentPackItemIndex = 0;
 
-let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
 
-let packTouchStartX = 0;
-let packTouchEndX = 0;
-
-
-/* ========================================================= */
-/* UTILITAIRES */
-/* ========================================================= */
+// ============================================================
+// HELPERS
+// ============================================================
 
 function escapeHtml(value) {
-    return String(value ?? "")
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -56,9 +49,13 @@ function escapeHtml(value) {
         .replace(/'/g, "&#039;");
 }
 
-function getFirstValidString(values) {
+
+function getFirstValidString(...values) {
     for (const value of values) {
-        if (typeof value === "string" && value.trim()) {
+        if (
+            typeof value === "string" &&
+            value.trim() !== ""
+        ) {
             return value.trim();
         }
     }
@@ -67,265 +64,289 @@ function getFirstValidString(values) {
 }
 
 
-/* ========================================================= */
-/* SHOP API */
-/* ========================================================= */
+// ============================================================
+// SHOP DATA
+// ============================================================
 
 function getEntryItems(entry) {
-    if (Array.isArray(entry?.items)) {
+    if (Array.isArray(entry?.items) && entry.items.length) {
         return entry.items;
     }
 
-    if (Array.isArray(entry?.brItems)) {
+    if (Array.isArray(entry?.brItems) && entry.brItems.length) {
         return entry.brItems;
     }
 
-    if (Array.isArray(entry?.tracks)) {
+    if (Array.isArray(entry?.tracks) && entry.tracks.length) {
         return entry.tracks;
     }
 
-    if (Array.isArray(entry?.instruments)) {
+    if (
+        Array.isArray(entry?.instruments) &&
+        entry.instruments.length
+    ) {
         return entry.instruments;
     }
 
     return [];
 }
 
+
 function isPackEntry(entry, items) {
-    return items.length > 1 || !!entry?.bundle;
+    return (
+        items.length > 1 ||
+        !!entry?.bundle ||
+        entry?.offerKind === "bundle" ||
+        entry?.isBundle === true
+    );
 }
 
+
 function getItemImage(item) {
-    return getFirstValidString([
+    return getFirstValidString(
         item?.images?.featured,
         item?.images?.icon,
         item?.images?.smallIcon,
         item?.images?.background,
         item?.image,
         item?.imageUrl
-    ]);
+    );
 }
 
-function getBundleImage(entry) {
-    const candidates = [
-        entry?.bundle?.image,
 
+function getBundleImage(entry) {
+    return getFirstValidString(
+        entry?.bundle?.image,
         entry?.bundle?.images?.featured,
-        entry?.bundle?.images?.full_background,
-        entry?.bundle?.images?.background,
         entry?.bundle?.images?.icon,
 
         entry?.newDisplayAsset?.renderImages?.[0]?.image,
         entry?.newDisplayAsset?.renderImages?.[0]?.url,
+
         entry?.newDisplayAsset?.image,
         entry?.newDisplayAsset?.url,
 
-        entry?.displayAssets?.[0]?.url,
         entry?.displayAssets?.[0]?.image,
-        entry?.displayAssets?.[0]?.renderImages?.[0]?.image,
-        entry?.displayAssets?.[0]?.renderImages?.[0]?.url,
+        entry?.displayAssets?.[0]?.url,
 
-        entry?.displayAsset?.renderImages?.[0]?.image,
-        entry?.displayAsset?.renderImages?.[0]?.url,
         entry?.displayAsset?.image,
         entry?.displayAsset?.url,
 
         entry?.image,
         entry?.imageUrl
-    ];
-
-    return getFirstValidString(candidates);
+    );
 }
+
 
 function getItemPrice(item) {
-    const values = [
-        item?.price,
-        item?.regularPrice,
-        item?.finalPrice
-    ];
+    const price =
+        item?.price ??
+        item?.finalPrice ??
+        item?.regularPrice ??
+        item?.cost;
 
-    for (const value of values) {
-        const number = Number(value);
-
-        if (Number.isFinite(number) && number > 0) {
-            return number;
-        }
+    if (
+        price === null ||
+        price === undefined ||
+        price === ""
+    ) {
+        return null;
     }
 
-    return 0;
+    const number = Number(price);
+
+    return Number.isFinite(number)
+        ? number
+        : null;
 }
+
 
 function getEntryFinalPrice(entry) {
-    const values = [
-        entry?.finalPrice,
-        entry?.price?.finalPrice,
-        entry?.bundle?.finalPrice,
-        entry?.offer?.finalPrice
-    ];
+    const price =
+        entry?.finalPrice ??
+        entry?.price?.finalPrice ??
+        entry?.price?.final ??
+        entry?.cost;
 
-    for (const value of values) {
-        const number = Number(value);
-
-        if (Number.isFinite(number) && number >= 0) {
-            return number;
-        }
+    if (
+        price === null ||
+        price === undefined ||
+        price === ""
+    ) {
+        return null;
     }
 
-    return 0;
+    const number = Number(price);
+
+    return Number.isFinite(number)
+        ? number
+        : null;
 }
+
 
 function getEntryRegularPrice(entry) {
-    const values = [
-        entry?.regularPrice,
-        entry?.price?.regularPrice,
-        entry?.bundle?.regularPrice,
-        entry?.offer?.regularPrice
-    ];
+    const price =
+        entry?.regularPrice ??
+        entry?.price?.regularPrice ??
+        entry?.price?.regular;
 
-    for (const value of values) {
-        const number = Number(value);
-
-        if (Number.isFinite(number) && number > 0) {
-            return number;
-        }
+    if (
+        price === null ||
+        price === undefined ||
+        price === ""
+    ) {
+        return null;
     }
 
-    return 0;
+    const number = Number(price);
+
+    return Number.isFinite(number)
+        ? number
+        : null;
 }
+
 
 function getIndividualItemsTotal(items) {
     return items.reduce((total, item) => {
-        return total + getItemPrice(item);
+        const price = getItemPrice(item);
+
+        if (price === null) {
+            return total;
+        }
+
+        return total + price;
     }, 0);
 }
 
-function getBundleRegularPrice(entry, items, finalPrice) {
-    const apiRegularPrice = getEntryRegularPrice(entry);
-    const individualItemsTotal = getIndividualItemsTotal(items);
+
+function getBundleRegularPrice(entry, items) {
+    const entryRegularPrice = getEntryRegularPrice(entry);
 
     if (
-        Number.isFinite(apiRegularPrice) &&
-        apiRegularPrice > finalPrice
+        entryRegularPrice !== null &&
+        entryRegularPrice > 0
     ) {
-        return apiRegularPrice;
+        return entryRegularPrice;
     }
 
-    if (
-        Number.isFinite(individualItemsTotal) &&
-        individualItemsTotal > finalPrice
-    ) {
-        return individualItemsTotal;
-    }
+    const itemTotal = getIndividualItemsTotal(items);
 
-    return apiRegularPrice;
+    return itemTotal > 0
+        ? itemTotal
+        : null;
 }
 
+
 function getBundleDiscount(entry, regularPrice, finalPrice) {
-    const explicitDiscount = Number(
+    const explicitDiscount =
         entry?.discountAmount ??
-        entry?.bundle?.discountAmount ??
-        entry?.price?.discountAmount ??
-        0
-    );
+        entry?.discount ??
+        entry?.discountPercentage;
 
     if (
-        Number.isFinite(explicitDiscount) &&
-        explicitDiscount > 0
+        explicitDiscount !== null &&
+        explicitDiscount !== undefined
     ) {
-        return explicitDiscount;
+        const number = Number(explicitDiscount);
+
+        if (
+            Number.isFinite(number) &&
+            number > 0
+        ) {
+            if (number <= 100) {
+                return Math.round(number);
+            }
+        }
     }
 
     if (
-        Number.isFinite(regularPrice) &&
-        Number.isFinite(finalPrice) &&
+        regularPrice !== null &&
+        finalPrice !== null &&
         regularPrice > finalPrice
     ) {
-        return regularPrice - finalPrice;
+        return Math.round(
+            ((regularPrice - finalPrice) / regularPrice) * 100
+        );
     }
 
     return 0;
 }
 
 
-/* ========================================================= */
-/* NOM DE L'OFFRE */
-/* ========================================================= */
+// ============================================================
+// NAME / DESCRIPTION
+// ============================================================
 
 function getEntryName(entry, items, isBundle) {
-    const firstItem = items[0];
-
     /*
-     * IMPORTANT :
+     * IMPORTANT:
+     * Si l'offre contient exactement 1 objet,
+     * on utilise TOUJOURS le nom de cet objet.
      *
-     * Une offre avec UN SEUL objet n'est PAS un pack.
-     * On utilise donc TOUJOURS le nom exact de l'objet.
+     * Cela évite d'afficher "Pack Fortnite"
+     * pour un objet simple.
      */
+
     if (items.length === 1) {
-        return getFirstValidString([
-            firstItem?.name,
+        return getFirstValidString(
+            items[0]?.name,
+            items[0]?.displayName,
             entry?.name,
             entry?.displayName,
             entry?.offerName,
             "Objet Fortnite"
-        ]);
+        );
     }
 
-    /*
-     * Ici seulement, on cherche le nom du bundle.
-     */
     if (isBundle) {
-        return getFirstValidString([
+        return getFirstValidString(
             entry?.bundle?.name,
             entry?.bundleName,
             entry?.offerName,
             entry?.name,
             entry?.displayName,
             "Pack Fortnite"
-        ]);
+        );
     }
 
-    return getFirstValidString([
-        firstItem?.name,
+    return getFirstValidString(
+        items[0]?.name,
+        items[0]?.displayName,
         entry?.name,
         entry?.displayName,
         entry?.offerName,
         "Objet Fortnite"
-    ]);
+    );
 }
+
 
 function getEntryDescription(entry, items) {
-    return getFirstValidString([
-        entry?.bundle?.description,
+    return getFirstValidString(
         entry?.description,
         entry?.shortDescription,
+        entry?.bundle?.description,
         items[0]?.description,
-        ""
-    ]);
+        items[0]?.shortDescription
+    );
 }
 
 
-/* ========================================================= */
-/* EXTRACTION D'UNE OFFRE */
-/* ========================================================= */
+// ============================================================
+// CONVERSION ENTRY -> SHOP ITEM
+// ============================================================
 
 function extractShopItem(entry) {
     const items = getEntryItems(entry);
-
     const isBundle = isPackEntry(entry, items);
-
-    const firstItem = items[0] || {};
 
     const finalPrice = getEntryFinalPrice(entry);
 
-    let regularPrice = getEntryRegularPrice(entry);
-
-    if (isBundle) {
-        regularPrice = getBundleRegularPrice(
-            entry,
-            items,
-            finalPrice
+    const regularPrice = isBundle
+        ? getBundleRegularPrice(entry, items)
+        : (
+            getEntryRegularPrice(entry) ??
+            getItemPrice(items[0])
         );
-    }
 
     const discount = isBundle
         ? getBundleDiscount(
@@ -335,69 +356,52 @@ function extractShopItem(entry) {
         )
         : 0;
 
-    let image = "";
+    const name = getEntryName(
+        entry,
+        items,
+        isBundle
+    );
 
-    /*
-     * Pour les packs :
-     * image globale du pack en priorité.
-     *
-     * L'image du premier objet n'est qu'un
-     * dernier recours.
-     */
-    if (isBundle) {
-        image = getBundleImage(entry);
+    const image = isBundle
+        ? (
+            getBundleImage(entry) ||
+            getItemImage(items[0])
+        )
+        : getItemImage(items[0]);
 
-        if (!image) {
-            image = getItemImage(firstItem);
-        }
-    } else {
-        image = getItemImage(firstItem);
-    }
+    const firstItem = items[0] || {};
 
-    const itemCount = items.length;
-
-    const itemType = getFirstValidString([
-        firstItem?.type?.displayValue,
-        firstItem?.type?.value,
+    const itemType = getFirstValidString(
         firstItem?.type,
-        entry?.type,
-        "Objet"
-    ]);
+        firstItem?.itemType,
+        firstItem?.series?.displayName,
+        firstItem?.rarity?.displayName
+    );
 
-    const id = getFirstValidString([
-        firstItem?.id,
-        entry?.offerId,
-        entry?.id
-    ]);
+    const rarity = getFirstValidString(
+        firstItem?.rarity?.displayName,
+        firstItem?.rarity?.value
+    );
 
-    const rarity = getFirstValidString([
-        firstItem?.rarity?.displayValue,
-        firstItem?.rarity?.value,
-        firstItem?.rarity,
-        ""
-    ]);
-
-    const setName = getFirstValidString([
+    const setName = getFirstValidString(
         firstItem?.set?.text,
-        firstItem?.set?.value,
-        ""
-    ]);
+        firstItem?.set?.name,
+        firstItem?.setName
+    );
 
     return {
-        id,
+        id:
+            entry?.offerId ||
+            entry?.id ||
+            entry?.offerID ||
+            firstItem?.id ||
+            Math.random().toString(36).slice(2),
 
-        name: getEntryName(
-            entry,
-            items,
-            isBundle
-        ),
-
+        name,
         image,
 
         price: finalPrice,
-
         regularPrice,
-
         discount,
 
         description: getEntryDescription(
@@ -406,14 +410,12 @@ function extractShopItem(entry) {
         ),
 
         itemType,
-
         rarity,
-
         setName,
 
         isBundle,
 
-        itemCount,
+        itemCount: items.length,
 
         items,
 
@@ -422,52 +424,58 @@ function extractShopItem(entry) {
 }
 
 
-/* ========================================================= */
-/* CATÉGORIES */
-/* ========================================================= */
+// ============================================================
+// CATEGORIES
+// ============================================================
 
 function getCategoryName(item) {
     if (item.isBundle) {
         return "Packs";
     }
 
-    const type = String(
-        item.itemType || ""
+    const type = (
+        item.itemType ||
+        ""
+    ).toLowerCase();
+
+    const name = (
+        item.name ||
+        ""
     ).toLowerCase();
 
     if (
-        type.includes("musique") ||
         type.includes("music") ||
-        type.includes("jam")
+        type.includes("track") ||
+        name.includes("musique")
     ) {
         return "Musique";
     }
 
     if (
-        type.includes("tenue") ||
         type.includes("outfit") ||
-        type.includes("skin")
+        type.includes("skin") ||
+        type.includes("tenue")
     ) {
         return "Tenues";
     }
 
     if (
-        type.includes("pioche") ||
-        type.includes("pickaxe")
+        type.includes("pickaxe") ||
+        type.includes("harvesting")
     ) {
         return "Pioche";
     }
 
     if (
-        type.includes("planeur") ||
-        type.includes("glider")
+        type.includes("glider") ||
+        type.includes("planeur")
     ) {
         return "Planeurs";
     }
 
     if (
-        type.includes("revêtement") ||
-        type.includes("wrap")
+        type.includes("wrap") ||
+        type.includes("revêtement")
     ) {
         return "Revêtements";
     }
@@ -476,13 +484,13 @@ function getCategoryName(item) {
         type.includes("emote") ||
         type.includes("emote")
     ) {
-        return "Emotes";
+        return "Danses";
     }
 
     if (
-        type.includes("accessoire") ||
+        type.includes("backpack") ||
         type.includes("back bling") ||
-        type.includes("accessoire de dos")
+        type.includes("accessory")
     ) {
         return "Accessoires";
     }
@@ -491,9 +499,118 @@ function getCategoryName(item) {
 }
 
 
-/* ========================================================= */
-/* CARTES DE LA BOUTIQUE */
-/* ========================================================= */
+// ============================================================
+// CARD
+// ============================================================
+
+function createCard(item, index) {
+    const priceHtml =
+        item.price !== null
+            ? `${escapeHtml(item.price)} V-Bucks`
+            : "Prix indisponible";
+
+    let discountHtml = "";
+
+    if (
+        item.isBundle &&
+        item.discount > 0
+    ) {
+        discountHtml = `
+            <span class="bundle-discount">
+                -${escapeHtml(item.discount)}%
+            </span>
+        `;
+    }
+
+    let countHtml = "";
+
+    if (
+        item.isBundle &&
+        item.itemCount > 0
+    ) {
+        countHtml = `
+            <span class="bundle-count-badge">
+                ${escapeHtml(item.itemCount)} OBJET${item.itemCount > 1 ? "S" : ""}
+            </span>
+        `;
+    }
+
+    let oldPriceHtml = "";
+
+    if (
+        item.isBundle &&
+        item.regularPrice !== null &&
+        item.price !== null &&
+        item.regularPrice > item.price
+    ) {
+        oldPriceHtml = `
+            <span class="old-price">
+                ${escapeHtml(item.regularPrice)} V-Bucks
+            </span>
+        `;
+    }
+
+    const imageHtml = item.image
+        ? `
+            <img
+                src="${escapeHtml(item.image)}"
+                alt="${escapeHtml(item.name)}"
+                loading="lazy"
+            >
+        `
+        : `
+            <div class="shop-card-no-image">
+                Image indisponible
+            </div>
+        `;
+
+    return `
+        <article
+            class="shop-card ${item.isBundle ? "bundle-card" : ""}"
+            data-shop-index="${index}"
+            tabindex="0"
+            role="button"
+            aria-label="Voir ${escapeHtml(item.name)}"
+        >
+            <div class="shop-card-image">
+                ${imageHtml}
+
+                <div class="shop-card-badges">
+                    ${discountHtml}
+                    ${countHtml}
+                </div>
+            </div>
+
+            <div class="shop-card-info">
+                ${
+                    item.itemType
+                        ? `
+                            <span class="shop-card-type">
+                                ${escapeHtml(item.itemType)}
+                            </span>
+                        `
+                        : ""
+                }
+
+                <h3>
+                    ${escapeHtml(item.name)}
+                </h3>
+
+                <div class="shop-card-price">
+                    ${oldPriceHtml}
+                    <span>
+                        ${priceHtml}
+                    </span>
+                </div>
+            </div>
+        </article>
+    `;
+}
+
+
+// ============================================================
+// SECTION
+// ============================================================
 
 function createSection(
     title,
@@ -504,150 +621,46 @@ function createSection(
         return "";
     }
 
-    return `
-        <section class="shop-group ${sectionClass}">
-            <div class="shop-group-header">
-                <div>
-                    <h2>${escapeHtml(title)}</h2>
+    const cards = items
+        .map((item, index) =>
+            createCard(item, index)
+        )
+        .join("");
 
-                    <span>
-                        ${items.length}
-                        offre${items.length > 1 ? "s" : ""}
-                    </span>
-                </div>
+    return `
+        <section
+            class="shop-group ${escapeHtml(sectionClass)}"
+        >
+            <div class="shop-group-header">
+                <h2>
+                    ${escapeHtml(title)}
+                </h2>
+
+                <span class="shop-group-count">
+                    ${items.length}
+                    offre${items.length > 1 ? "s" : ""}
+                </span>
             </div>
 
             <div class="shop-grid">
-                ${items
-                    .map((item, index) =>
-                        createCard(item, index)
-                    )
-                    .join("")}
+                ${cards}
             </div>
         </section>
     `;
 }
 
-function createCard(item, index) {
-    const safeName = escapeHtml(item.name);
-    const safeImage = escapeHtml(item.image);
 
-    let priceHtml = "";
-
-    if (item.price > 0) {
-        if (
-            item.isBundle &&
-            item.regularPrice > item.price
-        ) {
-            priceHtml = `
-                <div class="card-price">
-
-                    <span class="old-price">
-                        ${item.regularPrice.toLocaleString("fr-FR")}
-                        V-Bucks
-                    </span>
-
-                    <span class="bundle-price">
-                        ${item.price.toLocaleString("fr-FR")}
-                        V-Bucks
-                    </span>
-
-                </div>
-            `;
-        } else {
-            priceHtml = `
-                <div class="card-price">
-                    ${item.price.toLocaleString("fr-FR")}
-                    V-Bucks
-                </div>
-            `;
-        }
-    } else {
-        priceHtml = `
-            <div class="card-price">
-                Prix indisponible
-            </div>
-        `;
-    }
-
-    const discountBadge =
-        item.isBundle &&
-        item.discount > 0
-            ? `
-                <span class="bundle-discount">
-                    ${item.discount.toLocaleString("fr-FR")}
-                    V-BUCKS DE RÉDUC.
-                </span>
-            `
-            : "";
-
-    const countBadge =
-        item.isBundle
-            ? `
-                <span class="bundle-count-badge">
-                    ${item.itemCount}
-                    OBJET${item.itemCount > 1 ? "S" : ""}
-                </span>
-            `
-            : "";
-
-    return `
-        <article
-            class="shop-card ${item.isBundle ? "bundle-card" : ""}"
-            data-index="${index}"
-            tabindex="0"
-            role="button"
-            aria-label="Voir ${safeName}"
-        >
-
-            <div class="card-image-wrapper">
-
-                ${
-                    safeImage
-                        ? `
-                            <img
-                                class="card-image"
-                                src="${safeImage}"
-                                alt="${safeName}"
-                                loading="lazy"
-                            >
-                        `
-                        : `
-                            <div class="card-image-fallback">
-                                IMAGE
-                            </div>
-                        `
-                }
-
-                <div class="card-badges">
-                    ${discountBadge}
-                    ${countBadge}
-                </div>
-
-            </div>
-
-            <div class="card-info">
-
-                <div class="card-type">
-                    ${escapeHtml(item.itemType)}
-                </div>
-
-                <h3>
-                    ${safeName}
-                </h3>
-
-                ${priceHtml}
-
-            </div>
-
-        </article>
-    `;
-}
+// ============================================================
+// RENDER SHOP
+// ============================================================
 
 function renderShop(entries) {
     const items = entries
         .map(extractShopItem)
-        .filter(item => item && item.name);
+        .filter(item =>
+            item &&
+            item.name
+        );
 
     const bundles = [];
     const music = [];
@@ -676,10 +689,15 @@ function renderShop(entries) {
         }
 
         if (!categories.has(category)) {
-            categories.set(category, []);
+            categories.set(
+                category,
+                []
+            );
         }
 
-        categories.get(category).push(item);
+        categories
+            .get(category)
+            .push(item);
     });
 
     let html = "";
@@ -726,223 +744,173 @@ function renderShop(entries) {
             </div>
         `;
 
-    document
-        .querySelectorAll(".shop-card")
-        .forEach(card => {
+
+    /*
+     * IMPORTANT :
+     * Chaque carte reçoit directement l'objet
+     * qui lui correspond.
+     *
+     * On ne cherche plus l'objet en fonction
+     * de la position globale du DOM.
+     */
+
+    const allSections =
+        document.querySelectorAll(
+            ".shop-group"
+        );
+
+    allSections.forEach(section => {
+        const title =
+            section
+                .querySelector("h2")
+                ?.textContent
+                ?.trim();
+
+        let sectionItems = [];
+
+        if (title === "📦 Packs") {
+            sectionItems = bundles;
+        }
+        else if (title === "🎵 Musique") {
+            sectionItems = music;
+        }
+        else if (title === "Autres") {
+            sectionItems = others;
+        }
+        else {
+            sectionItems =
+                categories.get(title) || [];
+        }
+
+        const cards =
+            section.querySelectorAll(
+                ".shop-card"
+            );
+
+        cards.forEach((card, index) => {
+            const item =
+                sectionItems[index];
+
+            if (!item) {
+                return;
+            }
+
+            card.__shopItem = item;
 
             card.addEventListener(
                 "click",
                 () => {
-
-                    const section =
-                        card.closest(".shop-group");
-
-                    const cards = Array.from(
-                        section.querySelectorAll(
-                            ".shop-card"
-                        )
+                    openModal(
+                        card.__shopItem
                     );
-
-                    const index =
-                        cards.indexOf(card);
-
-                    const sectionItems =
-                        getSectionItems(
-                            section,
-                            items
-                        );
-
-                    const selectedItem =
-                        sectionItems[index];
-
-                    if (selectedItem) {
-                        openModal(
-                            selectedItem
-                        );
-                    }
                 }
             );
 
             card.addEventListener(
                 "keydown",
                 event => {
-
                     if (
                         event.key === "Enter" ||
                         event.key === " "
                     ) {
                         event.preventDefault();
-                        card.click();
+
+                        openModal(
+                            card.__shopItem
+                        );
                     }
                 }
             );
         });
-}
-
-function getSectionItems(
-    section,
-    allItems
-) {
-    const sectionTitle =
-        section
-            .querySelector("h2")
-            ?.textContent
-            ?.trim()
-            ?.replace("📦 ", "");
-
-    if (sectionTitle === "Packs") {
-        return allItems.filter(
-            item => item.isBundle
-        );
-    }
-
-    if (sectionTitle === "Musique") {
-        return allItems.filter(
-            item =>
-                !item.isBundle &&
-                getCategoryName(item) === "Musique"
-        );
-    }
-
-    return allItems.filter(item => {
-        if (item.isBundle) {
-            return false;
-        }
-
-        return (
-            getCategoryName(item) ===
-            sectionTitle
-        );
     });
 }
 
 
-/* ========================================================= */
-/* CHARGEMENT BOUTIQUE */
-/* ========================================================= */
+// ============================================================
+// LOAD SHOP
+// ============================================================
 
 async function loadShop() {
     try {
-        statusEl.textContent =
+        shopStatus.textContent =
             "Chargement de la boutique…";
 
         refreshBtn.disabled = true;
 
-        const response = await fetch(
-            SHOP_API,
-            {
+        const response =
+            await fetch(SHOP_API, {
                 cache: "no-store"
-            }
-        );
+            });
 
         if (!response.ok) {
             throw new Error(
-                `HTTP ${response.status}`
+                `Erreur HTTP ${response.status}`
             );
         }
 
-        const json =
+        const data =
             await response.json();
 
-        const data =
-            json?.data ?? json;
-
         const entries =
-            data?.entries ||
-            data?.shop ||
             data?.data?.entries ||
+            data?.entries ||
             data?.data?.shop ||
+            data?.shop ||
             [];
 
         if (!Array.isArray(entries)) {
             throw new Error(
-                "Format de boutique inattendu."
+                "Format de boutique invalide."
             );
         }
 
         renderShop(entries);
 
-        const shopDate =
-            data?.date ||
-            data?.shopDate ||
-            data?.lastUpdate ||
-            null;
+        const now =
+            new Date();
 
-        if (shopDate) {
-            const date =
-                new Date(shopDate);
+        shopDate.textContent =
+            `Mis à jour à ${now.toLocaleTimeString(
+                "fr-FR",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            )}`;
 
-            if (!Number.isNaN(
-                date.getTime()
-            )) {
-                shopDateEl.textContent =
-                    `Actualisée le ${
-                        date.toLocaleString(
-                            "fr-FR",
-                            {
-                                dateStyle:
-                                    "medium",
-                                timeStyle:
-                                    "short"
-                            }
-                        )
-                    }`;
-            }
-        }
+        shopStatus.textContent =
+            `${entries.length} offres chargées`;
+    }
+    catch (error) {
+        console.error(
+            "Erreur boutique :",
+            error
+        );
 
-        statusEl.textContent =
-            `${entries.length} offres chargées.`;
-
-    } catch (error) {
-
-        console.error(error);
-
-        statusEl.textContent =
+        shopStatus.textContent =
             "Impossible de charger la boutique.";
 
         shopEl.innerHTML = `
-            <div class="error-shop">
-
-                <h2>
-                    Erreur
-                </h2>
-
-                <p>
-                    La boutique Fortnite
-                    n'a pas pu être chargée.
-                </p>
-
-                <button
-                    type="button"
-                    id="retry-btn"
-                    class="retry-btn"
-                >
-                    Réessayer
-                </button>
-
+            <div class="empty-shop">
+                <strong>Impossible de charger la boutique.</strong>
+                <br>
+                Vérifie ta connexion puis réessaie.
             </div>
         `;
-
-        document
-            .getElementById("retry-btn")
-            ?.addEventListener(
-                "click",
-                loadShop
-            );
-
-    } finally {
+    }
+    finally {
         refreshBtn.disabled = false;
     }
 }
 
 
-/* ========================================================= */
-/* VIDÉO DU PRODUIT PRINCIPAL */
-/* ========================================================= */
+// ============================================================
+// COSMETIC VIDEO
+// ============================================================
 
 async function getCosmeticVideo(itemId) {
     if (!itemId) {
-        return "";
+        return null;
     }
 
     try {
@@ -957,79 +925,96 @@ async function getCosmeticVideo(itemId) {
             );
 
         if (!response.ok) {
-            return "";
+            return null;
         }
 
-        const json =
+        const data =
             await response.json();
 
         const item =
-            json?.data?.[0] ||
-            json?.data ||
+            data?.data?.[0] ||
+            data?.data ||
             null;
 
         if (!item) {
-            return "";
+            return null;
         }
 
-        return getFirstValidString([
+        return getFirstValidString(
             item?.video,
             item?.videos?.video,
             item?.previewVideo
-        ]);
+        ) || null;
+    }
+    catch (error) {
+        console.warn(
+            "Impossible de récupérer la vidéo :",
+            error
+        );
 
-    } catch {
-        return "";
+        return null;
     }
 }
 
 
-/* ========================================================= */
-/* PREVIEW IMAGE / VIDÉO */
-/* ========================================================= */
+// ============================================================
+// PREVIEW
+// ============================================================
 
 function setPreview(index) {
     currentPreviewIndex = index;
 
-    if (!hasVideo) {
-        index = 0;
-        currentPreviewIndex = 0;
-    }
-
-    previewTrack.style.transform =
-        `translateX(-${index * 100}%)`;
-
-    previewDots
-        .querySelectorAll(
-            ".preview-dot"
-        )
-        .forEach(
-            (dot, dotIndex) => {
-
-                dot.classList.toggle(
-                    "active",
-                    dotIndex === index
-                );
-            }
-        );
-
     if (
-        index === 1 &&
+        currentPreviewIndex === 0
+    ) {
+        previewTrack.style.transform =
+            "translateX(0%)";
+
+        previewImage.style.display =
+            "block";
+
+        if (previewVideo) {
+            previewVideo.pause();
+        }
+
+        if (previewStatus) {
+            previewStatus.textContent =
+                "";
+        }
+    }
+    else if (
+        currentPreviewIndex === 1 &&
         hasVideo
     ) {
-        previewVideo
-            .play()
-            .catch(() => {});
-    } else {
-        previewVideo.pause();
+        previewTrack.style.transform =
+            "translateX(-100%)";
+
+        previewImage.style.display =
+            "block";
+
+        if (previewVideo) {
+            previewVideo.play().catch(() => {});
+        }
+
+        if (previewStatus) {
+            previewStatus.textContent =
+                "";
+        }
     }
+
+    createPreviewDots();
 }
 
+
 function createPreviewDots() {
-    previewDots.innerHTML = "";
+    if (!previewDots) {
+        return;
+    }
 
     const count =
         hasVideo ? 2 : 1;
+
+    previewDots.innerHTML = "";
 
     for (
         let i = 0;
@@ -1045,23 +1030,23 @@ function createPreviewDots() {
 
         dot.className =
             `preview-dot ${
-                i === 0
+                i === currentPreviewIndex
                     ? "active"
                     : ""
             }`;
 
         dot.setAttribute(
             "aria-label",
-            `Afficher ${
-                i === 0
-                    ? "l'image"
-                    : "la vidéo"
-            }`
+            i === 0
+                ? "Afficher l'image"
+                : "Afficher la vidéo"
         );
 
         dot.addEventListener(
             "click",
-            () => setPreview(i)
+            () => {
+                setPreview(i);
+            }
         );
 
         previewDots.appendChild(dot);
@@ -1069,61 +1054,64 @@ function createPreviewDots() {
 }
 
 
-/* ========================================================= */
-/* CARROUSEL DES OBJETS DU PACK */
-/* ========================================================= */
+// ============================================================
+// PACK CAROUSEL
+// ============================================================
 
 function getPackItemName(item) {
-    return getFirstValidString([
+    return getFirstValidString(
         item?.name,
         item?.displayName,
         item?.title,
-        "Objet"
-    ]);
+        "Objet Fortnite"
+    );
 }
+
 
 function getPackItemType(item) {
-    return getFirstValidString([
-        item?.type?.displayValue,
-        item?.type?.value,
-        typeof item?.type === "string"
-            ? item.type
-            : "",
-        item?.rarity?.displayValue,
-        item?.rarity?.value,
+    return getFirstValidString(
+        item?.type,
+        item?.itemType,
+        item?.series?.displayName,
+        item?.rarity?.displayName,
         "Objet"
-    ]);
+    );
 }
+
 
 function getPackItemId(item) {
-    return getFirstValidString([
+    return getFirstValidString(
         item?.id,
-        item?.templateId
-    ]);
+        item?.templateId,
+        item?.assetId
+    );
 }
 
+
 function renderPackCarousel(items) {
-    packCarouselTrack.innerHTML = "";
-
-    currentPackItemIndex = 0;
-
     if (
-        !Array.isArray(items) ||
-        items.length <= 1
+        !packCarousel ||
+        !packCarouselTrack
     ) {
-        packCarousel.classList.remove(
-            "visible"
-        );
-
         return;
     }
 
-    packCarousel.classList.add(
-        "visible"
-    );
+    packCarouselTrack.innerHTML = "";
 
     items.forEach(
         (item, index) => {
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.type = "button";
+
+            button.className =
+                "pack-carousel-item";
+
+            button.dataset.index =
+                String(index);
 
             const image =
                 getItemImage(item);
@@ -1134,142 +1122,119 @@ function renderPackCarousel(items) {
             const type =
                 getPackItemType(item);
 
-            const itemElement =
-                document.createElement(
-                    "button"
-                );
-
-            itemElement.type = "button";
-
-            itemElement.className =
-                `pack-carousel-item ${
-                    index === 0
-                        ? "active"
-                        : ""
-                }`;
-
-            itemElement.dataset.index =
-                String(index);
-
-            itemElement.setAttribute(
-                "aria-label",
-                `${index + 1}/${items.length} ${name}`
-            );
-
-            itemElement.innerHTML = `
+            button.innerHTML = `
                 <span class="pack-carousel-number">
                     ${index + 1}/${items.length}
                 </span>
 
-                <span class="pack-carousel-image-wrap">
-
+                <div class="pack-carousel-image">
                     ${
                         image
                             ? `
                                 <img
-                                    src="${escapeHtml(
-                                        image
-                                    )}"
-                                    alt="${escapeHtml(
-                                        name
-                                    )}"
-                                    class="pack-carousel-image"
+                                    src="${escapeHtml(image)}"
+                                    alt="${escapeHtml(name)}"
                                     loading="lazy"
                                 >
                             `
                             : `
-                                <span class="pack-carousel-no-image">
-                                    —
-                                </span>
+                                <div class="pack-carousel-no-image">
+                                    ?
+                                </div>
                             `
                     }
+                </div>
 
+                <span class="pack-carousel-name">
+                    ${escapeHtml(name)}
                 </span>
 
-                <span class="pack-carousel-info">
-
-                    <strong>
-                        ${escapeHtml(name)}
-                    </strong>
-
-                    <small>
-                        ${escapeHtml(type)}
-                    </small>
-
+                <span class="pack-carousel-type">
+                    ${escapeHtml(type)}
                 </span>
             `;
 
-            itemElement.addEventListener(
+            button.addEventListener(
                 "click",
                 () => {
-
                     setPackCarouselItem(
                         index,
-                        items,
-                        true
+                        items
                     );
                 }
             );
 
             packCarouselTrack.appendChild(
-                itemElement
+                button
             );
         }
     );
 
-    updatePackCarouselButtons();
+    currentPackItemIndex = 0;
 
-    /*
-     * Le premier objet est sélectionné
-     * automatiquement.
-     */
-    updatePackMainPreview(
-        items[0]
+    setPackCarouselItem(
+        0,
+        items,
+        false
     );
+
+    updatePackCarouselButtons();
 }
+
 
 function setPackCarouselItem(
     index,
     items,
     updateMainImage = true
 ) {
-    if (
-        !Array.isArray(items) ||
-        !items[index]
-    ) {
+    if (!items?.length) {
         return;
     }
 
-    currentPackItemIndex = index;
-
-    packCarouselTrack
-        .querySelectorAll(
-            ".pack-carousel-item"
+    index = Math.max(
+        0,
+        Math.min(
+            index,
+            items.length - 1
         )
-        .forEach(
-            (element, elementIndex) => {
+    );
 
-                element.classList.toggle(
-                    "active",
-                    elementIndex === index
-                );
-            }
-        );
+    currentPackItemIndex =
+        index;
 
-    if (updateMainImage) {
+    const buttons =
+        packCarouselTrack
+            ? packCarouselTrack.querySelectorAll(
+                ".pack-carousel-item"
+            )
+            : [];
+
+    buttons.forEach(
+        (button, buttonIndex) => {
+            button.classList.toggle(
+                "active",
+                buttonIndex === index
+            );
+        }
+    );
+
+    const selectedItem =
+        items[index];
+
+    if (
+        selectedItem &&
+        updateMainImage
+    ) {
         updatePackMainPreview(
-            items[index]
+            selectedItem
         );
     }
 
-    const selected =
-        packCarouselTrack
-            .querySelector(
-                `.pack-carousel-item[data-index="${index}"]`
-            );
+    const activeButton =
+        buttons[index];
 
-    if (selected) {
-        selected.scrollIntoView({
+    if (activeButton) {
+        activeButton.scrollIntoView({
             behavior: "smooth",
             block: "nearest",
             inline: "center"
@@ -1279,294 +1244,265 @@ function setPackCarouselItem(
     updatePackCarouselButtons();
 }
 
+
 function updatePackMainPreview(item) {
+    const image =
+        getItemImage(item);
+
+    if (!image) {
+        return;
+    }
+
+    previewImage.src = image;
+
+    previewImage.alt =
+        getPackItemName(item);
+
+    setPreview(0);
+}
+
+
+function updatePackCarouselButtons() {
+    if (
+        !packCarouselPrev ||
+        !packCarouselNext ||
+        !currentModalItem
+    ) {
+        return;
+    }
+
+    const items =
+        currentModalItem.items || [];
+
+    const hasMultiple =
+        items.length > 1;
+
+    packCarouselPrev.disabled =
+        !hasMultiple ||
+        currentPackItemIndex <= 0;
+
+    packCarouselNext.disabled =
+        !hasMultiple ||
+        currentPackItemIndex >=
+            items.length - 1;
+}
+
+
+if (packCarouselPrev) {
+    packCarouselPrev.addEventListener(
+        "click",
+        () => {
+            if (!currentModalItem) {
+                return;
+            }
+
+            setPackCarouselItem(
+                currentPackItemIndex - 1,
+                currentModalItem.items
+            );
+        }
+    );
+}
+
+
+if (packCarouselNext) {
+    packCarouselNext.addEventListener(
+        "click",
+        () => {
+            if (!currentModalItem) {
+                return;
+            }
+
+            setPackCarouselItem(
+                currentPackItemIndex + 1,
+                currentModalItem.items
+            );
+        }
+    );
+}
+
+
+// Swipe du carrousel des objets
+let packTouchStartX = 0;
+let packTouchEndX = 0;
+
+if (packCarouselTrack) {
+    packCarouselTrack.addEventListener(
+        "touchstart",
+        event => {
+            packTouchStartX =
+                event.changedTouches[0].clientX;
+        },
+        {
+            passive: true
+        }
+    );
+
+    packCarouselTrack.addEventListener(
+        "touchend",
+        event => {
+            packTouchEndX =
+                event.changedTouches[0].clientX;
+
+            const difference =
+                packTouchStartX -
+                packTouchEndX;
+
+            if (
+                Math.abs(difference) < 40
+            ) {
+                return;
+            }
+
+            if (!currentModalItem) {
+                return;
+            }
+
+            if (difference > 0) {
+                setPackCarouselItem(
+                    currentPackItemIndex + 1,
+                    currentModalItem.items
+                );
+            }
+            else {
+                setPackCarouselItem(
+                    currentPackItemIndex - 1,
+                    currentModalItem.items
+                );
+            }
+        },
+        {
+            passive: true
+        }
+    );
+}
+
+
+// ============================================================
+// OPEN MODAL
+// ============================================================
+
+async function openModal(item) {
     if (!item) {
         return;
     }
 
-    const image =
-        getItemImage(item);
-
-    if (image) {
-        previewImage.src = image;
-        previewImage.alt =
-            getPackItemName(item);
-    }
-
-    /*
-     * Lorsqu'on change d'objet dans le pack,
-     * on repart sur l'image.
-     *
-     * La vidéo du pack reste liée au produit
-     * principal et ne doit pas être mélangée
-     * avec les images du carrousel.
-     */
-    setPreview(0);
-}
-
-function updatePackCarouselButtons() {
-    const items =
-        packCarouselTrack.querySelectorAll(
-            ".pack-carousel-item"
-        );
-
-    const count =
-        items.length;
-
-    if (count <= 1) {
-        packCarouselPrev.disabled = true;
-        packCarouselNext.disabled = true;
-        return;
-    }
-
-    packCarouselPrev.disabled =
-        currentPackItemIndex <= 0;
-
-    packCarouselNext.disabled =
-        currentPackItemIndex >= count - 1;
-}
-
-packCarouselPrev?.addEventListener(
-    "click",
-    () => {
-
-        if (
-            !currentModalItem?.isBundle
-        ) {
-            return;
-        }
-
-        const items =
-            currentModalItem.items;
-
-        if (
-            currentPackItemIndex > 0
-        ) {
-            setPackCarouselItem(
-                currentPackItemIndex - 1,
-                items
-            );
-        }
-    }
-);
-
-packCarouselNext?.addEventListener(
-    "click",
-    () => {
-
-        if (
-            !currentModalItem?.isBundle
-        ) {
-            return;
-        }
-
-        const items =
-            currentModalItem.items;
-
-        if (
-            currentPackItemIndex <
-            items.length - 1
-        ) {
-            setPackCarouselItem(
-                currentPackItemIndex + 1,
-                items
-            );
-        }
-    }
-);
-
-
-/* ========================================================= */
-/* SWIPE DU CARROUSEL PACK */
-/* ========================================================= */
-
-packCarouselTrack?.addEventListener(
-    "touchstart",
-    event => {
-
-        const touch =
-            event.changedTouches[0];
-
-        packTouchStartX =
-            touch.clientX;
-    },
-    {
-        passive: true
-    }
-);
-
-packCarouselTrack?.addEventListener(
-    "touchend",
-    event => {
-
-        const touch =
-            event.changedTouches[0];
-
-        packTouchEndX =
-            touch.clientX;
-
-        const deltaX =
-            packTouchEndX -
-            packTouchStartX;
-
-        if (
-            Math.abs(deltaX) < 35
-        ) {
-            return;
-        }
-
-        if (
-            !currentModalItem?.isBundle
-        ) {
-            return;
-        }
-
-        if (
-            deltaX < 0 &&
-            currentPackItemIndex <
-                currentModalItem.items.length - 1
-        ) {
-            setPackCarouselItem(
-                currentPackItemIndex + 1,
-                currentModalItem.items
-            );
-        }
-
-        if (
-            deltaX > 0 &&
-            currentPackItemIndex > 0
-        ) {
-            setPackCarouselItem(
-                currentPackItemIndex - 1,
-                currentModalItem.items
-            );
-        }
-    },
-    {
-        passive: true
-    }
-);
-
-
-/* ========================================================= */
-/* OUVERTURE DU MODAL */
-/* ========================================================= */
-
-async function openModal(item) {
     currentModalItem = item;
+    currentPackItemIndex = 0;
 
-    /*
-     * Nom :
-     *
-     * Un objet simple possède déjà son vrai nom
-     * grâce à extractShopItem().
-     *
-     * Un pack possède son nom de bundle.
-     */
     modalName.textContent =
-        item.name;
+        item.name || "Objet Fortnite";
 
-    if (item.price > 0) {
-
-        if (
-            item.isBundle &&
-            item.regularPrice > item.price
-        ) {
-            modalPrice.innerHTML = `
-                <span class="modal-old-price">
-                    ${item.regularPrice.toLocaleString(
-                        "fr-FR"
-                    )}
-                    V-Bucks
-                </span>
-
-                <span class="modal-new-price">
-                    ${item.price.toLocaleString(
-                        "fr-FR"
-                    )}
-                    V-Bucks
-                </span>
-            `;
-        } else {
-            modalPrice.textContent =
-                `${item.price.toLocaleString(
-                    "fr-FR"
-                )} V-Bucks`;
-        }
-
-    } else {
-
+    if (
+        item.price !== null &&
+        item.price !== undefined
+    ) {
+        modalPrice.textContent =
+            `${item.price} V-Bucks`;
+    }
+    else {
         modalPrice.textContent =
             "Prix indisponible";
     }
 
-    if (item.isBundle) {
+    const extraParts = [];
 
-        modalExtra.textContent =
-            `${item.itemCount} objet${
-                item.itemCount > 1
-                    ? "s"
-                    : ""
-            }`;
-
-    } else {
-
-        modalExtra.textContent =
-            item.rarity ||
-            item.itemType ||
-            "";
+    if (item.itemType) {
+        extraParts.push(
+            item.itemType
+        );
     }
+
+    if (
+        item.rarity &&
+        item.rarity !== item.itemType
+    ) {
+        extraParts.push(
+            item.rarity
+        );
+    }
+
+    if (
+        item.itemCount > 1
+    ) {
+        extraParts.push(
+            `${item.itemCount} objets`
+        );
+    }
+
+    modalExtra.textContent =
+        extraParts.join(" • ");
 
     modalDescription.textContent =
         item.description || "";
 
-    /*
-     * Image principale initiale.
-     */
-    previewImage.src =
-        item.image || "";
+    // Image principale
+    if (item.image) {
+        previewImage.src =
+            item.image;
 
-    previewImage.alt =
-        item.name;
+        previewImage.alt =
+            item.name;
+    }
+    else {
+        previewImage.removeAttribute(
+            "src"
+        );
 
-    /*
-     * CARROUSEL DU PACK
-     *
-     * Tous les objets de entry.items
-     * sont envoyés ici.
-     */
+        previewImage.alt =
+            "Image indisponible";
+    }
+
+
+    // --------------------------------------------------------
+    // PACK CAROUSEL
+    // --------------------------------------------------------
+
     if (
         item.isBundle &&
         Array.isArray(item.items) &&
-        item.items.length > 1
+        item.items.length > 0
     ) {
+        packCarousel.style.display =
+            "";
+
         renderPackCarousel(
             item.items
         );
-    } else {
-        packCarousel.classList.remove(
-            "visible"
-        );
+    }
+    else {
+        packCarousel.style.display =
+            "none";
 
-        packCarouselTrack.innerHTML = "";
+        packCarouselTrack.innerHTML =
+            "";
 
         currentPackItemIndex = 0;
     }
 
-    previewVideo.pause();
 
-    previewVideo.removeAttribute(
-        "src"
-    );
-
-    previewVideoSource.removeAttribute(
-        "src"
-    );
+    // --------------------------------------------------------
+    // RESET VIDEO
+    // --------------------------------------------------------
 
     hasVideo = false;
 
-    previewStatus.textContent =
-        "Recherche d'une vidéo…";
+    if (previewVideo) {
+        previewVideo.pause();
+        previewVideo.removeAttribute(
+            "src"
+        );
+
+        previewVideo.load();
+    }
+
+    if (previewVideoSource) {
+        previewVideoSource.removeAttribute(
+            "src"
+        );
+    }
+
+    createPreviewDots();
 
     modal.classList.add("open");
 
@@ -1581,52 +1517,52 @@ async function openModal(item) {
 
     setPreview(0);
 
-    /*
-     * Vidéo du produit principal.
-     */
-    const videoUrl =
+
+    // --------------------------------------------------------
+    // VIDEO
+    // --------------------------------------------------------
+
+    const video =
         await getCosmeticVideo(
-            item.id
+            getFirstValidString(
+                item.id,
+                item.items?.[0]?.id
+            )
         );
 
+    /*
+     * L'utilisateur peut fermer le modal
+     * pendant que la vidéo charge.
+     */
     if (
-        currentModalItem !== item ||
-        !modal.classList.contains("open")
+        currentModalItem !== item
     ) {
         return;
     }
 
-    if (videoUrl) {
-
+    if (video) {
         hasVideo = true;
 
-        previewVideoSource.src =
-            videoUrl;
+        if (previewVideoSource) {
+            previewVideoSource.src =
+                video;
+        }
 
-        previewVideo.load();
+        if (previewVideo) {
+            previewVideo.src =
+                video;
 
-        previewStatus.textContent =
-            "Vidéo disponible";
-
-        createPreviewDots();
-
-    } else {
-
-        hasVideo = false;
-
-        previewStatus.textContent =
-            "Aucune vidéo disponible";
+            previewVideo.load();
+        }
 
         createPreviewDots();
     }
-
-    setPreview(0);
 }
 
 
-/* ========================================================= */
-/* FERMETURE DU MODAL */
-/* ========================================================= */
+// ============================================================
+// CLOSE MODAL
+// ============================================================
 
 function closeModal() {
     modal.classList.remove(
@@ -1642,161 +1578,150 @@ function closeModal() {
         "modal-open"
     );
 
-    previewVideo.pause();
+    if (previewVideo) {
+        previewVideo.pause();
+    }
 
     currentModalItem = null;
-
-    packCarousel.classList.remove(
-        "visible"
-    );
-
-    packCarouselTrack.innerHTML = "";
-
-    currentPackItemIndex = 0;
 }
 
-modalClose?.addEventListener(
-    "click",
-    closeModal
-);
 
-modalBackdrop?.addEventListener(
-    "click",
-    closeModal
-);
+if (modalClose) {
+    modalClose.addEventListener(
+        "click",
+        closeModal
+    );
+}
+
+
+const modalBackdrop =
+    modal?.querySelector(
+        ".modal-backdrop"
+    );
+
+if (modalBackdrop) {
+    modalBackdrop.addEventListener(
+        "click",
+        closeModal
+    );
+}
+
+
+// ============================================================
+// KEYBOARD
+// ============================================================
 
 document.addEventListener(
     "keydown",
     event => {
-
         if (
-            event.key === "Escape" &&
-            modal.classList.contains("open")
-        ) {
-            closeModal();
-        }
-
-        /*
-         * Flèches clavier pour le carrousel
-         * des objets du pack.
-         */
-        if (
-            modal.classList.contains("open") &&
-            currentModalItem?.isBundle
-        ) {
-
-            if (event.key === "ArrowLeft") {
-
-                if (
-                    currentPackItemIndex > 0
-                ) {
-                    setPackCarouselItem(
-                        currentPackItemIndex - 1,
-                        currentModalItem.items
-                    );
-                }
-            }
-
-            if (event.key === "ArrowRight") {
-
-                if (
-                    currentPackItemIndex <
-                    currentModalItem.items.length - 1
-                ) {
-                    setPackCarouselItem(
-                        currentPackItemIndex + 1,
-                        currentModalItem.items
-                    );
-                }
-            }
-        }
-    }
-);
-
-
-/* ========================================================= */
-/* SWIPE IMAGE / VIDÉO */
-/* ========================================================= */
-
-previewTrack?.addEventListener(
-    "touchstart",
-    event => {
-
-        const touch =
-            event.changedTouches[0];
-
-        touchStartX =
-            touch.clientX;
-
-        touchStartY =
-            touch.clientY;
-    },
-    {
-        passive: true
-    }
-);
-
-previewTrack?.addEventListener(
-    "touchend",
-    event => {
-
-        const touch =
-            event.changedTouches[0];
-
-        touchEndX =
-            touch.clientX;
-
-        touchEndY =
-            touch.clientY;
-
-        const deltaX =
-            touchEndX -
-            touchStartX;
-
-        const deltaY =
-            touchEndY -
-            touchStartY;
-
-        if (
-            Math.abs(deltaX) < 45 ||
-            Math.abs(deltaX) <
-                Math.abs(deltaY)
+            !modal.classList.contains(
+                "open"
+            )
         ) {
             return;
         }
 
         if (
-            deltaX < 0 &&
-            currentPreviewIndex <
-                (hasVideo ? 1 : 0)
+            event.key === "Escape"
         ) {
-            setPreview(
-                currentPreviewIndex + 1
-            );
+            closeModal();
+            return;
         }
 
         if (
-            deltaX > 0 &&
-            currentPreviewIndex > 0
+            event.key === "ArrowLeft" &&
+            currentModalItem?.isBundle
         ) {
-            setPreview(
-                currentPreviewIndex - 1
+            setPackCarouselItem(
+                currentPackItemIndex - 1,
+                currentModalItem.items
+            );
+
+            return;
+        }
+
+        if (
+            event.key === "ArrowRight" &&
+            currentModalItem?.isBundle
+        ) {
+            setPackCarouselItem(
+                currentPackItemIndex + 1,
+                currentModalItem.items
             );
         }
-    },
-    {
-        passive: true
     }
 );
 
 
-/* ========================================================= */
-/* REFRESH */
-/* ========================================================= */
+// ============================================================
+// SWIPE IMAGE / VIDEO
+// ============================================================
 
-refreshBtn?.addEventListener(
-    "click",
-    loadShop
-);
+let previewTouchStartX = 0;
+let previewTouchEndX = 0;
+
+if (previewTrack) {
+    previewTrack.addEventListener(
+        "touchstart",
+        event => {
+            previewTouchStartX =
+                event.changedTouches[0].clientX;
+        },
+        {
+            passive: true
+        }
+    );
+
+    previewTrack.addEventListener(
+        "touchend",
+        event => {
+            previewTouchEndX =
+                event.changedTouches[0].clientX;
+
+            const difference =
+                previewTouchStartX -
+                previewTouchEndX;
+
+            if (
+                Math.abs(difference) < 40
+            ) {
+                return;
+            }
+
+            if (
+                difference > 0 &&
+                hasVideo
+            ) {
+                setPreview(1);
+            }
+            else if (
+                difference < 0
+            ) {
+                setPreview(0);
+            }
+        },
+        {
+            passive: true
+        }
+    );
+}
+
+
+// ============================================================
+// REFRESH
+// ============================================================
+
+if (refreshBtn) {
+    refreshBtn.addEventListener(
+        "click",
+        loadShop
+    );
+}
+
+
+// ============================================================
+// START
+// ============================================================
 
 loadShop();
