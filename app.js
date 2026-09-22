@@ -23,14 +23,31 @@ const previewVideoSource = document.getElementById("preview-video-source");
 const previewStatus = document.getElementById("preview-status");
 const previewDots = document.getElementById("preview-dots");
 
+/* Carrousel des objets du pack */
+const bundleCarousel = document.getElementById("bundle-carousel");
+const bundleItemsTrack = document.getElementById("bundle-items-track");
+const bundlePrev = document.getElementById("bundle-prev");
+const bundleNext = document.getElementById("bundle-next");
+
 let currentModalItem = null;
 let currentPreviewIndex = 0;
 let hasVideo = false;
+
+let currentBundleItems = [];
+let currentBundleIndex = 0;
 
 let touchStartX = 0;
 let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
+
+let bundleTouchStartX = 0;
+let bundleTouchEndX = 0;
+
+
+/* ========================================================= */
+/* UTILITAIRES */
+/* ========================================================= */
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -50,6 +67,11 @@ function getFirstValidString(values) {
 
     return "";
 }
+
+
+/* ========================================================= */
+/* DONNÉES SHOP */
+/* ========================================================= */
 
 function getEntryItems(entry) {
     if (Array.isArray(entry?.items)) {
@@ -71,9 +93,18 @@ function getEntryItems(entry) {
     return [];
 }
 
+
+/*
+ * Un pack est détecté si :
+ *
+ * - entry.items.length > 1
+ * OU
+ * - entry.bundle existe
+ */
 function isPackEntry(entry, items) {
     return items.length > 1 || !!entry?.bundle;
 }
+
 
 function getItemImage(item) {
     return getFirstValidString([
@@ -85,6 +116,7 @@ function getItemImage(item) {
         item?.imageUrl
     ]);
 }
+
 
 function getBundleImage(entry) {
     const candidates = [
@@ -117,6 +149,7 @@ function getBundleImage(entry) {
     return getFirstValidString(candidates);
 }
 
+
 function getItemPrice(item) {
     const values = [
         item?.price,
@@ -134,6 +167,7 @@ function getItemPrice(item) {
 
     return 0;
 }
+
 
 function getEntryFinalPrice(entry) {
     const values = [
@@ -154,6 +188,7 @@ function getEntryFinalPrice(entry) {
     return 0;
 }
 
+
 function getEntryRegularPrice(entry) {
     const values = [
         entry?.regularPrice,
@@ -173,25 +208,17 @@ function getEntryRegularPrice(entry) {
     return 0;
 }
 
+
 function getIndividualItemsTotal(items) {
     return items.reduce((total, item) => {
         return total + getItemPrice(item);
     }, 0);
 }
 
+
 function getBundleRegularPrice(entry, items, finalPrice) {
     const apiRegularPrice = getEntryRegularPrice(entry);
     const individualItemsTotal = getIndividualItemsTotal(items);
-
-    /*
-     * Pour un pack :
-     *
-     * 1. On privilégie le prix régulier fourni par l'API.
-     * 2. Si l'API ne fournit pas de prix régulier exploitable,
-     *    on additionne les prix individuels.
-     * 3. On ne veut jamais afficher un ancien prix inférieur
-     *    ou égal au prix du pack.
-     */
 
     if (
         Number.isFinite(apiRegularPrice) &&
@@ -209,6 +236,7 @@ function getBundleRegularPrice(entry, items, finalPrice) {
 
     return apiRegularPrice;
 }
+
 
 function getBundleDiscount(entry, regularPrice, finalPrice) {
     const explicitDiscount = Number(
@@ -236,28 +264,42 @@ function getBundleDiscount(entry, regularPrice, finalPrice) {
     return 0;
 }
 
+
+/*
+ * CORRECTION IMPORTANTE :
+ *
+ * Objet simple :
+ *   -> on prend TOUJOURS items[0].name
+ *
+ * Pack :
+ *   -> on prend le nom du bundle/pack.
+ *
+ * "Pack Fortnite" n'est utilisé que si on a réellement
+ * détecté un pack mais qu'aucun nom n'est fourni.
+ */
 function getEntryName(entry, items, isBundle) {
-    if (isBundle) {
+    const firstItem = items[0];
+
+    if (!isBundle) {
         return getFirstValidString([
-            entry?.bundle?.name,
-            entry?.bundleName,
-            entry?.offerName,
+            firstItem?.name,
             entry?.name,
             entry?.displayName,
-            "Pack Fortnite"
+            entry?.offerName,
+            "Objet Fortnite"
         ]);
     }
 
-    const firstItem = items[0];
-
     return getFirstValidString([
-        firstItem?.name,
+        entry?.bundle?.name,
+        entry?.bundleName,
+        entry?.offerName,
         entry?.name,
         entry?.displayName,
-        entry?.offerName,
-        "Objet Fortnite"
+        "Pack Fortnite"
     ]);
 }
+
 
 function getEntryDescription(entry, items) {
     return getFirstValidString([
@@ -269,10 +311,14 @@ function getEntryDescription(entry, items) {
     ]);
 }
 
+
 function extractShopItem(entry) {
     const items = getEntryItems(entry);
 
-    const isBundle = isPackEntry(entry, items);
+    const isBundle = isPackEntry(
+        entry,
+        items
+    );
 
     const firstItem = items[0] || {};
 
@@ -296,22 +342,26 @@ function extractShopItem(entry) {
         )
         : 0;
 
-    /*
-     * IMPORTANT :
-     * Pour un pack, on utilise TOUJOURS l'image globale du pack.
-     *
-     * On ne prend l'image du premier skin qu'en dernier recours,
-     * uniquement si l'API ne fournit aucune image globale.
-     */
     let image = "";
 
+    /*
+     * PACK :
+     * on cherche d'abord l'image globale du pack.
+     */
     if (isBundle) {
         image = getBundleImage(entry);
 
+        /*
+         * Dernier recours uniquement.
+         */
         if (!image) {
             image = getItemImage(firstItem);
         }
     } else {
+        /*
+         * OBJET SIMPLE :
+         * son image vient directement de l'objet.
+         */
         image = getItemImage(firstItem);
     }
 
@@ -320,7 +370,9 @@ function extractShopItem(entry) {
     const itemType = getFirstValidString([
         firstItem?.type?.displayValue,
         firstItem?.type?.value,
-        firstItem?.type,
+        typeof firstItem?.type === "string"
+            ? firstItem.type
+            : "",
         entry?.type,
         "Objet"
     ]);
@@ -334,7 +386,9 @@ function extractShopItem(entry) {
     const rarity = getFirstValidString([
         firstItem?.rarity?.displayValue,
         firstItem?.rarity?.value,
-        firstItem?.rarity,
+        typeof firstItem?.rarity === "string"
+            ? firstItem.rarity
+            : "",
         ""
     ]);
 
@@ -346,12 +400,19 @@ function extractShopItem(entry) {
 
     return {
         id,
-        name: getEntryName(entry, items, isBundle),
+        name: getEntryName(
+            entry,
+            items,
+            isBundle
+        ),
         image,
         price: finalPrice,
         regularPrice,
         discount,
-        description: getEntryDescription(entry, items),
+        description: getEntryDescription(
+            entry,
+            items
+        ),
         itemType,
         rarity,
         setName,
@@ -362,12 +423,19 @@ function extractShopItem(entry) {
     };
 }
 
+
+/* ========================================================= */
+/* CATÉGORIES */
+/* ========================================================= */
+
 function getCategoryName(item) {
     if (item.isBundle) {
         return "Packs";
     }
 
-    const type = String(item.itemType || "").toLowerCase();
+    const type = String(
+        item.itemType || ""
+    ).toLowerCase();
 
     if (
         type.includes("musique") ||
@@ -424,7 +492,16 @@ function getCategoryName(item) {
     return "Autres";
 }
 
-function createSection(title, items, sectionClass = "") {
+
+/* ========================================================= */
+/* CARTES SHOP */
+/* ========================================================= */
+
+function createSection(
+    title,
+    items,
+    sectionClass = ""
+) {
     if (!items.length) {
         return "";
     }
@@ -434,16 +511,24 @@ function createSection(title, items, sectionClass = "") {
             <div class="shop-group-header">
                 <div>
                     <h2>${escapeHtml(title)}</h2>
-                    <span>${items.length} offre${items.length > 1 ? "s" : ""}</span>
+                    <span>
+                        ${items.length}
+                        offre${items.length > 1 ? "s" : ""}
+                    </span>
                 </div>
             </div>
 
             <div class="shop-grid">
-                ${items.map((item, index) => createCard(item, index)).join("")}
+                ${items
+                    .map((item, index) =>
+                        createCard(item, index)
+                    )
+                    .join("")}
             </div>
         </section>
     `;
 }
+
 
 function createCard(item, index) {
     const safeName = escapeHtml(item.name);
@@ -458,19 +543,24 @@ function createCard(item, index) {
         ) {
             priceHtml = `
                 <div class="card-price">
+
                     <span class="old-price">
-                        ${item.regularPrice.toLocaleString("fr-FR")} V-Bucks
+                        ${item.regularPrice.toLocaleString("fr-FR")}
+                        V-Bucks
                     </span>
 
                     <span class="bundle-price">
-                        ${item.price.toLocaleString("fr-FR")} V-Bucks
+                        ${item.price.toLocaleString("fr-FR")}
+                        V-Bucks
                     </span>
+
                 </div>
             `;
         } else {
             priceHtml = `
                 <div class="card-price">
-                    ${item.price.toLocaleString("fr-FR")} V-Bucks
+                    ${item.price.toLocaleString("fr-FR")}
+                    V-Bucks
                 </div>
             `;
         }
@@ -483,10 +573,12 @@ function createCard(item, index) {
     }
 
     const discountBadge =
-        item.isBundle && item.discount > 0
+        item.isBundle &&
+        item.discount > 0
             ? `
                 <span class="bundle-discount">
-                    ${item.discount.toLocaleString("fr-FR")} V-BUCKS DE RÉDUC.
+                    ${item.discount.toLocaleString("fr-FR")}
+                    V-BUCKS DE RÉDUC.
                 </span>
             `
             : "";
@@ -495,7 +587,8 @@ function createCard(item, index) {
         item.isBundle
             ? `
                 <span class="bundle-count-badge">
-                    ${item.itemCount} OBJET${item.itemCount > 1 ? "S" : ""}
+                    ${item.itemCount}
+                    OBJET${item.itemCount > 1 ? "S" : ""}
                 </span>
             `
             : "";
@@ -508,7 +601,9 @@ function createCard(item, index) {
             role="button"
             aria-label="Voir ${safeName}"
         >
+
             <div class="card-image-wrapper">
+
                 ${
                     safeImage
                         ? `
@@ -530,36 +625,39 @@ function createCard(item, index) {
                     ${discountBadge}
                     ${countBadge}
                 </div>
+
             </div>
 
             <div class="card-info">
+
                 <div class="card-type">
                     ${escapeHtml(item.itemType)}
                 </div>
 
-                <h3>${safeName}</h3>
+                <h3>
+                    ${safeName}
+                </h3>
 
                 ${priceHtml}
+
             </div>
+
         </article>
     `;
 }
 
+
+/* ========================================================= */
+/* RENDER SHOP */
+/* ========================================================= */
+
 function renderShop(entries) {
     const items = entries
         .map(extractShopItem)
-        .filter(item => item && item.name);
-
-    /*
-     * IMPORTANT :
-     * Les packs restent chacun une offre séparée.
-     *
-     * On ne fait PAS :
-     * bundleName -> plusieurs objets
-     *
-     * On garde :
-     * une entrée API = une carte.
-     */
+        .filter(item =>
+            item &&
+            item.name
+        );
 
     const bundles = [];
     const music = [];
@@ -572,7 +670,8 @@ function renderShop(entries) {
             return;
         }
 
-        const category = getCategoryName(item);
+        const category =
+            getCategoryName(item);
 
         if (category === "Musique") {
             music.push(item);
@@ -588,10 +687,15 @@ function renderShop(entries) {
         }
 
         if (!categories.has(category)) {
-            categories.set(category, []);
+            categories.set(
+                category,
+                []
+            );
         }
 
-        categories.get(category).push(item);
+        categories
+            .get(category)
+            .push(item);
     });
 
     let html = "";
@@ -612,7 +716,12 @@ function renderShop(entries) {
         );
     }
 
-    for (const [category, categoryItems] of categories) {
+    for (
+        const [
+            category,
+            categoryItems
+        ] of categories
+    ) {
         html += createSection(
             category,
             categoryItems
@@ -627,46 +736,76 @@ function renderShop(entries) {
         );
     }
 
-    shopEl.innerHTML = html || `
-        <div class="empty-shop">
-            Aucun objet trouvé.
-        </div>
-    `;
+    shopEl.innerHTML =
+        html ||
+        `
+            <div class="empty-shop">
+                Aucun objet trouvé.
+            </div>
+        `;
 
-    document.querySelectorAll(".shop-card").forEach(card => {
-        card.addEventListener("click", () => {
-            const section = card.closest(".shop-group");
-            const cards = Array.from(
-                section.querySelectorAll(".shop-card")
+    document
+        .querySelectorAll(".shop-card")
+        .forEach(card => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    const section =
+                        card.closest(
+                            ".shop-group"
+                        );
+
+                    const cards =
+                        Array.from(
+                            section.querySelectorAll(
+                                ".shop-card"
+                            )
+                        );
+
+                    const index =
+                        cards.indexOf(card);
+
+                    const sectionItems =
+                        getSectionItems(
+                            section,
+                            items
+                        );
+
+                    const selectedItem =
+                        sectionItems[index];
+
+                    if (selectedItem) {
+                        openModal(
+                            selectedItem
+                        );
+                    }
+                }
             );
 
-            const index = cards.indexOf(card);
+            card.addEventListener(
+                "keydown",
+                event => {
 
-            const sectionItems = getSectionItems(
-                section,
-                items
+                    if (
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ) {
+                        event.preventDefault();
+
+                        card.click();
+                    }
+                }
             );
-
-            const selectedItem = sectionItems[index];
-
-            if (selectedItem) {
-                openModal(selectedItem);
-            }
         });
-
-        card.addEventListener("keydown", event => {
-            if (
-                event.key === "Enter" ||
-                event.key === " "
-            ) {
-                event.preventDefault();
-                card.click();
-            }
-        });
-    });
 }
 
-function getSectionItems(section, allItems) {
+
+function getSectionItems(
+    section,
+    allItems
+) {
     const sectionTitle =
         section
             .querySelector("h2")
@@ -675,39 +814,55 @@ function getSectionItems(section, allItems) {
             ?.replace("📦 ", "");
 
     if (sectionTitle === "Packs") {
-        return allItems.filter(item => item.isBundle);
+        return allItems.filter(
+            item => item.isBundle
+        );
     }
 
     if (sectionTitle === "Musique") {
         return allItems.filter(
-            item => !item.isBundle &&
-                getCategoryName(item) === "Musique"
+            item =>
+                !item.isBundle &&
+                getCategoryName(item) ===
+                    "Musique"
         );
     }
 
-    return allItems.filter(item => {
-        if (item.isBundle) {
-            return false;
+    return allItems.filter(
+        item => {
+
+            if (item.isBundle) {
+                return false;
+            }
+
+            const category =
+                getCategoryName(item);
+
+            return category ===
+                sectionTitle;
         }
-
-        const category = getCategoryName(item);
-
-        return category === sectionTitle;
-    });
+    );
 }
+
+
+/* ========================================================= */
+/* CHARGEMENT SHOP */
+/* ========================================================= */
 
 async function loadShop() {
     try {
-        statusEl.textContent = "Chargement de la boutique…";
+        statusEl.textContent =
+            "Chargement de la boutique…";
 
         refreshBtn.disabled = true;
 
-        const response = await fetch(
-            SHOP_API,
-            {
-                cache: "no-store"
-            }
-        );
+        const response =
+            await fetch(
+                SHOP_API,
+                {
+                    cache: "no-store"
+                }
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -715,9 +870,11 @@ async function loadShop() {
             );
         }
 
-        const json = await response.json();
+        const json =
+            await response.json();
 
-        const data = json?.data ?? json;
+        const data =
+            json?.data ?? json;
 
         const entries =
             data?.entries ||
@@ -741,23 +898,34 @@ async function loadShop() {
             null;
 
         if (shopDate) {
-            const date = new Date(shopDate);
+            const date =
+                new Date(shopDate);
 
-            if (!Number.isNaN(date.getTime())) {
+            if (
+                !Number.isNaN(
+                    date.getTime()
+                )
+            ) {
                 shopDateEl.textContent =
-                    `Actualisée le ${date.toLocaleString(
-                        "fr-FR",
-                        {
-                            dateStyle: "medium",
-                            timeStyle: "short"
-                        }
-                    )}`;
+                    `Actualisée le ${
+                        date.toLocaleString(
+                            "fr-FR",
+                            {
+                                dateStyle:
+                                    "medium",
+                                timeStyle:
+                                    "short"
+                            }
+                        )
+                    }`;
             }
         }
 
         statusEl.textContent =
             `${entries.length} offres chargées.`;
+
     } catch (error) {
+
         console.error(error);
 
         statusEl.textContent =
@@ -765,10 +933,16 @@ async function loadShop() {
 
         shopEl.innerHTML = `
             <div class="error-shop">
-                <h2>Erreur</h2>
+
+                <h2>
+                    Erreur
+                </h2>
+
                 <p>
-                    La boutique Fortnite n'a pas pu être chargée.
+                    La boutique Fortnite
+                    n'a pas pu être chargée.
                 </p>
+
                 <button
                     type="button"
                     id="retry-btn"
@@ -776,6 +950,7 @@ async function loadShop() {
                 >
                     Réessayer
                 </button>
+
             </div>
         `;
 
@@ -785,29 +960,40 @@ async function loadShop() {
                 "click",
                 loadShop
             );
+
     } finally {
+
         refreshBtn.disabled = false;
     }
 }
 
-async function getCosmeticVideo(itemId) {
+
+/* ========================================================= */
+/* VIDÉO COSMÉTIQUE */
+/* ========================================================= */
+
+async function getCosmeticVideo(
+    itemId
+) {
     if (!itemId) {
         return "";
     }
 
     try {
-        const response = await fetch(
-            `${COSMETIC_API}?id=${encodeURIComponent(itemId)}&language=fr`,
-            {
-                cache: "no-store"
-            }
-        );
+        const response =
+            await fetch(
+                `${COSMETIC_API}?id=${encodeURIComponent(itemId)}&language=fr`,
+                {
+                    cache: "no-store"
+                }
+            );
 
         if (!response.ok) {
             return "";
         }
 
-        const json = await response.json();
+        const json =
+            await response.json();
 
         const item =
             json?.data?.[0] ||
@@ -823,10 +1009,16 @@ async function getCosmeticVideo(itemId) {
             item?.videos?.video,
             item?.previewVideo
         ]);
+
     } catch {
         return "";
     }
 }
+
+
+/* ========================================================= */
+/* SLIDER IMAGE / VIDÉO */
+/* ========================================================= */
 
 function setPreview(index) {
     currentPreviewIndex = index;
@@ -841,14 +1033,20 @@ function setPreview(index) {
 
     previewDots
         .querySelectorAll(".preview-dot")
-        .forEach((dot, dotIndex) => {
-            dot.classList.toggle(
-                "active",
-                dotIndex === index
-            );
-        });
+        .forEach(
+            (dot, dotIndex) => {
 
-    if (index === 1 && hasVideo) {
+                dot.classList.toggle(
+                    "active",
+                    dotIndex === index
+                );
+            }
+        );
+
+    if (
+        index === 1 &&
+        hasVideo
+    ) {
         previewVideo
             .play()
             .catch(() => {});
@@ -857,21 +1055,39 @@ function setPreview(index) {
     }
 }
 
+
 function createPreviewDots() {
     previewDots.innerHTML = "";
 
-    const count = hasVideo ? 2 : 1;
+    const count =
+        hasVideo ? 2 : 1;
 
-    for (let i = 0; i < count; i++) {
-        const dot = document.createElement("button");
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+        const dot =
+            document.createElement(
+                "button"
+            );
 
         dot.type = "button";
+
         dot.className =
-            `preview-dot ${i === 0 ? "active" : ""}`;
+            `preview-dot ${
+                i === 0
+                    ? "active"
+                    : ""
+            }`;
 
         dot.setAttribute(
             "aria-label",
-            `Afficher ${i === 0 ? "l'image" : "la vidéo"}`
+            `Afficher ${
+                i === 0
+                    ? "l'image"
+                    : "la vidéo"
+            }`
         );
 
         dot.addEventListener(
@@ -883,68 +1099,266 @@ function createPreviewDots() {
     }
 }
 
-async function openModal(item) {
-    currentModalItem = item;
 
-    modalName.textContent = item.name;
+/* ========================================================= */
+/* CARROUSEL DES OBJETS DU PACK */
+/* ========================================================= */
 
-    if (item.price > 0) {
-        if (
-            item.isBundle &&
-            item.regularPrice > item.price
-        ) {
-            modalPrice.innerHTML = `
-                <span class="modal-old-price">
-                    ${item.regularPrice.toLocaleString("fr-FR")} V-Bucks
-                </span>
+function renderBundleCarousel(items) {
+    currentBundleItems =
+        Array.isArray(items)
+            ? items
+            : [];
 
-                <span class="modal-new-price">
-                    ${item.price.toLocaleString("fr-FR")} V-Bucks
-                </span>
-            `;
-        } else {
-            modalPrice.textContent =
-                `${item.price.toLocaleString("fr-FR")} V-Bucks`;
-        }
-    } else {
-        modalPrice.textContent =
-            "Prix indisponible";
+    currentBundleIndex = 0;
+
+    if (
+        !currentBundleItems.length
+    ) {
+        bundleCarousel.classList.remove(
+            "visible"
+        );
+
+        bundleItemsTrack.innerHTML = "";
+
+        return;
     }
 
-    if (item.isBundle) {
-        modalExtra.textContent =
-            `${item.itemCount} objet${item.itemCount > 1 ? "s" : ""}`;
-    } else {
-        modalExtra.textContent =
-            item.rarity || item.itemType || "";
+    /*
+     * Le carrousel n'apparaît que
+     * lorsqu'il y a réellement plusieurs
+     * objets dans l'offre.
+     */
+    if (
+        currentBundleItems.length <= 1
+    ) {
+        bundleCarousel.classList.remove(
+            "visible"
+        );
+
+        bundleItemsTrack.innerHTML = "";
+
+        return;
     }
 
-    modalDescription.textContent =
-        item.description || "";
+    bundleCarousel.classList.add(
+        "visible"
+    );
 
-    previewImage.src = item.image || "";
-    previewImage.alt = item.name;
+    bundleItemsTrack.innerHTML =
+        currentBundleItems
+            .map(
+                (item, index) => {
+
+                    const image =
+                        getItemImage(item);
+
+                    const name =
+                        getFirstValidString([
+                            item?.name,
+                            `Objet ${index + 1}`
+                        ]);
+
+                    const type =
+                        getFirstValidString([
+                            item?.type?.displayValue,
+                            item?.type?.value,
+                            typeof item?.type === "string"
+                                ? item.type
+                                : "",
+                            "Objet"
+                        ]);
+
+                    return `
+                        <button
+                            type="button"
+                            class="bundle-item"
+                            data-bundle-index="${index}"
+                            aria-label="${escapeHtml(
+                                `${index + 1}/${currentBundleItems.length} ${name}`
+                            )}"
+                        >
+
+                            <div class="bundle-item-image-wrap">
+
+                                ${
+                                    image
+                                        ? `
+                                            <img
+                                                class="bundle-item-image"
+                                                src="${escapeHtml(image)}"
+                                                alt="${escapeHtml(name)}"
+                                                loading="lazy"
+                                            >
+                                        `
+                                        : `
+                                            <div class="bundle-item-image-fallback">
+                                                IMAGE
+                                            </div>
+                                        `
+                                }
+
+                                <span class="bundle-item-number">
+                                    ${index + 1}/${currentBundleItems.length}
+                                </span>
+
+                            </div>
+
+                            <div class="bundle-item-info">
+
+                                <strong>
+                                    ${escapeHtml(name)}
+                                </strong>
+
+                                <span>
+                                    ${escapeHtml(type)}
+                                </span>
+
+                            </div>
+
+                        </button>
+                    `;
+                }
+            )
+            .join("");
+
+    bundleItemsTrack
+        .querySelectorAll(".bundle-item")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const index =
+                        Number(
+                            button.dataset.bundleIndex
+                        );
+
+                    selectBundleItem(
+                        index
+                    );
+                }
+            );
+        });
+
+    updateBundleCarousel();
+}
+
+
+function selectBundleItem(index) {
+    if (
+        !currentBundleItems.length
+    ) {
+        return;
+    }
+
+    if (
+        index < 0 ||
+        index >= currentBundleItems.length
+    ) {
+        return;
+    }
+
+    currentBundleIndex = index;
+
+    const item =
+        currentBundleItems[index];
+
+    const image =
+        getItemImage(item);
+
+    const name =
+        getFirstValidString([
+            item?.name,
+            `Objet ${index + 1}`
+        ]);
+
+    const type =
+        getFirstValidString([
+            item?.type?.displayValue,
+            item?.type?.value,
+            typeof item?.type === "string"
+                ? item.type
+                : "",
+            "Objet"
+        ]);
+
+    /*
+     * Le clic sur un objet du pack
+     * change l'image principale.
+     *
+     * On conserve le modal et le pack
+     * comme contexte.
+     */
+    if (image) {
+        previewImage.src = image;
+        previewImage.alt = name;
+    }
+
+    modalExtra.textContent =
+        `${index + 1}/${currentBundleItems.length} • ${type}`;
+
+    modalName.textContent =
+        name;
+
+    /*
+     * Quand on sélectionne un objet du pack,
+     * on revient sur l'image.
+     */
+    setPreview(0);
+
+    updateBundleCarousel();
+
+    /*
+     * On essaye aussi de récupérer
+     * la vidéo propre à l'objet sélectionné.
+     */
+    loadBundleItemVideo(
+        item
+    );
+}
+
+
+async function loadBundleItemVideo(item) {
+    hasVideo = false;
 
     previewVideo.pause();
-    previewVideo.removeAttribute("src");
-    previewVideoSource.removeAttribute("src");
 
-    hasVideo = false;
+    previewVideo.removeAttribute(
+        "src"
+    );
+
+    previewVideoSource.removeAttribute(
+        "src"
+    );
+
+    createPreviewDots();
 
     previewStatus.textContent =
         "Recherche d'une vidéo…";
 
-    modal.classList.add("open");
-    document.body.classList.add("modal-open");
+    const itemId =
+        getFirstValidString([
+            item?.id
+        ]);
 
-    setPreview(0);
+    if (!itemId) {
+        previewStatus.textContent =
+            "Aucune vidéo disponible";
+
+        return;
+    }
 
     const videoUrl =
-        await getCosmeticVideo(item.id);
+        await getCosmeticVideo(
+            itemId
+        );
 
     if (
-        currentModalItem !== item ||
-        !modal.classList.contains("open")
+        !modal.classList.contains(
+            "open"
+        )
     ) {
         return;
     }
@@ -952,112 +1366,158 @@ async function openModal(item) {
     if (videoUrl) {
         hasVideo = true;
 
-        previewVideoSource.src = videoUrl;
+        previewVideoSource.src =
+            videoUrl;
+
         previewVideo.load();
 
         previewStatus.textContent =
             "Vidéo disponible";
-
-        createPreviewDots();
     } else {
         hasVideo = false;
 
         previewStatus.textContent =
             "Aucune vidéo disponible";
-
-        createPreviewDots();
     }
+
+    createPreviewDots();
 
     setPreview(0);
 }
 
-function closeModal() {
-    modal.classList.remove("open");
-    document.body.classList.remove("modal-open");
 
-    previewVideo.pause();
+function updateBundleCarousel() {
+    if (
+        !bundleCarousel.classList.contains(
+            "visible"
+        )
+    ) {
+        return;
+    }
 
-    currentModalItem = null;
+    bundleItemsTrack
+        .querySelectorAll(".bundle-item")
+        .forEach(
+            (item, index) => {
+
+                item.classList.toggle(
+                    "active",
+                    index ===
+                        currentBundleIndex
+                );
+            }
+        );
+
+    const selected =
+        bundleItemsTrack
+            .querySelector(
+                `[data-bundle-index="${currentBundleIndex}"]`
+            );
+
+    if (selected) {
+        selected.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "center"
+        });
+    }
+
+    bundlePrev.disabled =
+        currentBundleIndex <= 0;
+
+    bundleNext.disabled =
+        currentBundleIndex >=
+        currentBundleItems.length - 1;
 }
 
-modalClose?.addEventListener(
-    "click",
-    closeModal
-);
 
-modalBackdrop?.addEventListener(
+bundlePrev?.addEventListener(
     "click",
-    closeModal
-);
+    () => {
 
-document.addEventListener(
-    "keydown",
-    event => {
         if (
-            event.key === "Escape" &&
-            modal.classList.contains("open")
+            currentBundleIndex > 0
         ) {
-            closeModal();
+            selectBundleItem(
+                currentBundleIndex - 1
+            );
         }
     }
 );
 
+
+bundleNext?.addEventListener(
+    "click",
+    () => {
+
+        if (
+            currentBundleIndex <
+            currentBundleItems.length - 1
+        ) {
+            selectBundleItem(
+                currentBundleIndex + 1
+            );
+        }
+    }
+);
+
+
 /*
- * SWIPE
- *
- * Même lorsqu'il n'y a PAS de vidéo,
- * le geste reste actif.
+ * Swipe sur le carrousel des objets.
  */
-previewTrack?.addEventListener(
+bundleItemsTrack?.addEventListener(
     "touchstart",
     event => {
-        const touch = event.changedTouches[0];
 
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
+        const touch =
+            event.changedTouches[0];
+
+        bundleTouchStartX =
+            touch.clientX;
     },
     {
         passive: true
     }
 );
 
-previewTrack?.addEventListener(
+
+bundleItemsTrack?.addEventListener(
     "touchend",
     event => {
-        const touch = event.changedTouches[0];
 
-        touchEndX = touch.clientX;
-        touchEndY = touch.clientY;
+        const touch =
+            event.changedTouches[0];
+
+        bundleTouchEndX =
+            touch.clientX;
 
         const deltaX =
-            touchEndX - touchStartX;
+            bundleTouchEndX -
+            bundleTouchStartX;
 
-        const deltaY =
-            touchEndY - touchStartY;
-
-        /*
-         * On ne déclenche le swipe que si
-         * le mouvement est principalement horizontal.
-         */
         if (
-            Math.abs(deltaX) < 45 ||
-            Math.abs(deltaX) < Math.abs(deltaY)
+            Math.abs(deltaX) < 40
         ) {
             return;
         }
 
         if (
             deltaX < 0 &&
-            currentPreviewIndex < (hasVideo ? 1 : 0)
+            currentBundleIndex <
+                currentBundleItems.length - 1
         ) {
-            setPreview(currentPreviewIndex + 1);
+            selectBundleItem(
+                currentBundleIndex + 1
+            );
         }
 
         if (
             deltaX > 0 &&
-            currentPreviewIndex > 0
+            currentBundleIndex > 0
         ) {
-            setPreview(currentPreviewIndex - 1);
+            selectBundleItem(
+                currentBundleIndex - 1
+            );
         }
     },
     {
@@ -1065,9 +1525,366 @@ previewTrack?.addEventListener(
     }
 );
 
+
+/* ========================================================= */
+/* MODAL */
+/* ========================================================= */
+
+async function openModal(item) {
+    currentModalItem = item;
+
+    /*
+     * Reset vidéo.
+     */
+    previewVideo.pause();
+
+    previewVideo.removeAttribute(
+        "src"
+    );
+
+    previewVideoSource.removeAttribute(
+        "src"
+    );
+
+    hasVideo = false;
+
+    currentPreviewIndex = 0;
+
+    /*
+     * Image principale :
+     * - pack => image globale
+     * - objet => image de l'objet
+     */
+    previewImage.src =
+        item.image || "";
+
+    previewImage.alt =
+        item.name;
+
+    /*
+     * Informations prix.
+     */
+    if (item.price > 0) {
+
+        if (
+            item.isBundle &&
+            item.regularPrice >
+                item.price
+        ) {
+            modalPrice.innerHTML = `
+                <span class="modal-old-price">
+                    ${item.regularPrice.toLocaleString("fr-FR")}
+                    V-Bucks
+                </span>
+
+                <span class="modal-new-price">
+                    ${item.price.toLocaleString("fr-FR")}
+                    V-Bucks
+                </span>
+            `;
+        } else {
+
+            modalPrice.textContent =
+                `${item.price.toLocaleString("fr-FR")} V-Bucks`;
+        }
+
+    } else {
+
+        modalPrice.textContent =
+            "Prix indisponible";
+    }
+
+
+    /*
+     * Nom initial.
+     *
+     * IMPORTANT :
+     * Pour un objet simple, item.name est déjà
+     * le vrai nom de entry.items[0].
+     */
+    modalName.textContent =
+        item.name;
+
+
+    /*
+     * Infos secondaires.
+     */
+    if (item.isBundle) {
+
+        modalExtra.textContent =
+            `${item.itemCount} objet${
+                item.itemCount > 1
+                    ? "s"
+                    : ""
+            }`;
+
+    } else {
+
+        modalExtra.textContent =
+            item.rarity ||
+            item.itemType ||
+            "";
+    }
+
+
+    modalDescription.textContent =
+        item.description || "";
+
+
+    /*
+     * CARROUSEL PACK
+     */
+    if (
+        item.isBundle &&
+        item.items.length > 1
+    ) {
+
+        renderBundleCarousel(
+            item.items
+        );
+
+    } else {
+
+        renderBundleCarousel(
+            []
+        );
+    }
+
+
+    previewStatus.textContent =
+        "Recherche d'une vidéo…";
+
+
+    modal.classList.add(
+        "open"
+    );
+
+    modal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    createPreviewDots();
+
+    setPreview(0);
+
+
+    /*
+     * Vidéo initiale :
+     *
+     * Pour un pack, on commence avec
+     * le premier objet du pack.
+     */
+    let videoItem = item;
+
+    if (
+        item.isBundle &&
+        item.items.length
+    ) {
+        videoItem =
+            item.items[0];
+    }
+
+    const videoId =
+        getFirstValidString([
+            videoItem?.id,
+            item?.id
+        ]);
+
+    const videoUrl =
+        await getCosmeticVideo(
+            videoId
+        );
+
+    if (
+        currentModalItem !== item ||
+        !modal.classList.contains(
+            "open"
+        )
+    ) {
+        return;
+    }
+
+    if (videoUrl) {
+
+        hasVideo = true;
+
+        previewVideoSource.src =
+            videoUrl;
+
+        previewVideo.load();
+
+        previewStatus.textContent =
+            "Vidéo disponible";
+
+    } else {
+
+        hasVideo = false;
+
+        previewStatus.textContent =
+            "Aucune vidéo disponible";
+    }
+
+    createPreviewDots();
+
+    setPreview(0);
+}
+
+
+function closeModal() {
+    modal.classList.remove(
+        "open"
+    );
+
+    modal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
+    previewVideo.pause();
+
+    currentModalItem = null;
+
+    currentBundleItems = [];
+
+    currentBundleIndex = 0;
+
+    bundleCarousel.classList.remove(
+        "visible"
+    );
+
+    bundleItemsTrack.innerHTML = "";
+}
+
+
+/* ========================================================= */
+/* FERMETURE MODAL */
+/* ========================================================= */
+
+modalClose?.addEventListener(
+    "click",
+    closeModal
+);
+
+
+modalBackdrop?.addEventListener(
+    "click",
+    closeModal
+);
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape" &&
+            modal.classList.contains(
+                "open"
+            )
+        ) {
+            closeModal();
+        }
+    }
+);
+
+
+/* ========================================================= */
+/* SWIPE IMAGE / VIDÉO */
+/* ========================================================= */
+
+previewTrack?.addEventListener(
+    "touchstart",
+    event => {
+
+        const touch =
+            event.changedTouches[0];
+
+        touchStartX =
+            touch.clientX;
+
+        touchStartY =
+            touch.clientY;
+    },
+    {
+        passive: true
+    }
+);
+
+
+previewTrack?.addEventListener(
+    "touchend",
+    event => {
+
+        const touch =
+            event.changedTouches[0];
+
+        touchEndX =
+            touch.clientX;
+
+        touchEndY =
+            touch.clientY;
+
+        const deltaX =
+            touchEndX -
+            touchStartX;
+
+        const deltaY =
+            touchEndY -
+            touchStartY;
+
+        if (
+            Math.abs(deltaX) < 45 ||
+            Math.abs(deltaX) <
+                Math.abs(deltaY)
+        ) {
+            return;
+        }
+
+        if (
+            deltaX < 0 &&
+            currentPreviewIndex <
+                (hasVideo ? 1 : 0)
+        ) {
+            setPreview(
+                currentPreviewIndex + 1
+            );
+        }
+
+        if (
+            deltaX > 0 &&
+            currentPreviewIndex > 0
+        ) {
+            setPreview(
+                currentPreviewIndex - 1
+            );
+        }
+    },
+    {
+        passive: true
+    }
+);
+
+
+/* ========================================================= */
+/* REFRESH */
+/* ========================================================= */
+
 refreshBtn?.addEventListener(
     "click",
     loadShop
 );
 
-loadShop();
+
+/* ========================================================= */
+/* DÉMARRAGE */
+/* ========================================================= */
