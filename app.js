@@ -8,7 +8,6 @@ const SHOP_API =
 const COSMETIC_API =
     "https://fortnite-api.com/v2/cosmetics/br/search/ids";
 
-
 // =========================================================
 // DOM
 // =========================================================
@@ -61,7 +60,6 @@ const carouselDots =
 const videoFallback =
     document.getElementById("video-fallback");
 
-
 // =========================================================
 // ÉTAT
 // =========================================================
@@ -70,7 +68,6 @@ let currentItem = null;
 let currentSlide = 0;
 let hasVideo = false;
 let currentVideoUrl = null;
-
 
 // =========================================================
 // SWIPE
@@ -83,7 +80,6 @@ let pointerCurrentY = 0;
 let isDragging = false;
 let swipeDirectionLocked = false;
 let activePointerId = null;
-
 
 // =========================================================
 // DATE
@@ -99,7 +95,6 @@ function updateDate() {
             year: "numeric"
         });
 }
-
 
 // =========================================================
 // CHARGER LA BOUTIQUE
@@ -184,14 +179,16 @@ async function loadShop() {
     }
 }
 
-
 // =========================================================
-// RENDU SHOP
+// RENDU SHOP PAR PACK / SET
 // =========================================================
 
 function renderShop(entries) {
 
     shopElement.innerHTML = "";
+
+    const groups =
+        new Map();
 
     entries.forEach(
         (entry, index) => {
@@ -201,17 +198,122 @@ function renderShop(entries) {
 
             if (!item) return;
 
-            const card =
-                createCard(
-                    item,
-                    index
-                );
+            /*
+             * On utilise le set Fortnite
+             * comme nom de groupe.
+             *
+             * Les objets sans set vont
+             * dans "Autres objets".
+             */
 
-            shopElement.appendChild(card);
+            const groupName =
+                item.set ||
+                "Autres objets";
+
+            if (
+                !groups.has(groupName)
+            ) {
+                groups.set(
+                    groupName,
+                    []
+                );
+            }
+
+            groups
+                .get(groupName)
+                .push({
+                    item,
+                    originalIndex: index
+                });
         }
     );
-}
 
+    let groupIndex = 0;
+
+    for (
+        const [
+            groupName,
+            groupItems
+        ] of groups
+    ) {
+
+        const section =
+            document.createElement(
+                "section"
+            );
+
+        section.className =
+            "shop-group";
+
+        section.style.animationDelay =
+            `${Math.min(
+                groupIndex * 45,
+                450
+            )}ms`;
+
+        const heading =
+            document.createElement(
+                "div"
+            );
+
+        heading.className =
+            "shop-group-heading";
+
+        const title =
+            document.createElement(
+                "h3"
+            );
+
+        title.textContent =
+            groupName;
+
+        const count =
+            document.createElement(
+                "span"
+            );
+
+        count.textContent =
+            `${groupItems.length} ${
+                groupItems.length > 1
+                    ? "objets"
+                    : "objet"
+            }`;
+
+        heading.appendChild(title);
+        heading.appendChild(count);
+
+        const grid =
+            document.createElement(
+                "div"
+            );
+
+        grid.className =
+            "shop-group-grid";
+
+        groupItems.forEach(
+            ({
+                item,
+                originalIndex
+            }) => {
+
+                const card =
+                    createCard(
+                        item,
+                        originalIndex
+                    );
+
+                grid.appendChild(card);
+            }
+        );
+
+        section.appendChild(heading);
+        section.appendChild(grid);
+
+        shopElement.appendChild(section);
+
+        groupIndex++;
+    }
+}
 
 // =========================================================
 // EXTRACTION OBJET
@@ -339,6 +441,21 @@ function extractShopItem(entry) {
         entry?.rarity?.value ||
         "";
 
+    /*
+     * SET / PACK
+     */
+
+    const set =
+        item?.set?.value ||
+        item?.set?.name ||
+        item?.set?.displayValue ||
+        item?.set?.text ||
+        entry?.set?.value ||
+        entry?.set?.name ||
+        entry?.set?.displayValue ||
+        entry?.set?.text ||
+        "";
+
     let type = "";
 
     if (
@@ -389,13 +506,13 @@ function extractShopItem(entry) {
         rarity,
         type,
         series,
+        set,
 
         raw: entry,
         cosmetic: item,
         category: itemCategory
     };
 }
-
 
 // =========================================================
 // NORMALISER LE TYPE
@@ -488,7 +605,6 @@ function normalizeItemType(rawType) {
 
     return rawType;
 }
-
 
 // =========================================================
 // CARTE
@@ -595,7 +711,6 @@ function createCard(item, index) {
     return card;
 }
 
-
 // =========================================================
 // PRIX
 // =========================================================
@@ -624,7 +739,6 @@ function formatPrice(price) {
     );
 }
 
-
 // =========================================================
 // OUVRIR MODALE
 // =========================================================
@@ -652,7 +766,6 @@ async function openModal(item) {
     activePointerId =
         null;
 
-
     document.body.classList.add(
         "modal-open"
     );
@@ -666,7 +779,6 @@ async function openModal(item) {
         "false"
     );
 
-
     modalName.textContent =
         item.name;
 
@@ -677,7 +789,6 @@ async function openModal(item) {
 
     modalDescription.textContent =
         item.description || "";
-
 
     const extraParts = [];
 
@@ -702,7 +813,6 @@ async function openModal(item) {
     modalExtraInfo.textContent =
         extraParts.join(" • ");
 
-
     /*
      * IMPORTANT :
      * L'image est préparée AVANT
@@ -718,7 +828,6 @@ async function openModal(item) {
     modalImage.alt =
         item.name;
 
-
     /*
      * On force directement
      * la première slide.
@@ -729,7 +838,6 @@ async function openModal(item) {
 
     previewTrack.style.transform =
         "translate3d(0, 0, 0)";
-
 
     resetVideo();
 
@@ -743,7 +851,6 @@ async function openModal(item) {
         0,
         false
     );
-
 
     /*
      * Pas d'identifiant =
@@ -762,7 +869,6 @@ async function openModal(item) {
         return;
     }
 
-
     if (
         item.category === "track" ||
         item.category === "instrument"
@@ -778,14 +884,12 @@ async function openModal(item) {
         return;
     }
 
-
     try {
 
         const cosmetic =
             await fetchCosmetic(
                 item.id
             );
-
 
         if (
             currentItem !== item ||
@@ -794,12 +898,10 @@ async function openModal(item) {
             return;
         }
 
-
         const videoUrl =
             findDirectVideo(
                 cosmetic
             );
-
 
         if (videoUrl) {
 
@@ -823,9 +925,7 @@ async function openModal(item) {
             showVideoFallback();
         }
 
-
         createDots();
-
 
         /*
          * IMPORTANT :
@@ -862,7 +962,6 @@ async function openModal(item) {
     }
 }
 
-
 // =========================================================
 // FERMER MODALE
 // =========================================================
@@ -896,7 +995,6 @@ function closeModal() {
     activePointerId =
         null;
 }
-
 
 // =========================================================
 // RESET VIDÉO
@@ -933,7 +1031,6 @@ function resetVideo() {
         null;
 }
 
-
 // =========================================================
 // RÉCUPÉRATION COSMÉTIQUE
 // =========================================================
@@ -968,7 +1065,6 @@ async function fetchCosmetic(id) {
     );
 }
 
-
 // =========================================================
 // TROUVER UNE VRAIE VIDÉO DIRECTE
 // =========================================================
@@ -978,7 +1074,6 @@ function findDirectVideo(cosmetic) {
     if (!cosmetic) {
         return null;
     }
-
 
     const directCandidates = [
 
@@ -1013,7 +1108,6 @@ function findDirectVideo(cosmetic) {
         cosmetic.assets?.video_url
     ];
 
-
     for (
         const candidate of directCandidates
     ) {
@@ -1028,7 +1122,6 @@ function findDirectVideo(cosmetic) {
         }
     }
 
-
     const recursiveResult =
         findVideoUrlDeep(
             cosmetic
@@ -1038,10 +1131,8 @@ function findDirectVideo(cosmetic) {
         return recursiveResult;
     }
 
-
     return null;
 }
-
 
 // =========================================================
 // EXTRAIRE URL DIRECTE
@@ -1067,7 +1158,6 @@ function extractDirectVideoUrl(value) {
         return null;
     }
 
-
     if (
         value &&
         typeof value === "object"
@@ -1084,7 +1174,6 @@ function extractDirectVideoUrl(value) {
             "file",
             "path"
         ];
-
 
         for (
             const key of possibleKeys
@@ -1108,10 +1197,8 @@ function extractDirectVideoUrl(value) {
         }
     }
 
-
     return null;
 }
-
 
 // =========================================================
 // RECHERCHE RÉCURSIVE D'UNE VIDÉO
@@ -1130,7 +1217,6 @@ function findVideoUrlDeep(
         return null;
     }
 
-
     if (
         typeof value === "string"
     ) {
@@ -1140,13 +1226,11 @@ function findVideoUrlDeep(
             : null;
     }
 
-
     if (
         typeof value !== "object"
     ) {
         return null;
     }
-
 
     if (
         Array.isArray(value)
@@ -1170,7 +1254,6 @@ function findVideoUrlDeep(
         return null;
     }
 
-
     for (
         const [key, child]
         of Object.entries(value)
@@ -1180,13 +1263,11 @@ function findVideoUrlDeep(
             String(key)
                 .toLowerCase();
 
-
         const looksLikeVideo =
             lowerKey.includes("video") ||
             lowerKey.includes("movie") ||
             lowerKey.includes("preview") ||
             lowerKey.includes("media");
-
 
         if (looksLikeVideo) {
 
@@ -1199,7 +1280,6 @@ function findVideoUrlDeep(
                 return found;
             }
         }
-
 
         if (
             child &&
@@ -1218,10 +1298,8 @@ function findVideoUrlDeep(
         }
     }
 
-
     return null;
 }
-
 
 // =========================================================
 // VÉRIFIER URL VIDÉO
@@ -1235,12 +1313,10 @@ function isDirectVideoUrl(value) {
         return false;
     }
 
-
     try {
 
         const url =
             new URL(value);
-
 
         if (
             url.protocol !== "https:" &&
@@ -1249,10 +1325,8 @@ function isDirectVideoUrl(value) {
             return false;
         }
 
-
         const pathname =
             url.pathname.toLowerCase();
-
 
         const extensions = [
 
@@ -1262,7 +1336,6 @@ function isDirectVideoUrl(value) {
             ".m4v",
             ".ogv"
         ];
-
 
         return extensions.some(
             extension =>
@@ -1277,7 +1350,6 @@ function isDirectVideoUrl(value) {
     }
 }
 
-
 // =========================================================
 // CHARGER VIDÉO DIRECTE
 // =========================================================
@@ -1286,21 +1358,17 @@ function loadDirectVideo(url) {
 
     resetVideo();
 
-
     if (
         !isDirectVideoUrl(url)
     ) {
         return;
     }
 
-
     currentVideoUrl =
         url;
 
-
     modalVideo.style.display =
         "block";
-
 
     modalVideo.muted =
         true;
@@ -1314,17 +1382,13 @@ function loadDirectVideo(url) {
     modalVideo.playsInline =
         true;
 
-
     modalVideo.src =
         url;
 
-
     modalVideo.load();
-
 
     const playPromise =
         modalVideo.play();
-
 
     if (
         playPromise &&
@@ -1345,7 +1409,6 @@ function loadDirectVideo(url) {
     }
 }
 
-
 // =========================================================
 // FALLBACK
 // =========================================================
@@ -1360,7 +1423,6 @@ function showVideoFallback() {
     );
 }
 
-
 // =========================================================
 // POINTS
 // =========================================================
@@ -1368,7 +1430,6 @@ function showVideoFallback() {
 function createDots() {
 
     carouselDots.innerHTML = "";
-
 
     /*
      * TOUJOURS DEUX POINTS :
@@ -1388,14 +1449,11 @@ function createDots() {
                 "button"
             );
 
-
         dot.type =
             "button";
 
-
         dot.className =
             "carousel-dot";
-
 
         if (
             i === currentSlide
@@ -1406,14 +1464,12 @@ function createDots() {
             );
         }
 
-
         dot.setAttribute(
             "aria-label",
             i === 0
                 ? "Afficher l'image"
                 : "Afficher la vidéo"
         );
-
 
         dot.addEventListener(
             "click",
@@ -1425,13 +1481,11 @@ function createDots() {
             }
         );
 
-
         carouselDots.appendChild(
             dot
         );
     }
 }
-
 
 // =========================================================
 // CHANGER SLIDE
@@ -1448,17 +1502,14 @@ function goToSlide(index) {
             )
         );
 
-
     currentSlide =
         nextSlide;
-
 
     updateSlide(
         nextSlide,
         true
     );
 }
-
 
 // =========================================================
 // UPDATE SLIDE
@@ -1478,16 +1529,13 @@ function updateSlide(
             )
         );
 
-
     currentSlide =
         index;
-
 
     previewTrack.style.transition =
         animate
             ? "transform 0.35s cubic-bezier(.22,.61,.36,1)"
             : "none";
-
 
     /*
      * 0%  = IMAGE
@@ -1497,12 +1545,10 @@ function updateSlide(
     previewTrack.style.transform =
         `translate3d(-${index * 50}%, 0, 0)`;
 
-
     const dots =
         carouselDots.querySelectorAll(
             ".carousel-dot"
         );
-
 
     dots.forEach(
         (dot, dotIndex) => {
@@ -1514,7 +1560,6 @@ function updateSlide(
         }
     );
 
-
     /* =====================================================
        IMAGE
        ===================================================== */
@@ -1523,39 +1568,23 @@ function updateSlide(
         index === 0
     ) {
 
-        /*
-         * L'image est explicitement
-         * rendue visible.
-         */
-
         modalImage.style.display =
             "block";
 
-
-        /*
-         * On masque complètement
-         * la vidéo.
-         */
-
         modalVideo.style.display =
             "none";
-
 
         videoFallback.classList.remove(
             "visible"
         );
 
-
         previewStatus.textContent =
             "IMAGE";
 
-
         pauseCurrentVideo();
-
 
         return;
     }
-
 
     /* =====================================================
        VIDÉO
@@ -1563,7 +1592,6 @@ function updateSlide(
 
     modalImage.style.display =
         "none";
-
 
     if (
         hasVideo &&
@@ -1573,15 +1601,12 @@ function updateSlide(
         previewStatus.textContent =
             "APERÇU ANIMÉ";
 
-
         modalVideo.style.display =
             "block";
-
 
         videoFallback.classList.remove(
             "visible"
         );
-
 
         playCurrentVideo();
 
@@ -1590,17 +1615,14 @@ function updateSlide(
         previewStatus.textContent =
             "VIDÉO";
 
-
         modalVideo.style.display =
             "none";
-
 
         videoFallback.classList.add(
             "visible"
         );
     }
 }
-
 
 // =========================================================
 // PLAY VIDÉO
@@ -1615,18 +1637,14 @@ function playCurrentVideo() {
         return;
     }
 
-
     modalVideo.style.display =
         "block";
-
 
     modalVideo.muted =
         true;
 
-
     const promise =
         modalVideo.play();
-
 
     if (
         promise &&
@@ -1638,7 +1656,6 @@ function playCurrentVideo() {
         );
     }
 }
-
 
 // =========================================================
 // PAUSE VIDÉO
@@ -1655,7 +1672,6 @@ function pauseCurrentVideo() {
     }
 }
 
-
 // =========================================================
 // POINTER DOWN
 // =========================================================
@@ -1668,17 +1684,14 @@ function handlePointerDown(event) {
         return;
     }
 
-
     if (
         event.pointerType === "mouse"
     ) {
         return;
     }
 
-
     activePointerId =
         event.pointerId;
-
 
     pointerStartX =
         event.clientX;
@@ -1692,17 +1705,14 @@ function handlePointerDown(event) {
     pointerCurrentY =
         event.clientY;
 
-
     isDragging =
         true;
 
     swipeDirectionLocked =
         false;
 
-
     previewTrack.style.transition =
         "none";
-
 
     try {
 
@@ -1714,7 +1724,6 @@ function handlePointerDown(event) {
         // Rien
     }
 }
-
 
 // =========================================================
 // POINTER MOVE
@@ -1729,23 +1738,19 @@ function handlePointerMove(event) {
         return;
     }
 
-
     pointerCurrentX =
         event.clientX;
 
     pointerCurrentY =
         event.clientY;
 
-
     const deltaX =
         pointerCurrentX -
         pointerStartX;
 
-
     const deltaY =
         pointerCurrentY -
         pointerStartY;
-
 
     if (
         !swipeDirectionLocked
@@ -1758,7 +1763,6 @@ function handlePointerMove(event) {
             return;
         }
 
-
         if (
             Math.abs(deltaY) >
             Math.abs(deltaX)
@@ -1770,30 +1774,23 @@ function handlePointerMove(event) {
             isDragging =
                 false;
 
-
             previewTrack.style.transition =
                 "transform 0.25s ease";
-
 
             previewTrack.style.transform =
                 `translate3d(-${currentSlide * 50}%, 0, 0)`;
 
-
             return;
         }
-
 
         swipeDirectionLocked =
             true;
     }
 
-
     event.preventDefault();
-
 
     const width =
         modalMedia.clientWidth;
-
 
     if (
         width <= 0
@@ -1801,19 +1798,15 @@ function handlePointerMove(event) {
         return;
     }
 
-
     const movementPercent =
         (deltaX / width) * 50;
-
 
     const basePosition =
         currentSlide * 50;
 
-
     let position =
         basePosition -
         movementPercent;
-
 
     if (
         position < 0
@@ -1822,7 +1815,6 @@ function handlePointerMove(event) {
         position =
             position * 0.18;
     }
-
 
     if (
         position > 50
@@ -1833,11 +1825,9 @@ function handlePointerMove(event) {
             (position - 50) * 0.18;
     }
 
-
     previewTrack.style.transform =
         `translate3d(-${position}%, 0, 0)`;
 }
-
 
 // =========================================================
 // POINTER UP
@@ -1852,15 +1842,12 @@ function handlePointerUp(event) {
         return;
     }
 
-
     const deltaX =
         pointerCurrentX -
         pointerStartX;
 
-
     const width =
         modalMedia.clientWidth;
-
 
     const threshold =
         Math.max(
@@ -1868,14 +1855,11 @@ function handlePointerUp(event) {
             width * 0.15
         );
 
-
     isDragging =
         false;
 
-
     activePointerId =
         null;
-
 
     if (
         deltaX < -threshold &&
@@ -1887,7 +1871,6 @@ function handlePointerUp(event) {
         return;
     }
 
-
     if (
         deltaX > threshold &&
         currentSlide === 1
@@ -1898,13 +1881,11 @@ function handlePointerUp(event) {
         return;
     }
 
-
     updateSlide(
         currentSlide,
         true
     );
 }
-
 
 // =========================================================
 // POINTER CANCEL
@@ -1918,20 +1899,17 @@ function handlePointerCancel(event) {
         return;
     }
 
-
     isDragging =
         false;
 
     activePointerId =
         null;
 
-
     updateSlide(
         currentSlide,
         true
     );
 }
-
 
 // =========================================================
 // CLAVIER
@@ -1945,7 +1923,6 @@ function handleKeyDown(event) {
         return;
     }
 
-
     if (
         event.key === "Escape"
     ) {
@@ -1954,7 +1931,6 @@ function handleKeyDown(event) {
 
         return;
     }
-
 
     if (
         event.key === "ArrowLeft"
@@ -1967,7 +1943,6 @@ function handleKeyDown(event) {
         return;
     }
 
-
     if (
         event.key === "ArrowRight"
     ) {
@@ -1978,7 +1953,6 @@ function handleKeyDown(event) {
     }
 }
 
-
 // =========================================================
 // ÉVÉNEMENTS
 // =========================================================
@@ -1988,12 +1962,10 @@ modalClose.addEventListener(
     closeModal
 );
 
-
 const modalBackdrop =
     document.querySelector(
         ".modal-backdrop"
     );
-
 
 if (modalBackdrop) {
 
@@ -2003,12 +1975,10 @@ if (modalBackdrop) {
     );
 }
 
-
 document.addEventListener(
     "keydown",
     handleKeyDown
 );
-
 
 // =========================================================
 // SWIPE POINTER EVENTS
@@ -2022,7 +1992,6 @@ modalMedia.addEventListener(
     }
 );
 
-
 modalMedia.addEventListener(
     "pointermove",
     handlePointerMove,
@@ -2030,7 +1999,6 @@ modalMedia.addEventListener(
         passive: false
     }
 );
-
 
 modalMedia.addEventListener(
     "pointerup",
@@ -2040,7 +2008,6 @@ modalMedia.addEventListener(
     }
 );
 
-
 modalMedia.addEventListener(
     "pointercancel",
     handlePointerCancel,
@@ -2048,7 +2015,6 @@ modalMedia.addEventListener(
         passive: true
     }
 );
-
 
 // =========================================================
 // ERREUR VIDÉO
@@ -2064,7 +2030,6 @@ modalVideo.addEventListener(
         currentVideoUrl =
             null;
 
-
         if (
             currentSlide === 1
         ) {
@@ -2076,7 +2041,6 @@ modalVideo.addEventListener(
         }
     }
 );
-
 
 // =========================================================
 // VIDÉO CHARGÉE
@@ -2094,7 +2058,6 @@ modalVideo.addEventListener(
             true;
     }
 );
-
 
 // =========================================================
 // INITIALISATION
