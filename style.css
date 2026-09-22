@@ -576,10 +576,100 @@ main {
 }
 
 /* =========================================================
-   SHOP GRID
+   GROUPES / PACKS
    ========================================================= */
 
 #shop {
+    display: block;
+}
+
+.shop-group {
+    margin-bottom: 42px;
+
+    opacity: 0;
+
+    transform:
+        translateY(12px);
+
+    animation:
+        groupIn 0.45s
+        cubic-bezier(.22,.61,.36,1)
+        forwards;
+}
+
+@keyframes groupIn {
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+.shop-group-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 14px;
+}
+
+.shop-group-heading h3 {
+    display: flex;
+
+    align-items: center;
+
+    min-width: 0;
+
+    font-size: 17px;
+
+    font-weight: 900;
+
+    letter-spacing: -0.3px;
+}
+
+.shop-group-heading h3::before {
+    content: "";
+
+    display: inline-block;
+
+    flex: 0 0 auto;
+
+    width: 4px;
+    height: 18px;
+
+    margin-right: 9px;
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #4d7cff,
+            #7b35ff
+        );
+}
+
+.shop-group-heading span {
+    flex: 0 0 auto;
+
+    color:
+        rgba(255,255,255,0.35);
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+
+    text-transform: uppercase;
+}
+
+.shop-group-grid {
     display: grid;
 
     grid-template-columns:
@@ -1457,7 +1547,30 @@ footer p {
         display: none;
     }
 
-    #shop {
+    .shop-group {
+        margin-bottom: 30px;
+    }
+
+    .shop-group-heading {
+        margin-bottom: 11px;
+    }
+
+    .shop-group-heading h3 {
+        font-size: 14px;
+    }
+
+    .shop-group-heading h3::before {
+        width: 3px;
+        height: 15px;
+
+        margin-right: 7px;
+    }
+
+    .shop-group-heading span {
+        font-size: 8px;
+    }
+
+    .shop-group-grid {
         grid-template-columns:
             repeat(
                 2,
@@ -1546,7 +1659,7 @@ footer p {
 
 @media (max-width: 380px) {
 
-    #shop {
+    .shop-group-grid {
         gap: 8px;
     }
 
