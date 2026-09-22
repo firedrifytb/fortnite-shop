@@ -3,28 +3,39 @@ const COSMETIC_API =
     "https://fortnite-api.com/v2/cosmetics/br/search/ids";
 
 const shopEl = document.getElementById("shop");
-const shopStatus = document.getElementById("shop-status");
+const shopStatus = document.getElementById("status");
 const shopDate = document.getElementById("shop-date");
-const refreshBtn = document.getElementById("refresh-shop");
+const refreshBtn = document.getElementById("refresh-btn");
 
 const modal = document.getElementById("item-modal");
 const modalClose = document.getElementById("modal-close");
 const modalName = document.getElementById("modal-name");
 const modalPrice = document.getElementById("modal-price");
 const modalExtra = document.getElementById("modal-extra");
-const modalDescription = document.getElementById("modal-description");
+const modalDescription =
+    document.getElementById("modal-description");
 
-const previewTrack = document.getElementById("preview-track");
-const previewImage = document.getElementById("preview-image");
-const previewVideo = document.getElementById("preview-video");
-const previewVideoSource = document.getElementById("preview-video-source");
-const previewStatus = document.getElementById("preview-status");
-const previewDots = document.getElementById("preview-dots");
+const previewTrack =
+    document.getElementById("preview-track");
+const previewImage =
+    document.getElementById("preview-image");
+const previewVideo =
+    document.getElementById("preview-video");
+const previewVideoSource =
+    document.getElementById("preview-video-source");
+const previewStatus =
+    document.getElementById("preview-status");
+const previewDots =
+    document.getElementById("preview-dots");
 
-const packCarousel = document.getElementById("pack-carousel");
-const packCarouselTrack = document.getElementById("pack-carousel-track");
-const packCarouselPrev = document.getElementById("pack-carousel-prev");
-const packCarouselNext = document.getElementById("pack-carousel-next");
+const packCarousel =
+    document.getElementById("pack-carousel");
+const packCarouselTrack =
+    document.getElementById("pack-carousel-track");
+const packCarouselPrev =
+    document.getElementById("pack-carousel-prev");
+const packCarouselNext =
+    document.getElementById("pack-carousel-next");
 
 let currentModalItem = null;
 let currentPreviewIndex = 0;
@@ -69,15 +80,24 @@ function getFirstValidString(...values) {
 // ============================================================
 
 function getEntryItems(entry) {
-    if (Array.isArray(entry?.items) && entry.items.length) {
+    if (
+        Array.isArray(entry?.items) &&
+        entry.items.length
+    ) {
         return entry.items;
     }
 
-    if (Array.isArray(entry?.brItems) && entry.brItems.length) {
+    if (
+        Array.isArray(entry?.brItems) &&
+        entry.brItems.length
+    ) {
         return entry.brItems;
     }
 
-    if (Array.isArray(entry?.tracks) && entry.tracks.length) {
+    if (
+        Array.isArray(entry?.tracks) &&
+        entry.tracks.length
+    ) {
         return entry.tracks;
     }
 
@@ -220,7 +240,8 @@ function getIndividualItemsTotal(items) {
 
 
 function getBundleRegularPrice(entry, items) {
-    const entryRegularPrice = getEntryRegularPrice(entry);
+    const entryRegularPrice =
+        getEntryRegularPrice(entry);
 
     if (
         entryRegularPrice !== null &&
@@ -229,7 +250,8 @@ function getBundleRegularPrice(entry, items) {
         return entryRegularPrice;
     }
 
-    const itemTotal = getIndividualItemsTotal(items);
+    const itemTotal =
+        getIndividualItemsTotal(items);
 
     return itemTotal > 0
         ? itemTotal
@@ -237,7 +259,11 @@ function getBundleRegularPrice(entry, items) {
 }
 
 
-function getBundleDiscount(entry, regularPrice, finalPrice) {
+function getBundleDiscount(
+    entry,
+    regularPrice,
+    finalPrice
+) {
     const explicitDiscount =
         entry?.discountAmount ??
         entry?.discount ??
@@ -247,15 +273,15 @@ function getBundleDiscount(entry, regularPrice, finalPrice) {
         explicitDiscount !== null &&
         explicitDiscount !== undefined
     ) {
-        const number = Number(explicitDiscount);
+        const number =
+            Number(explicitDiscount);
 
         if (
             Number.isFinite(number) &&
-            number > 0
+            number > 0 &&
+            number <= 100
         ) {
-            if (number <= 100) {
-                return Math.round(number);
-            }
+            return Math.round(number);
         }
     }
 
@@ -265,7 +291,9 @@ function getBundleDiscount(entry, regularPrice, finalPrice) {
         regularPrice > finalPrice
     ) {
         return Math.round(
-            ((regularPrice - finalPrice) / regularPrice) * 100
+            ((regularPrice - finalPrice) /
+                regularPrice) *
+                100
         );
     }
 
@@ -277,13 +305,14 @@ function getBundleDiscount(entry, regularPrice, finalPrice) {
 // NAME / DESCRIPTION
 // ============================================================
 
-function getEntryName(entry, items, isBundle) {
+function getEntryName(
+    entry,
+    items,
+    isBundle
+) {
     /*
-     * IMPORTANT:
-     * Si l'offre contient exactement 1 objet,
-     * on utilise TOUJOURS le nom de cet objet.
-     *
-     * Cela évite d'afficher "Pack Fortnite"
+     * Une seule offre = vrai nom de l'objet.
+     * On n'affiche jamais "Pack Fortnite"
      * pour un objet simple.
      */
 
@@ -320,7 +349,10 @@ function getEntryName(entry, items, isBundle) {
 }
 
 
-function getEntryDescription(entry, items) {
+function getEntryDescription(
+    entry,
+    items
+) {
     return getFirstValidString(
         entry?.description,
         entry?.shortDescription,
@@ -332,62 +364,80 @@ function getEntryDescription(entry, items) {
 
 
 // ============================================================
-// CONVERSION ENTRY -> SHOP ITEM
+// ENTRY -> SHOP ITEM
 // ============================================================
 
 function extractShopItem(entry) {
-    const items = getEntryItems(entry);
-    const isBundle = isPackEntry(entry, items);
+    const items =
+        getEntryItems(entry);
 
-    const finalPrice = getEntryFinalPrice(entry);
-
-    const regularPrice = isBundle
-        ? getBundleRegularPrice(entry, items)
-        : (
-            getEntryRegularPrice(entry) ??
-            getItemPrice(items[0])
+    const isBundle =
+        isPackEntry(
+            entry,
+            items
         );
 
-    const discount = isBundle
-        ? getBundleDiscount(
-            entry,
-            regularPrice,
-            finalPrice
-        )
-        : 0;
+    const finalPrice =
+        getEntryFinalPrice(entry);
 
-    const name = getEntryName(
-        entry,
-        items,
+    const regularPrice =
         isBundle
-    );
+            ? getBundleRegularPrice(
+                entry,
+                items
+            )
+            : (
+                getEntryRegularPrice(entry) ??
+                getItemPrice(items[0])
+            );
 
-    const image = isBundle
-        ? (
-            getBundleImage(entry) ||
-            getItemImage(items[0])
-        )
-        : getItemImage(items[0]);
+    const discount =
+        isBundle
+            ? getBundleDiscount(
+                entry,
+                regularPrice,
+                finalPrice
+            )
+            : 0;
 
-    const firstItem = items[0] || {};
+    const name =
+        getEntryName(
+            entry,
+            items,
+            isBundle
+        );
 
-    const itemType = getFirstValidString(
-        firstItem?.type,
-        firstItem?.itemType,
-        firstItem?.series?.displayName,
-        firstItem?.rarity?.displayName
-    );
+    const image =
+        isBundle
+            ? (
+                getBundleImage(entry) ||
+                getItemImage(items[0])
+            )
+            : getItemImage(items[0]);
 
-    const rarity = getFirstValidString(
-        firstItem?.rarity?.displayName,
-        firstItem?.rarity?.value
-    );
+    const firstItem =
+        items[0] || {};
 
-    const setName = getFirstValidString(
-        firstItem?.set?.text,
-        firstItem?.set?.name,
-        firstItem?.setName
-    );
+    const itemType =
+        getFirstValidString(
+            firstItem?.type,
+            firstItem?.itemType,
+            firstItem?.series?.displayName,
+            firstItem?.rarity?.displayName
+        );
+
+    const rarity =
+        getFirstValidString(
+            firstItem?.rarity?.displayName,
+            firstItem?.rarity?.value
+        );
+
+    const setName =
+        getFirstValidString(
+            firstItem?.set?.text,
+            firstItem?.set?.name,
+            firstItem?.setName
+        );
 
     return {
         id:
@@ -395,7 +445,9 @@ function extractShopItem(entry) {
             entry?.id ||
             entry?.offerID ||
             firstItem?.id ||
-            Math.random().toString(36).slice(2),
+            Math.random()
+                .toString(36)
+                .slice(2),
 
         name,
         image,
@@ -404,10 +456,11 @@ function extractShopItem(entry) {
         regularPrice,
         discount,
 
-        description: getEntryDescription(
-            entry,
-            items
-        ),
+        description:
+            getEntryDescription(
+                entry,
+                items
+            ),
 
         itemType,
         rarity,
@@ -415,7 +468,8 @@ function extractShopItem(entry) {
 
         isBundle,
 
-        itemCount: items.length,
+        itemCount:
+            items.length,
 
         items,
 
@@ -434,13 +488,11 @@ function getCategoryName(item) {
     }
 
     const type = (
-        item.itemType ||
-        ""
+        item.itemType || ""
     ).toLowerCase();
 
     const name = (
-        item.name ||
-        ""
+        item.name || ""
     ).toLowerCase();
 
     if (
@@ -481,7 +533,6 @@ function getCategoryName(item) {
     }
 
     if (
-        type.includes("emote") ||
         type.includes("emote")
     ) {
         return "Danses";
@@ -503,91 +554,95 @@ function getCategoryName(item) {
 // CARD
 // ============================================================
 
-function createCard(item, index) {
+function createCard(item) {
     const priceHtml =
         item.price !== null
             ? `${escapeHtml(item.price)} V-Bucks`
             : "Prix indisponible";
 
-    let discountHtml = "";
-
-    if (
+    const discountHtml =
         item.isBundle &&
         item.discount > 0
-    ) {
-        discountHtml = `
-            <span class="bundle-discount">
-                -${escapeHtml(item.discount)}%
-            </span>
-        `;
-    }
+            ? `
+                <span class="bundle-discount">
+                    -${escapeHtml(item.discount)}%
+                </span>
+            `
+            : "";
 
-    let countHtml = "";
-
-    if (
+    const countHtml =
         item.isBundle &&
         item.itemCount > 0
-    ) {
-        countHtml = `
-            <span class="bundle-count-badge">
-                ${escapeHtml(item.itemCount)} OBJET${item.itemCount > 1 ? "S" : ""}
-            </span>
-        `;
-    }
+            ? `
+                <span class="bundle-count-badge">
+                    ${escapeHtml(item.itemCount)}
+                    OBJET${item.itemCount > 1 ? "S" : ""}
+                </span>
+            `
+            : "";
 
-    let oldPriceHtml = "";
-
-    if (
+    const oldPriceHtml =
         item.isBundle &&
         item.regularPrice !== null &&
         item.price !== null &&
         item.regularPrice > item.price
-    ) {
-        oldPriceHtml = `
-            <span class="old-price">
-                ${escapeHtml(item.regularPrice)} V-Bucks
-            </span>
-        `;
-    }
+            ? `
+                <span class="old-price">
+                    ${escapeHtml(item.regularPrice)}
+                    V-Bucks
+                </span>
+            `
+            : "";
 
-    const imageHtml = item.image
-        ? `
-            <img
-                src="${escapeHtml(item.image)}"
-                alt="${escapeHtml(item.name)}"
-                loading="lazy"
-            >
-        `
-        : `
-            <div class="shop-card-no-image">
-                Image indisponible
-            </div>
-        `;
+    const imageHtml =
+        item.image
+            ? `
+                <img
+                    class="card-image"
+                    src="${escapeHtml(item.image)}"
+                    alt="${escapeHtml(item.name)}"
+                    loading="lazy"
+                >
+            `
+            : `
+                <div class="card-image-fallback">
+                    IMAGE INDISPONIBLE
+                </div>
+            `;
 
     return `
         <article
-            class="shop-card ${item.isBundle ? "bundle-card" : ""}"
-            data-shop-index="${index}"
+            class="shop-card ${
+                item.isBundle
+                    ? "bundle-card"
+                    : ""
+            }"
             tabindex="0"
             role="button"
             aria-label="Voir ${escapeHtml(item.name)}"
         >
-            <div class="shop-card-image">
+
+            <div class="card-image-wrapper">
+
                 ${imageHtml}
 
-                <div class="shop-card-badges">
+                <div class="card-badges">
                     ${discountHtml}
                     ${countHtml}
                 </div>
+
             </div>
 
-            <div class="shop-card-info">
+            <div class="card-info">
+
                 ${
                     item.itemType
                         ? `
-                            <span class="shop-card-type">
-                                ${escapeHtml(item.itemType)}
-                            </span>
+                            <div class="card-type">
+                                ${escapeHtml(
+                                    item.itemType
+                                )}
+                            </div>
                         `
                         : ""
                 }
@@ -596,13 +651,24 @@ function createCard(item, index) {
                     ${escapeHtml(item.name)}
                 </h3>
 
-                <div class="shop-card-price">
+                <div class="card-price">
+
                     ${oldPriceHtml}
-                    <span>
+
+                    <span
+                        class="${
+                            item.isBundle
+                                ? "bundle-price"
+                                : ""
+                        }"
+                    >
                         ${priceHtml}
                     </span>
+
                 </div>
+
             </div>
+
         </article>
     `;
 }
@@ -621,30 +687,37 @@ function createSection(
         return "";
     }
 
-    const cards = items
-        .map((item, index) =>
-            createCard(item, index)
-        )
-        .join("");
+    const cards =
+        items
+            .map(item =>
+                createCard(item)
+            )
+            .join("");
 
     return `
         <section
             class="shop-group ${escapeHtml(sectionClass)}"
         >
-            <div class="shop-group-header">
-                <h2>
-                    ${escapeHtml(title)}
-                </h2>
 
-                <span class="shop-group-count">
-                    ${items.length}
-                    offre${items.length > 1 ? "s" : ""}
-                </span>
+            <div class="shop-group-header">
+
+                <div>
+                    <h2>
+                        ${escapeHtml(title)}
+                    </h2>
+
+                    <span class="shop-group-count">
+                        ${items.length}
+                        offre${items.length > 1 ? "s" : ""}
+                    </span>
+                </div>
+
             </div>
 
             <div class="shop-grid">
                 ${cards}
             </div>
+
         </section>
     `;
 }
@@ -655,16 +728,19 @@ function createSection(
 // ============================================================
 
 function renderShop(entries) {
-    const items = entries
-        .map(extractShopItem)
-        .filter(item =>
-            item &&
-            item.name
-        );
+    const items =
+        entries
+            .map(extractShopItem)
+            .filter(
+                item =>
+                    item &&
+                    item.name
+            );
 
     const bundles = [];
     const music = [];
-    const categories = new Map();
+    const categories =
+        new Map();
     const others = [];
 
     items.forEach(item => {
@@ -673,7 +749,8 @@ function renderShop(entries) {
             return;
         }
 
-        const category = getCategoryName(item);
+        const category =
+            getCategoryName(item);
 
         if (category === "Musique") {
             music.push(item);
@@ -688,7 +765,9 @@ function renderShop(entries) {
             return;
         }
 
-        if (!categories.has(category)) {
+        if (
+            !categories.has(category)
+        ) {
             categories.set(
                 category,
                 []
@@ -718,10 +797,12 @@ function renderShop(entries) {
         );
     }
 
-    for (const [
-        category,
-        categoryItems
-    ] of categories) {
+    for (
+        const [
+            category,
+            categoryItems
+        ] of categories
+    ) {
         html += createSection(
             category,
             categoryItems
@@ -746,20 +827,16 @@ function renderShop(entries) {
 
 
     /*
-     * IMPORTANT :
-     * Chaque carte reçoit directement l'objet
-     * qui lui correspond.
-     *
-     * On ne cherche plus l'objet en fonction
-     * de la position globale du DOM.
+     * On associe directement chaque carte
+     * à son objet.
      */
 
-    const allSections =
+    const sections =
         document.querySelectorAll(
             ".shop-group"
         );
 
-    allSections.forEach(section => {
+    sections.forEach(section => {
         const title =
             section
                 .querySelector("h2")
@@ -771,15 +848,20 @@ function renderShop(entries) {
         if (title === "📦 Packs") {
             sectionItems = bundles;
         }
-        else if (title === "🎵 Musique") {
+        else if (
+            title === "🎵 Musique"
+        ) {
             sectionItems = music;
         }
-        else if (title === "Autres") {
+        else if (
+            title === "Autres"
+        ) {
             sectionItems = others;
         }
         else {
             sectionItems =
-                categories.get(title) || [];
+                categories.get(title) ||
+                [];
         }
 
         const cards =
@@ -787,41 +869,46 @@ function renderShop(entries) {
                 ".shop-card"
             );
 
-        cards.forEach((card, index) => {
-            const item =
-                sectionItems[index];
+        cards.forEach(
+            (card, index) => {
+                const item =
+                    sectionItems[index];
 
-            if (!item) {
-                return;
-            }
-
-            card.__shopItem = item;
-
-            card.addEventListener(
-                "click",
-                () => {
-                    openModal(
-                        card.__shopItem
-                    );
+                if (!item) {
+                    return;
                 }
-            );
 
-            card.addEventListener(
-                "keydown",
-                event => {
-                    if (
-                        event.key === "Enter" ||
-                        event.key === " "
-                    ) {
-                        event.preventDefault();
+                card.__shopItem =
+                    item;
 
+                card.addEventListener(
+                    "click",
+                    () => {
                         openModal(
                             card.__shopItem
                         );
                     }
-                }
-            );
-        });
+                );
+
+                card.addEventListener(
+                    "keydown",
+                    event => {
+                        if (
+                            event.key ===
+                                "Enter" ||
+                            event.key ===
+                                " "
+                        ) {
+                            event.preventDefault();
+
+                            openModal(
+                                card.__shopItem
+                            );
+                        }
+                    }
+                );
+            }
+        );
     });
 }
 
@@ -835,12 +922,17 @@ async function loadShop() {
         shopStatus.textContent =
             "Chargement de la boutique…";
 
-        refreshBtn.disabled = true;
+        refreshBtn.disabled =
+            true;
 
         const response =
-            await fetch(SHOP_API, {
-                cache: "no-store"
-            });
+            await fetch(
+                SHOP_API,
+                {
+                    cache:
+                        "no-store"
+                }
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -858,7 +950,9 @@ async function loadShop() {
             data?.shop ||
             [];
 
-        if (!Array.isArray(entries)) {
+        if (
+            !Array.isArray(entries)
+        ) {
             throw new Error(
                 "Format de boutique invalide."
             );
@@ -888,27 +982,54 @@ async function loadShop() {
         );
 
         shopStatus.textContent =
-            "Impossible de charger la boutique.";
+            "Erreur de chargement";
 
         shopEl.innerHTML = `
-            <div class="empty-shop">
-                <strong>Impossible de charger la boutique.</strong>
-                <br>
-                Vérifie ta connexion puis réessaie.
+            <div class="error-shop">
+                <h2>
+                    Impossible de charger la boutique
+                </h2>
+
+                <p>
+                    Vérifie ta connexion puis réessaie.
+                </p>
+
+                <button
+                    class="retry-btn"
+                    type="button"
+                    id="retry-shop"
+                >
+                    Réessayer
+                </button>
             </div>
         `;
+
+        const retryBtn =
+            document.getElementById(
+                "retry-shop"
+            );
+
+        if (retryBtn) {
+            retryBtn.addEventListener(
+                "click",
+                loadShop
+            );
+        }
     }
     finally {
-        refreshBtn.disabled = false;
+        refreshBtn.disabled =
+            false;
     }
 }
 
 
 // ============================================================
-// COSMETIC VIDEO
+// VIDEO
 // ============================================================
 
-async function getCosmeticVideo(itemId) {
+async function getCosmeticVideo(
+    itemId
+) {
     if (!itemId) {
         return null;
     }
@@ -920,7 +1041,8 @@ async function getCosmeticVideo(itemId) {
                     itemId
                 )}&language=fr`,
                 {
-                    cache: "no-store"
+                    cache:
+                        "no-store"
                 }
             );
 
@@ -940,15 +1062,17 @@ async function getCosmeticVideo(itemId) {
             return null;
         }
 
-        return getFirstValidString(
-            item?.video,
-            item?.videos?.video,
-            item?.previewVideo
-        ) || null;
+        return (
+            getFirstValidString(
+                item?.video,
+                item?.videos?.video,
+                item?.previewVideo
+            ) || null
+        );
     }
     catch (error) {
         console.warn(
-            "Impossible de récupérer la vidéo :",
+            "Vidéo indisponible :",
             error
         );
 
@@ -962,7 +1086,8 @@ async function getCosmeticVideo(itemId) {
 // ============================================================
 
 function setPreview(index) {
-    currentPreviewIndex = index;
+    currentPreviewIndex =
+        index;
 
     if (
         currentPreviewIndex === 0
@@ -970,16 +1095,8 @@ function setPreview(index) {
         previewTrack.style.transform =
             "translateX(0%)";
 
-        previewImage.style.display =
-            "block";
-
         if (previewVideo) {
             previewVideo.pause();
-        }
-
-        if (previewStatus) {
-            previewStatus.textContent =
-                "";
         }
     }
     else if (
@@ -989,16 +1106,10 @@ function setPreview(index) {
         previewTrack.style.transform =
             "translateX(-100%)";
 
-        previewImage.style.display =
-            "block";
-
         if (previewVideo) {
-            previewVideo.play().catch(() => {});
-        }
-
-        if (previewStatus) {
-            previewStatus.textContent =
-                "";
+            previewVideo
+                .play()
+                .catch(() => {});
         }
     }
 
@@ -1014,7 +1125,8 @@ function createPreviewDots() {
     const count =
         hasVideo ? 2 : 1;
 
-    previewDots.innerHTML = "";
+    previewDots.innerHTML =
+        "";
 
     for (
         let i = 0;
@@ -1026,11 +1138,13 @@ function createPreviewDots() {
                 "button"
             );
 
-        dot.type = "button";
+        dot.type =
+            "button";
 
         dot.className =
             `preview-dot ${
-                i === currentPreviewIndex
+                i ===
+                currentPreviewIndex
                     ? "active"
                     : ""
             }`;
@@ -1049,7 +1163,9 @@ function createPreviewDots() {
             }
         );
 
-        previewDots.appendChild(dot);
+        previewDots.appendChild(
+            dot
+        );
     }
 }
 
@@ -1079,16 +1195,9 @@ function getPackItemType(item) {
 }
 
 
-function getPackItemId(item) {
-    return getFirstValidString(
-        item?.id,
-        item?.templateId,
-        item?.assetId
-    );
-}
-
-
-function renderPackCarousel(items) {
+function renderPackCarousel(
+    items
+) {
     if (
         !packCarousel ||
         !packCarouselTrack
@@ -1096,7 +1205,8 @@ function renderPackCarousel(items) {
         return;
     }
 
-    packCarouselTrack.innerHTML = "";
+    packCarouselTrack.innerHTML =
+        "";
 
     items.forEach(
         (item, index) => {
@@ -1105,13 +1215,11 @@ function renderPackCarousel(items) {
                     "button"
                 );
 
-            button.type = "button";
+            button.type =
+                "button";
 
             button.className =
                 "pack-carousel-item";
-
-            button.dataset.index =
-                String(index);
 
             const image =
                 getItemImage(item);
@@ -1123,35 +1231,46 @@ function renderPackCarousel(items) {
                 getPackItemType(item);
 
             button.innerHTML = `
-                <span class="pack-carousel-number">
+                <span
+                    class="pack-carousel-number"
+                >
                     ${index + 1}/${items.length}
                 </span>
 
-                <div class="pack-carousel-image">
+                <div
+                    class="pack-carousel-image-wrap"
+                >
                     ${
                         image
                             ? `
                                 <img
+                                    class="pack-carousel-image"
                                     src="${escapeHtml(image)}"
                                     alt="${escapeHtml(name)}"
                                     loading="lazy"
                                 >
                             `
                             : `
-                                <div class="pack-carousel-no-image">
+                                <div
+                                    class="pack-carousel-no-image"
+                                >
                                     ?
                                 </div>
                             `
                     }
                 </div>
 
-                <span class="pack-carousel-name">
-                    ${escapeHtml(name)}
-                </span>
+                <div
+                    class="pack-carousel-info"
+                >
+                    <strong>
+                        ${escapeHtml(name)}
+                    </strong>
 
-                <span class="pack-carousel-type">
-                    ${escapeHtml(type)}
-                </span>
+                    <small>
+                        ${escapeHtml(type)}
+                    </small>
+                </div>
             `;
 
             button.addEventListener(
@@ -1170,12 +1289,13 @@ function renderPackCarousel(items) {
         }
     );
 
-    currentPackItemIndex = 0;
+    currentPackItemIndex =
+        0;
 
     setPackCarouselItem(
         0,
         items,
-        false
+        true
     );
 
     updatePackCarouselButtons();
@@ -1210,10 +1330,14 @@ function setPackCarouselItem(
             : [];
 
     buttons.forEach(
-        (button, buttonIndex) => {
+        (
+            button,
+            buttonIndex
+        ) => {
             button.classList.toggle(
                 "active",
-                buttonIndex === index
+                buttonIndex ===
+                    index
             );
         }
     );
@@ -1234,18 +1358,25 @@ function setPackCarouselItem(
         buttons[index];
 
     if (activeButton) {
-        activeButton.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "center"
-        });
+        activeButton.scrollIntoView(
+            {
+                behavior:
+                    "smooth",
+                block:
+                    "nearest",
+                inline:
+                    "center"
+            }
+        );
     }
 
     updatePackCarouselButtons();
 }
 
 
-function updatePackMainPreview(item) {
+function updatePackMainPreview(
+    item
+) {
     const image =
         getItemImage(item);
 
@@ -1253,7 +1384,8 @@ function updatePackMainPreview(item) {
         return;
     }
 
-    previewImage.src = image;
+    previewImage.src =
+        image;
 
     previewImage.alt =
         getPackItemName(item);
@@ -1272,19 +1404,15 @@ function updatePackCarouselButtons() {
     }
 
     const items =
-        currentModalItem.items || [];
-
-    const hasMultiple =
-        items.length > 1;
+        currentModalItem.items ||
+        [];
 
     packCarouselPrev.disabled =
-        !hasMultiple ||
         currentPackItemIndex <= 0;
 
     packCarouselNext.disabled =
-        !hasMultiple ||
         currentPackItemIndex >=
-            items.length - 1;
+        items.length - 1;
 }
 
 
@@ -1292,12 +1420,15 @@ if (packCarouselPrev) {
     packCarouselPrev.addEventListener(
         "click",
         () => {
-            if (!currentModalItem) {
+            if (
+                !currentModalItem
+            ) {
                 return;
             }
 
             setPackCarouselItem(
-                currentPackItemIndex - 1,
+                currentPackItemIndex -
+                    1,
                 currentModalItem.items
             );
         }
@@ -1309,12 +1440,15 @@ if (packCarouselNext) {
     packCarouselNext.addEventListener(
         "click",
         () => {
-            if (!currentModalItem) {
+            if (
+                !currentModalItem
+            ) {
                 return;
             }
 
             setPackCarouselItem(
-                currentPackItemIndex + 1,
+                currentPackItemIndex +
+                    1,
                 currentModalItem.items
             );
         }
@@ -1322,7 +1456,10 @@ if (packCarouselNext) {
 }
 
 
-// Swipe du carrousel des objets
+// ============================================================
+// SWIPE PACK
+// ============================================================
+
 let packTouchStartX = 0;
 let packTouchEndX = 0;
 
@@ -1331,7 +1468,8 @@ if (packCarouselTrack) {
         "touchstart",
         event => {
             packTouchStartX =
-                event.changedTouches[0].clientX;
+                event.changedTouches[0]
+                    .clientX;
         },
         {
             passive: true
@@ -1342,31 +1480,40 @@ if (packCarouselTrack) {
         "touchend",
         event => {
             packTouchEndX =
-                event.changedTouches[0].clientX;
+                event.changedTouches[0]
+                    .clientX;
 
             const difference =
                 packTouchStartX -
                 packTouchEndX;
 
             if (
-                Math.abs(difference) < 40
+                Math.abs(
+                    difference
+                ) < 40
             ) {
                 return;
             }
 
-            if (!currentModalItem) {
+            if (
+                !currentModalItem
+            ) {
                 return;
             }
 
-            if (difference > 0) {
+            if (
+                difference > 0
+            ) {
                 setPackCarouselItem(
-                    currentPackItemIndex + 1,
+                    currentPackItemIndex +
+                        1,
                     currentModalItem.items
                 );
             }
             else {
                 setPackCarouselItem(
-                    currentPackItemIndex - 1,
+                    currentPackItemIndex -
+                        1,
                     currentModalItem.items
                 );
             }
@@ -1387,23 +1534,21 @@ async function openModal(item) {
         return;
     }
 
-    currentModalItem = item;
-    currentPackItemIndex = 0;
+    currentModalItem =
+        item;
+
+    currentPackItemIndex =
+        0;
 
     modalName.textContent =
-        item.name || "Objet Fortnite";
+        item.name ||
+        "Objet Fortnite";
 
-    if (
+    modalPrice.textContent =
         item.price !== null &&
         item.price !== undefined
-    ) {
-        modalPrice.textContent =
-            `${item.price} V-Bucks`;
-    }
-    else {
-        modalPrice.textContent =
-            "Prix indisponible";
-    }
+            ? `${item.price} V-Bucks`
+            : "Prix indisponible";
 
     const extraParts = [];
 
@@ -1415,7 +1560,8 @@ async function openModal(item) {
 
     if (
         item.rarity &&
-        item.rarity !== item.itemType
+        item.rarity !==
+            item.itemType
     ) {
         extraParts.push(
             item.rarity
@@ -1434,9 +1580,9 @@ async function openModal(item) {
         extraParts.join(" • ");
 
     modalDescription.textContent =
-        item.description || "";
+        item.description ||
+        "";
 
-    // Image principale
     if (item.image) {
         previewImage.src =
             item.image;
@@ -1455,7 +1601,7 @@ async function openModal(item) {
 
 
     // --------------------------------------------------------
-    // PACK CAROUSEL
+    // PACK
     // --------------------------------------------------------
 
     if (
@@ -1464,7 +1610,7 @@ async function openModal(item) {
         item.items.length > 0
     ) {
         packCarousel.style.display =
-            "";
+            "block";
 
         renderPackCarousel(
             item.items
@@ -1477,18 +1623,20 @@ async function openModal(item) {
         packCarouselTrack.innerHTML =
             "";
 
-        currentPackItemIndex = 0;
+        currentPackItemIndex =
+            0;
     }
 
 
     // --------------------------------------------------------
-    // RESET VIDEO
+    // VIDEO RESET
     // --------------------------------------------------------
 
     hasVideo = false;
 
     if (previewVideo) {
         previewVideo.pause();
+
         previewVideo.removeAttribute(
             "src"
         );
@@ -1504,7 +1652,9 @@ async function openModal(item) {
 
     createPreviewDots();
 
-    modal.classList.add("open");
+    modal.classList.add(
+        "open"
+    );
 
     modal.setAttribute(
         "aria-hidden",
@@ -1530,12 +1680,9 @@ async function openModal(item) {
             )
         );
 
-    /*
-     * L'utilisateur peut fermer le modal
-     * pendant que la vidéo charge.
-     */
     if (
-        currentModalItem !== item
+        currentModalItem !==
+        item
     ) {
         return;
     }
@@ -1582,7 +1729,8 @@ function closeModal() {
         previewVideo.pause();
     }
 
-    currentModalItem = null;
+    currentModalItem =
+        null;
 }
 
 
@@ -1623,18 +1771,21 @@ document.addEventListener(
         }
 
         if (
-            event.key === "Escape"
+            event.key ===
+            "Escape"
         ) {
             closeModal();
             return;
         }
 
         if (
-            event.key === "ArrowLeft" &&
+            event.key ===
+                "ArrowLeft" &&
             currentModalItem?.isBundle
         ) {
             setPackCarouselItem(
-                currentPackItemIndex - 1,
+                currentPackItemIndex -
+                    1,
                 currentModalItem.items
             );
 
@@ -1642,11 +1793,13 @@ document.addEventListener(
         }
 
         if (
-            event.key === "ArrowRight" &&
+            event.key ===
+                "ArrowRight" &&
             currentModalItem?.isBundle
         ) {
             setPackCarouselItem(
-                currentPackItemIndex + 1,
+                currentPackItemIndex +
+                    1,
                 currentModalItem.items
             );
         }
@@ -1666,7 +1819,8 @@ if (previewTrack) {
         "touchstart",
         event => {
             previewTouchStartX =
-                event.changedTouches[0].clientX;
+                event.changedTouches[0]
+                    .clientX;
         },
         {
             passive: true
@@ -1677,14 +1831,17 @@ if (previewTrack) {
         "touchend",
         event => {
             previewTouchEndX =
-                event.changedTouches[0].clientX;
+                event.changedTouches[0]
+                    .clientX;
 
             const difference =
                 previewTouchStartX -
                 previewTouchEndX;
 
             if (
-                Math.abs(difference) < 40
+                Math.abs(
+                    difference
+                ) < 40
             ) {
                 return;
             }
