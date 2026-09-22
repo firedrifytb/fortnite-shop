@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -10,88 +8,14 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Fortnite Shop – Boutique Fortnite quotidienne
-    </title>
+    <meta
+        name="theme-color"
+        content="#080808"
+    >
 
     <meta
         name="description"
-        content="Découvrez la boutique Fortnite du jour : skins, accessoires, pioches, emotes et autres objets disponibles dans Fortnite."
-    >
-
-    <meta
-        name="robots"
-        content="index, follow"
-    >
-
-    <link
-        rel="canonical"
-        href="https://fortnite-shop.fr/"
-    >
-
-    <meta
-        property="og:type"
-        content="website"
-    >
-
-    <meta
-        property="og:url"
-        content="https://fortnite-shop.fr/"
-    >
-
-    <meta
-        property="og:title"
-        content="Fortnite Shop – Boutique Fortnite quotidienne"
-    >
-
-    <meta
-        property="og:description"
-        content="Découvrez les objets disponibles aujourd'hui dans la boutique Fortnite."
-    >
-
-    <meta
-        property="og:image"
-        content="https://fortnite-shop.fr/IMG_2234.jpeg"
-    >
-
-    <meta
-        property="og:locale"
-        content="fr_FR"
-    >
-
-    <meta
-        name="twitter:card"
-        content="summary_large_image"
-    >
-
-    <meta
-        name="twitter:title"
-        content="Fortnite Shop – Boutique Fortnite quotidienne"
-    >
-
-    <meta
-        name="twitter:description"
-        content="Découvrez les objets disponibles aujourd'hui dans la boutique Fortnite."
-    >
-
-    <meta
-        name="twitter:image"
-        content="https://fortnite-shop.fr/IMG_2234.jpeg"
-    >
-
-    <meta
-        name="theme-color"
-        content="#070b18"
-    >
-
-    <meta
-        name="apple-mobile-web-app-capable"
-        content="yes"
-    >
-
-    <meta
-        name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent"
+        content="Boutique Fortnite en temps réel."
     >
 
     <link
@@ -100,321 +24,227 @@
     >
 
     <link
-        rel="apple-touch-icon"
-        href="IMG_2234.jpeg"
-    >
-
-    <link
         rel="stylesheet"
         href="style.css"
     >
 
-    <script type="application/ld+json">
-
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Fortnite Shop",
-        "url": "https://fortnite-shop.fr/",
-        "description": "Boutique Fortnite quotidienne permettant de découvrir les objets disponibles dans Fortnite.",
-        "inLanguage": "fr-FR"
-    }
-
-    </script>
-
+    <title>Fortnite Shop</title>
 </head>
 
 <body>
 
-    <div class="background">
-
-        <div class="orb orb-blue"></div>
-
-        <div class="orb orb-purple"></div>
-
-        <div class="grid-background"></div>
-
-    </div>
-
-    <header>
-
-        <div class="header-inner">
-
-            <div class="brand">
-
-                <div class="brand-logo">
-                    ⚡
-                </div>
-
-                <div class="brand-text">
-
-                    <h1>
-                        FORTNITE
-                        <span>
-                            SHOP
-                        </span>
-                    </h1>
-
-                    <p>
-                        Boutique quotidienne
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="date-box">
-
-                <span class="date-label">
-                    BOUTIQUE DU
-                </span>
-
-                <div id="date"></div>
-
-            </div>
-
-            <div class="actions">
-
-                <a
-                    class="login-button"
-                    href="https://fortnite-shop.firedrifytb.workers.dev/login"
-                >
-
-                    <span class="epic-icon">
-                        🎮
-                    </span>
-
-                    <span class="login-content">
-
-                        <small>
-                            COMPTE EPIC
-                        </small>
-
-                        Se connecter
-
-                    </span>
-
-                </a>
-
-                <button
-                    class="refresh-button"
-                    type="button"
-                    onclick="loadShop()"
-                    aria-label="Actualiser la boutique"
-                >
-
-                    <span class="refresh-icon">
-                        ↻
-                    </span>
-
-                    <span class="refresh-text">
-                        Actualiser
-                    </span>
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </header>
-
-    <main>
-
-        <section class="shop-heading">
-
-            <div class="heading-content">
-
-                <span class="section-label">
-                    FORTNITE
-                </span>
-
-                <h2>
-                    Boutique d'objets
-                </h2>
-
-                <p>
-                    Découvrez les objets disponibles aujourd'hui.
-                </p>
-
-            </div>
-
-            <div class="live-badge">
-
-                <span></span>
-
-                EN DIRECT
-
-            </div>
-
-        </section>
-
-        <div id="status">
-
-            <div class="loading-container">
-
-                <div class="loading-spinner"></div>
-
-                <span>
-                    Chargement de la boutique...
-                </span>
-
-            </div>
-
-        </div>
-
-        <section id="shop"></section>
-
-    </main>
-
-    <div
-        id="item-modal"
-        class="item-modal"
-        aria-hidden="true"
-    >
-
-        <div class="modal-backdrop"></div>
-
-        <div
-            class="modal-content"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-name"
-        >
-
-            <button
-                id="modal-close"
-                class="modal-close"
-                type="button"
-                aria-label="Fermer"
-            >
-                ×
-            </button>
-
-            <div
-                class="modal-media"
-                id="modal-media"
-            >
-
-                <div
-                    class="preview-track"
-                    id="preview-track"
-                >
-
-                    <div
-                        class="preview-slide preview-image-slide"
-                    >
-
-                        <img
-                            id="modal-image"
-                            class="modal-image"
-                            src=""
-                            alt=""
-                        >
-
-                    </div>
-
-                    <div
-                        class="preview-slide preview-video-slide"
-                    >
-
-                        <video
-                            id="modal-video"
-                            class="modal-video"
-                            muted
-                            autoplay
-                            loop
-                            playsinline
-                            preload="auto"
-                        ></video>
-
-                        <div
-                            id="video-fallback"
-                            class="video-fallback"
-                        >
-
-                            <div class="fallback-icon">
-                                ◌
-                            </div>
-
-                            <span>
-                                Aperçu vidéo indisponible
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="modal-gradient"></div>
-
-                <div
-                    id="preview-status"
-                    class="preview-status"
-                >
-                    APERÇU ANIMÉ
-                </div>
-
-                <div
-                    id="carousel-dots"
-                    class="carousel-dots"
-                ></div>
-
-            </div>
-
-            <div class="modal-info">
-
-                <span class="modal-label">
-                    OBJET FORTNITE
-                </span>
-
-                <h2 id="modal-name"></h2>
-
-                <div
-                    id="modal-price"
-                    class="price"
-                ></div>
-
-                <div
-                    id="modal-extra-info"
-                    class="modal-extra-info"
-                ></div>
-
-                <div
-                    id="modal-description"
-                    class="modal-description"
-                ></div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <footer>
-
-        <div class="footer-logo">
-            FORTNITE SHOP
-        </div>
-
-        <div class="footer-line"></div>
-
-        <p>
-            Non affilié à Epic Games.
-        </p>
+<header class="site-header">
+    <div class="header-inner">
 
         <a
-            href="/privacy.html"
-            class="privacy-link"
+            class="brand"
+            href="./"
         >
+            <span class="brand-main">
+                FORTNITE
+            </span>
+
+            <span class="brand-sub">
+                SHOP
+            </span>
+        </a>
+
+        <div class="header-actions">
+
+            <a
+                class="epic-link"
+                href="https://www.epicgames.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Epic Games
+            </a>
+
+            <button
+                id="refresh-btn"
+                class="refresh-btn"
+                type="button"
+            >
+                Actualiser
+            </button>
+
+        </div>
+
+    </div>
+</header>
+
+<main>
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <p class="eyebrow">
+                BOUTIQUE DU JOUR
+            </p>
+
+            <h1>
+                Fortnite Shop
+            </h1>
+
+            <p class="hero-description">
+                Découvre les objets actuellement disponibles
+                dans la boutique Fortnite.
+            </p>
+
+            <div class="shop-meta">
+                <span id="shop-date">
+                    Boutique actuelle
+                </span>
+
+                <span
+                    id="status"
+                    aria-live="polite"
+                >
+                    Chargement…
+                </span>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section
+        id="shop"
+        class="shop-container"
+    ></section>
+
+</main>
+
+<footer class="site-footer">
+
+    <div class="footer-inner">
+
+        <p>
+            Fortnite Shop — site non officiel.
+        </p>
+
+        <a href="privacy.html">
             Politique de confidentialité
         </a>
 
-    </footer>
+    </div>
 
-    <script src="app.js"></script>
+</footer>
+
+
+<!-- ========================= -->
+<!-- MODAL FULLSCREEN -->
+<!-- ========================= -->
+
+<div
+    id="item-modal"
+    class="item-modal"
+    aria-hidden="true"
+>
+
+    <div class="modal-backdrop"></div>
+
+    <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Aperçu de l'objet"
+    >
+
+        <button
+            id="modal-close"
+            class="modal-close"
+            type="button"
+            aria-label="Fermer"
+        >
+            ×
+        </button>
+
+
+        <div class="modal-media">
+
+            <div
+                id="preview-track"
+                class="preview-track"
+            >
+
+                <div class="preview-slide">
+                    <img
+                        id="preview-image"
+                        src=""
+                        alt=""
+                    >
+                </div>
+
+                <div class="preview-slide preview-video-slide">
+
+                    <video
+                        id="preview-video"
+                        muted
+                        playsinline
+                        controls
+                    >
+                        <source
+                            id="preview-video-source"
+                            src=""
+                        >
+                    </video>
+
+                </div>
+
+            </div>
+
+            <div
+                id="preview-status"
+                class="preview-status"
+            ></div>
+
+            <div
+                id="preview-dots"
+                class="preview-dots"
+            ></div>
+
+        </div>
+
+
+        <div class="modal-info">
+
+            <div class="modal-info-top">
+
+                <div>
+
+                    <p
+                        id="modal-extra"
+                        class="modal-extra"
+                    ></p>
+
+                    <h2 id="modal-name">
+                        Objet Fortnite
+                    </h2>
+
+                </div>
+
+                <div
+                    id="modal-price"
+                    class="modal-price"
+                ></div>
+
+            </div>
+
+            <p
+                id="modal-description"
+                class="modal-description"
+            ></p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="app.js"></script>
 
 </body>
-
 </html>
