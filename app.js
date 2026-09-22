@@ -1,11 +1,13 @@
 /* =========================================================
    FORTNITE SHOP
-   Source : Fortnite-Datamining
    Interface inchangée
+   Chargement robuste de la boutique
    ========================================================= */
 
-const SHOP_API =
-  "https://raw.githubusercontent.com/Fortnite-Datamining/Fortnite-Datamining/main/data/shop/current.json";
+const SHOP_APIS = [
+  "https://raw.githubusercontent.com/Fortnite-Datamining/Fortnite-Datamining/main/data/shop/current.json",
+  "https://fortnite-api.com/v2/shop?language=fr"
+];
 
 
 /* =========================================================
@@ -96,13 +98,23 @@ function formatPrice(value) {
 
 
 /* =========================================================
-   ENTRÉES DE LA BOUTIQUE
+   RÉCUPÉRATION DES ENTRÉES
    ========================================================= */
 
 function getShopEntries(json) {
   if (!json) {
     return [];
   }
+
+  /*
+    Fortnite-Datamining actuel :
+
+    {
+      data: {
+        entries: [...]
+      }
+    }
+  */
 
   if (
     json.data &&
@@ -111,9 +123,43 @@ function getShopEntries(json) {
     return json.data.entries;
   }
 
+  /*
+    Fortnite API classique
+  */
+
+  if (
+    json.data &&
+    Array.isArray(json.data.storefronts)
+  ) {
+    const entries = [];
+
+    for (const storefront of json.data.storefronts) {
+      if (
+        Array.isArray(storefront.catalogEntries)
+      ) {
+        entries.push(
+          ...storefront.catalogEntries
+        );
+      }
+    }
+
+    if (entries.length) {
+      return entries;
+    }
+  }
+
+  /*
+    Certains formats mettent directement
+    entries à la racine.
+  */
+
   if (Array.isArray(json.entries)) {
     return json.entries;
   }
+
+  /*
+    Format directement tableau.
+  */
 
   if (Array.isArray(json)) {
     return json;
@@ -125,7 +171,6 @@ function getShopEntries(json) {
 
 /* =========================================================
    OBJETS D'UNE OFFRE
-   NOUVEAU FORMAT : brItems
    ========================================================= */
 
 function getEntryItems(entry) {
@@ -133,16 +178,34 @@ function getEntryItems(entry) {
     return [];
   }
 
+  /*
+    Nouveau Fortnite-Datamining
+  */
+
   if (Array.isArray(entry.brItems)) {
     return entry.brItems;
   }
 
-  /* Compatibilité éventuelle */
+  /*
+    Ancien format
+  */
+
   if (Array.isArray(entry.items)) {
     return entry.items;
   }
 
-  if (entry.item && typeof entry.item === "object") {
+  /*
+    Format alternatif
+  */
+
+  if (Array.isArray(entry.itemGrants)) {
+    return entry.itemGrants;
+  }
+
+  if (
+    entry.item &&
+    typeof entry.item === "object"
+  ) {
     return [entry.item];
   }
 
@@ -161,7 +224,7 @@ function isPackEntry(entry) {
 
 
 /* =========================================================
-   IMAGE PRINCIPALE
+   IMAGES
    ========================================================= */
 
 function getEntryImage(entry) {
@@ -170,8 +233,8 @@ function getEntryImage(entry) {
   }
 
   /*
-    NOUVEAU FORMAT :
-    NewDisplayAsset -> renderImages
+    PRIORITÉ 1
+    Nouveau format Datamining
   */
 
   const renderImage =
@@ -187,7 +250,8 @@ function getEntryImage(entry) {
   }
 
   /*
-    Ancien format éventuel
+    PRIORITÉ 2
+    Ancien Background
   */
 
   const background =
@@ -202,6 +266,10 @@ function getEntryImage(entry) {
     return background.trim();
   }
 
+  /*
+    PRIORITÉ 3
+  */
+
   const displayAsset =
     entry.displayAssets?.[0]?.url;
 
@@ -213,12 +281,15 @@ function getEntryImage(entry) {
   }
 
   /*
-    Fallback Fortnite API
+    PRIORITÉ 4
+    brItems
   */
 
+  const item =
+    getEntryItems(entry)[0];
+
   const icon =
-    entry.brItems?.[0]?.images?.icon ||
-    entry.items?.[0]?.images?.icon;
+    item?.images?.icon;
 
   if (
     typeof icon === "string" &&
@@ -227,15 +298,32 @@ function getEntryImage(entry) {
     return icon.trim();
   }
 
+  /*
+    PRIORITÉ 5
+  */
+
   const featured =
-    entry.brItems?.[0]?.images?.featured ||
-    entry.items?.[0]?.images?.featured;
+    item?.images?.featured;
 
   if (
     typeof featured === "string" &&
     featured.trim()
   ) {
     return featured.trim();
+  }
+
+  /*
+    PRIORITÉ 6
+  */
+
+  const smallIcon =
+    item?.images?.smallIcon;
+
+  if (
+    typeof smallIcon === "string" &&
+    smallIcon.trim()
+  ) {
+    return smallIcon.trim();
   }
 
   return "";
@@ -268,9 +356,9 @@ function getEntryName(entry) {
   return (
     item?.name ||
     entry?.bundle?.name ||
-    entry?.name ||
-    entry?.displayName ||
     entry?.title ||
+    entry?.displayName ||
+    entry?.name ||
     "Objet Fortnite"
   );
 }
@@ -320,7 +408,8 @@ function getEntryRegularPrice(entry) {
 
 
 function getBundleRegularPrice(entry) {
-  const items = getEntryItems(entry);
+  const items =
+    getEntryItems(entry);
 
   if (!items.length) {
     return null;
@@ -331,6 +420,7 @@ function getBundleRegularPrice(entry) {
   for (const item of items) {
     const price =
       getNumber(item?.finalPrice) ??
+      getNumber(item?.regularPrice) ??
       getNumber(item?.price?.finalPrice) ??
       getNumber(item?.price);
 
@@ -339,7 +429,9 @@ function getBundleRegularPrice(entry) {
     }
   }
 
-  return total > 0 ? total : null;
+  return total > 0
+    ? total
+    : null;
 }
 
 
@@ -421,23 +513,12 @@ function getSetName(item) {
 
 /* =========================================================
    SECTION
-   NOUVEAU FORMAT : layout.name
    ========================================================= */
 
 function getSectionName(entry) {
   if (!entry) {
     return "Boutique";
   }
-
-  /*
-    Exemple réel :
-
-    layout: {
-      name: "FNCS",
-      category: "...",
-      ...
-    }
-  */
 
   const layoutName =
     entry.layout?.name;
@@ -541,15 +622,6 @@ function convertFortniteColor(value) {
   let color =
     value.trim();
 
-  /*
-    Le JSON utilise par exemple :
-
-    008b91ff
-
-    Les deux derniers caractères
-    correspondent à l'alpha.
-  */
-
   if (
     /^[0-9a-fA-F]{8}$/.test(color)
   ) {
@@ -637,11 +709,7 @@ function getEntryColors(entry) {
     colors
   );
 
-  if (colors.length) {
-    return colors.slice(0, 3);
-  }
-
-  return [];
+  return colors.slice(0, 3);
 }
 
 
@@ -666,7 +734,16 @@ function extractShopItem(entry) {
   const name =
     getEntryName(entry);
 
-  if (!image || !name) {
+  /*
+    IMPORTANT :
+    On ne jette pas une offre juste parce
+    qu'une image manque.
+
+    Une image de fallback est générée
+    depuis brItems si nécessaire.
+  */
+
+  if (!name) {
     return null;
   }
 
@@ -765,6 +842,10 @@ function createCard(item, key) {
         ].join(";")
       : "";
 
+  const image =
+    item.image ||
+    getItemImage(item.items?.[0]);
+
   return `
     <article
       class="shop-card ${escapeHtml(item.tileClass)}"
@@ -778,12 +859,21 @@ function createCard(item, key) {
       <div class="card-background"></div>
 
       <div class="card-image-wrapper">
-        <img
-          class="card-image"
-          src="${escapeHtml(item.image)}"
-          alt="${escapeHtml(item.name)}"
-          loading="lazy"
-        >
+        ${
+          image
+            ? `
+              <img
+                class="card-image"
+                src="${escapeHtml(image)}"
+                alt="${escapeHtml(item.name)}"
+                loading="lazy"
+              >
+            `
+            : `
+              <div class="card-image card-image-placeholder">
+              </div>
+            `
+        }
       </div>
 
       <div class="card-gradient"></div>
@@ -1007,7 +1097,53 @@ function renderShop(items) {
 
 
 /* =========================================================
-   CHARGEMENT
+   FETCH ROBUSTE
+   ========================================================= */
+
+async function fetchJson(url) {
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(
+      () => controller.abort(),
+      15000
+    );
+
+  try {
+    const separator =
+      url.includes("?")
+        ? "&"
+        : "?";
+
+    const response =
+      await fetch(
+        `${url}${separator}cb=${Date.now()}`,
+        {
+          cache: "no-store",
+          signal: controller.signal,
+          headers: {
+            "Accept": "application/json"
+          }
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+    return await response.json();
+
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+
+/* =========================================================
+   CHARGEMENT DE LA BOUTIQUE
    ========================================================= */
 
 async function loadShop() {
@@ -1020,82 +1156,117 @@ async function loadShop() {
     refreshBtn.disabled = true;
   }
 
+  if (shopGrid) {
+    shopGrid.innerHTML = "";
+  }
+
+  let lastError = null;
+
   try {
-    const controller =
-      new AbortController();
 
-    const timeout =
-      setTimeout(
-        () => controller.abort(),
-        15000
-      );
+    /*
+      On essaie les sources une par une.
+    */
 
-    const response =
-      await fetch(
-        SHOP_API,
-        {
-          cache: "no-store",
-          signal: controller.signal
+    for (
+      let sourceIndex = 0;
+      sourceIndex < SHOP_APIS.length;
+      sourceIndex++
+    ) {
+
+      const api =
+        SHOP_APIS[sourceIndex];
+
+      try {
+
+        console.log(
+          "Tentative boutique :",
+          api
+        );
+
+        const json =
+          await fetchJson(api);
+
+        console.log(
+          "JSON reçu :",
+          json
+        );
+
+        const entries =
+          getShopEntries(json);
+
+        console.log(
+          "Entrées détectées :",
+          entries.length
+        );
+
+        if (!entries.length) {
+          throw new Error(
+            "Le JSON ne contient aucune entrée de boutique."
+          );
         }
-      );
 
-    clearTimeout(timeout);
+        const items =
+          entries
+            .map(extractShopItem)
+            .filter(Boolean);
 
-    if (!response.ok) {
-      throw new Error(
-        `HTTP ${response.status}`
-      );
+        console.log(
+          "Offres affichables :",
+          items.length
+        );
+
+        if (!items.length) {
+          throw new Error(
+            "Les entrées existent mais aucune offre n'a pu être extraite."
+          );
+        }
+
+        /*
+          SUCCÈS
+        */
+
+        renderShop(items);
+
+        if (shopStatus) {
+          shopStatus.textContent =
+            `${items.length} offres disponibles`;
+        }
+
+        console.log(
+          "Boutique chargée avec succès depuis :",
+          api
+        );
+
+        return;
+
+      } catch (error) {
+
+        console.error(
+          `Source ${sourceIndex + 1} échouée :`,
+          error
+        );
+
+        lastError =
+          error;
+      }
     }
 
-    const json =
-      await response.json();
+    /*
+      Toutes les sources ont échoué.
+    */
 
-    console.log(
-      "Fortnite Shop JSON :",
-      json
+    throw (
+      lastError ||
+      new Error(
+        "Impossible de charger la boutique."
+      )
     );
-
-    const entries =
-      getShopEntries(json);
-
-    console.log(
-      "Offres détectées :",
-      entries.length
-    );
-
-    if (!entries.length) {
-      throw new Error(
-        "Aucune offre trouvée."
-      );
-    }
-
-    const items =
-      entries
-        .map(extractShopItem)
-        .filter(Boolean);
-
-    console.log(
-      "Offres affichables :",
-      items.length
-    );
-
-    if (!items.length) {
-      throw new Error(
-        "Les offres existent mais aucune n'a pu être affichée."
-      );
-    }
-
-    renderShop(items);
-
-    if (shopStatus) {
-      shopStatus.textContent =
-        `${items.length} offres disponibles`;
-    }
 
   } catch (error) {
 
     console.error(
-      "Erreur Fortnite Shop :",
+      "ERREUR FINALE BOUTIQUE :",
       error
     );
 
@@ -1105,6 +1276,7 @@ async function loadShop() {
     }
 
     if (shopGrid) {
+
       shopGrid.innerHTML = `
         <div class="empty-shop error-shop">
 
@@ -1146,7 +1318,7 @@ async function loadShop() {
 
 
 /* =========================================================
-   PRÉCHARGEMENT
+   PRÉCHARGEMENT IMAGE
    ========================================================= */
 
 function preloadImage(src) {
@@ -1296,7 +1468,7 @@ function applyModalBackground(entry, item) {
 
 
 /* =========================================================
-   MODALE
+   INFOS MODALE
    ========================================================= */
 
 function updateModalInfo(item) {
@@ -1367,15 +1539,6 @@ function resetVideo() {
 
 
 function loadModalVideo() {
-  /*
-    On ne tente PAS d'utiliser showcaseVideo
-    comme une URL MP4.
-
-    Il s'agit d'un identifiant de vidéo,
-    pas d'une source compatible avec
-    <video>.
-  */
-
   resetVideo();
 }
 
@@ -1496,7 +1659,7 @@ function renderPackCarousel(item) {
         const name =
           packItem?.name || "";
 
-        if (!image || !name) {
+        if (!name) {
           return "";
         }
 
@@ -1516,12 +1679,18 @@ function renderPackCarousel(item) {
 
             <div class="pack-carousel-image-wrap">
 
-              <img
-                class="pack-carousel-image"
-                src="${escapeHtml(image)}"
-                alt="${escapeHtml(name)}"
-                loading="lazy"
-              >
+              ${
+                image
+                  ? `
+                    <img
+                      class="pack-carousel-image"
+                      src="${escapeHtml(image)}"
+                      alt="${escapeHtml(name)}"
+                      loading="lazy"
+                    >
+                  `
+                  : ""
+              }
 
             </div>
 
@@ -1580,10 +1749,17 @@ function renderPackCarousel(item) {
               selected.name || "";
           }
 
+          if (modalDescription) {
+            modalDescription.textContent =
+              selected.description || "";
+          }
+
           if (modalPrice) {
             modalPrice.textContent =
               formatPrice(
-                selected.finalPrice
+                selected.finalPrice ??
+                selected.regularPrice ??
+                selected.price
               );
           }
 
@@ -1633,10 +1809,6 @@ async function openModal(item) {
     getItemImage(modalItem) ||
     item.image;
 
-  if (!image) {
-    return;
-  }
-
   currentModalItem =
     item;
 
@@ -1656,9 +1828,11 @@ async function openModal(item) {
     modalItem
   );
 
-  await preloadImage(
-    image
-  );
+  if (image) {
+    await preloadImage(
+      image
+    );
+  }
 
   if (currentModalItem !== item) {
     return;
