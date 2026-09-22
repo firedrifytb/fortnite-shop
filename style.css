@@ -4,6 +4,13 @@
 
 html {
     scroll-behavior: smooth;
+    background: #080808;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
 }
 
 body {
@@ -18,6 +25,8 @@ body {
             #080808 75%
         );
 
+    background-color: #080808;
+
     color: #ffffff;
 
     font-family:
@@ -27,6 +36,8 @@ body {
         BlinkMacSystemFont,
         "Segoe UI",
         sans-serif;
+
+    overflow-x: hidden;
 }
 
 body.modal-open {
@@ -54,7 +65,9 @@ img {
 
 .site-header {
     position: sticky;
+
     top: 0;
+
     z-index: 50;
 
     border-bottom:
@@ -64,21 +77,25 @@ img {
     background:
         rgba(8, 8, 8, 0.88);
 
-    backdrop-filter: blur(18px);
+    backdrop-filter:
+        blur(18px);
 }
 
 .header-inner {
-    width: min(
-        1400px,
-        calc(100% - 32px)
-    );
+    width:
+        min(
+            1400px,
+            calc(100% - 32px)
+        );
 
     min-height: 76px;
 
     margin: auto;
 
     display: flex;
+
     align-items: center;
+
     justify-content: space-between;
 
     gap: 20px;
@@ -86,6 +103,7 @@ img {
 
 .brand {
     display: flex;
+
     align-items: baseline;
 
     gap: 8px;
@@ -113,6 +131,7 @@ img {
 
 .header-actions {
     display: flex;
+
     align-items: center;
 
     gap: 10px;
@@ -122,13 +141,14 @@ img {
 .refresh-btn {
     min-height: 42px;
 
-    padding: 0 16px;
-
-    border-radius: 10px;
+    padding:
+        0 16px;
 
     border:
         1px solid
         rgba(255, 255, 255, 0.12);
+
+    border-radius: 10px;
 
     text-decoration: none;
 
@@ -140,13 +160,14 @@ img {
 
 .epic-link {
     display: inline-flex;
+
     align-items: center;
 
     color:
-        rgba(255, 255, 255, 0.8);
+        rgba(255, 255, 255, 0.9);
 
     background:
-        rgba(255, 255, 255, 0.04);
+        rgba(255, 255, 255, 0.07);
 }
 
 .refresh-btn {
@@ -177,12 +198,14 @@ img {
 /* ========================================================= */
 
 .hero {
-    width: min(
-        1400px,
-        calc(100% - 32px)
-    );
+    width:
+        min(
+            1400px,
+            calc(100% - 32px)
+        );
 
-    margin: 0 auto;
+    margin:
+        0 auto;
 
     padding:
         70px
@@ -196,9 +219,7 @@ img {
 
 .eyebrow {
     margin:
-        0
-        0
-        12px;
+        0 0 12px;
 
     color:
         rgba(255, 255, 255, 0.48);
@@ -229,9 +250,7 @@ img {
     max-width: 650px;
 
     margin:
-        22px
-        0
-        26px;
+        22px 0 26px;
 
     color:
         rgba(255, 255, 255, 0.62);
@@ -243,6 +262,7 @@ img {
 
 .shop-meta {
     display: flex;
+
     align-items: center;
 
     flex-wrap: wrap;
@@ -252,11 +272,13 @@ img {
 
 .shop-meta span {
     display: inline-flex;
+
     align-items: center;
 
     min-height: 34px;
 
-    padding: 0 12px;
+    padding:
+        0 12px;
 
     border:
         1px solid
@@ -279,14 +301,14 @@ img {
 /* ========================================================= */
 
 .shop-container {
-    width: min(
-        1400px,
-        calc(100% - 32px)
-    );
+    width:
+        min(
+            1400px,
+            calc(100% - 32px)
+        );
 
     margin:
-        0 auto
-        80px;
+        0 auto 80px;
 }
 
 .shop-group {
@@ -295,7 +317,9 @@ img {
 
 .shop-group-header {
     display: flex;
+
     align-items: end;
+
     justify-content: space-between;
 
     margin-bottom: 20px;
@@ -309,7 +333,7 @@ img {
     letter-spacing: -0.035em;
 }
 
-.shop-group-header span {
+.shop-group-count {
     display: block;
 
     margin-top: 5px;
@@ -368,7 +392,8 @@ img {
 
 .shop-card:hover,
 .shop-card:focus-visible {
-    transform: translateY(-5px);
+    transform:
+        translateY(-5px);
 
     border-color:
         rgba(255, 255, 255, 0.2);
@@ -395,6 +420,7 @@ img {
 
 .card-image {
     width: 100%;
+
     height: 100%;
 
     object-fit: cover;
@@ -404,14 +430,17 @@ img {
 }
 
 .shop-card:hover .card-image {
-    transform: scale(1.045);
+    transform:
+        scale(1.045);
 }
 
 .card-image-fallback {
     width: 100%;
+
     height: 100%;
 
     display: grid;
+
     place-items: center;
 
     color:
@@ -428,7 +457,9 @@ img {
     position: absolute;
 
     top: 12px;
+
     left: 12px;
+
     right: 12px;
 
     display: flex;
@@ -445,15 +476,18 @@ img {
 .bundle-discount,
 .bundle-count-badge {
     display: inline-flex;
+
     align-items: center;
 
     min-height: 28px;
 
-    padding: 0 9px;
+    padding:
+        0 9px;
 
     border-radius: 8px;
 
-    backdrop-filter: blur(10px);
+    backdrop-filter:
+        blur(10px);
 
     font-size: 10px;
 
@@ -489,9 +523,7 @@ img {
 
 .card-info {
     padding:
-        15px
-        15px
-        17px;
+        15px 15px 17px;
 }
 
 .card-type {
@@ -511,9 +543,7 @@ img {
 
 .card-info h3 {
     margin:
-        0
-        0
-        10px;
+        0 0 10px;
 
     overflow: hidden;
 
@@ -530,6 +560,7 @@ img {
 
 .card-price {
     display: flex;
+
     align-items: center;
 
     flex-wrap: wrap;
@@ -548,9 +579,8 @@ img {
     color:
         rgba(255, 255, 255, 0.38);
 
-    text-decoration: line-through;
-
-    text-decoration-thickness: 1px;
+    text-decoration:
+        line-through;
 }
 
 .bundle-price {
@@ -565,8 +595,7 @@ img {
 .empty-shop,
 .error-shop {
     padding:
-        50px
-        25px;
+        50px 25px;
 
     text-align: center;
 
@@ -597,7 +626,8 @@ img {
 .retry-btn {
     min-height: 42px;
 
-    padding: 0 16px;
+    padding:
+        0 16px;
 
     border: 0;
 
@@ -657,7 +687,8 @@ img {
     background:
         rgba(0, 0, 0, 0.86);
 
-    backdrop-filter: blur(18px);
+    backdrop-filter:
+        blur(18px);
 }
 
 .modal-content {
@@ -665,10 +696,11 @@ img {
 
     z-index: 1;
 
-    width: min(
-        1100px,
-        100%
-    );
+    width:
+        min(
+            1100px,
+            100%
+        );
 
     max-height: 94vh;
 
@@ -699,18 +731,21 @@ img {
 }
 
 .item-modal.open .modal-content {
-    transform: scale(1);
+    transform:
+        scale(1);
 }
 
 .modal-close {
     position: absolute;
 
     top: 14px;
+
     right: 14px;
 
     z-index: 30;
 
     width: 42px;
+
     height: 42px;
 
     display: grid;
@@ -734,7 +769,8 @@ img {
 
     line-height: 1;
 
-    backdrop-filter: blur(10px);
+    backdrop-filter:
+        blur(10px);
 }
 
 .modal-close:hover {
@@ -744,7 +780,7 @@ img {
 
 
 /* ========================================================= */
-/* IMAGE / VIDEO PRINCIPALE */
+/* MEDIA */
 /* ========================================================= */
 
 .modal-media {
@@ -764,6 +800,7 @@ img {
 
 .preview-track {
     width: 100%;
+
     height: 100%;
 
     display: flex;
@@ -784,10 +821,10 @@ img {
 
 .preview-slide {
     flex:
-        0 0
-        100%;
+        0 0 100%;
 
     width: 100%;
+
     height: 100%;
 
     display: flex;
@@ -804,6 +841,7 @@ img {
 
 .preview-slide img {
     width: 100%;
+
     height: 100%;
 
     object-fit: contain;
@@ -811,6 +849,7 @@ img {
 
 .preview-video-slide video {
     width: 100%;
+
     height: 100%;
 
     object-fit: contain;
@@ -822,6 +861,7 @@ img {
     position: absolute;
 
     left: 14px;
+
     bottom: 14px;
 
     z-index: 10;
@@ -830,8 +870,7 @@ img {
         calc(100% - 28px);
 
     padding:
-        7px
-        10px;
+        7px 10px;
 
     border-radius: 8px;
 
@@ -843,13 +882,15 @@ img {
 
     font-size: 11px;
 
-    backdrop-filter: blur(10px);
+    backdrop-filter:
+        blur(10px);
 }
 
 .preview-dots {
     position: absolute;
 
     left: 50%;
+
     bottom: 15px;
 
     z-index: 10;
@@ -864,19 +905,20 @@ img {
     gap: 7px;
 
     padding:
-        7px
-        9px;
+        7px 9px;
 
     border-radius: 999px;
 
     background:
         rgba(0, 0, 0, 0.55);
 
-    backdrop-filter: blur(10px);
+    backdrop-filter:
+        blur(10px);
 }
 
 .preview-dot {
     width: 7px;
+
     height: 7px;
 
     padding: 0;
@@ -903,19 +945,16 @@ img {
 
 
 /* ========================================================= */
-/* CARROUSEL DU PACK */
+/* PACK CAROUSEL */
 /* ========================================================= */
 
 .pack-carousel {
-    display: none;
-
     position: relative;
 
     width: 100%;
 
     padding:
-        13px
-        48px;
+        13px 48px;
 
     border-top:
         1px solid
@@ -927,10 +966,6 @@ img {
 
     background:
         rgba(255, 255, 255, 0.025);
-}
-
-.pack-carousel.visible {
-    display: block;
 }
 
 .pack-carousel-window {
@@ -965,8 +1000,7 @@ img {
     position: relative;
 
     flex:
-        0 0
-        170px;
+        0 0 170px;
 
     min-width: 170px;
 
@@ -978,14 +1012,7 @@ img {
         64px
         minmax(0, 1fr);
 
-    grid-template-rows:
-        auto
-        1fr;
-
-    column-gap: 9px;
-
-    padding:
-        8px;
+    padding: 8px;
 
     border:
         1px solid
@@ -1026,13 +1053,13 @@ img {
     position: absolute;
 
     top: 6px;
+
     left: 6px;
 
     z-index: 3;
 
     padding:
-        2px
-        5px;
+        2px 5px;
 
     border-radius: 5px;
 
@@ -1048,10 +1075,8 @@ img {
 }
 
 .pack-carousel-image-wrap {
-    grid-row:
-        1 / 3;
-
     width: 64px;
+
     height: 64px;
 
     align-self: center;
@@ -1066,6 +1091,7 @@ img {
 
 .pack-carousel-image {
     width: 100%;
+
     height: 100%;
 
     object-fit: cover;
@@ -1073,6 +1099,7 @@ img {
 
 .pack-carousel-no-image {
     width: 100%;
+
     height: 100%;
 
     display: grid;
@@ -1093,6 +1120,8 @@ img {
     flex-direction: column;
 
     gap: 4px;
+
+    padding-left: 9px;
 }
 
 .pack-carousel-info strong {
@@ -1138,6 +1167,7 @@ img {
         translateY(-50%);
 
     width: 34px;
+
     height: 34px;
 
     display: grid;
@@ -1161,11 +1191,8 @@ img {
 
     line-height: 1;
 
-    backdrop-filter: blur(10px);
-
-    transition:
-        background 0.2s ease,
-        opacity 0.2s ease;
+    backdrop-filter:
+        blur(10px);
 }
 
 .pack-carousel-arrow:hover:not(:disabled) {
@@ -1194,9 +1221,7 @@ img {
 
 .modal-info {
     padding:
-        22px
-        24px
-        25px;
+        22px 24px 25px;
 }
 
 .modal-info-top {
@@ -1211,9 +1236,7 @@ img {
 
 .modal-extra {
     margin:
-        0
-        0
-        5px;
+        0 0 5px;
 
     color:
         rgba(255, 255, 255, 0.4);
@@ -1237,7 +1260,8 @@ img {
             36px
         );
 
-    letter-spacing: -0.04em;
+    letter-spacing:
+        -0.04em;
 }
 
 .modal-price {
@@ -1258,24 +1282,11 @@ img {
     font-weight: 800;
 }
 
-.modal-old-price {
-    color:
-        rgba(255, 255, 255, 0.38);
-
-    text-decoration: line-through;
-}
-
-.modal-new-price {
-    color: #ffffff;
-}
-
 .modal-description {
     max-width: 750px;
 
     margin:
-        14px
-        0
-        0;
+        14px 0 0;
 
     color:
         rgba(255, 255, 255, 0.55);
@@ -1296,15 +1307,18 @@ img {
         rgba(255, 255, 255, 0.07);
 
     padding:
-        30px
-        0;
+        30px 0;
+
+    background:
+        #080808;
 }
 
 .footer-inner {
-    width: min(
-        1400px,
-        calc(100% - 32px)
-    );
+    width:
+        min(
+            1400px,
+            calc(100% - 32px)
+        );
 
     margin: auto;
 
@@ -1357,22 +1371,24 @@ img {
     }
 
     .epic-link {
-        display: none;
+        padding:
+            0 10px;
+
+        font-size: 11px;
     }
 
     .refresh-btn {
         min-height: 38px;
 
-        padding: 0 12px;
+        padding:
+            0 12px;
 
         font-size: 12px;
     }
 
     .hero {
         padding:
-            50px
-            0
-            35px;
+            50px 0 35px;
     }
 
     .hero-description {
@@ -1395,9 +1411,7 @@ img {
 
     .card-info {
         padding:
-            11px
-            11px
-            13px;
+            11px 11px 13px;
     }
 
     .card-info h3 {
@@ -1412,14 +1426,17 @@ img {
     .bundle-count-badge {
         min-height: 24px;
 
-        padding: 0 7px;
+        padding:
+            0 7px;
 
         font-size: 8px;
     }
 
     .card-badges {
         top: 8px;
+
         left: 8px;
+
         right: 8px;
     }
 
@@ -1435,15 +1452,9 @@ img {
         aspect-ratio: 1 / 1;
     }
 
-    /*
-     * Sur mobile :
-     * les objets restent assez larges
-     * pour être facilement swipés.
-     */
     .pack-carousel {
         padding:
-            10px
-            12px;
+            10px 12px;
     }
 
     .pack-carousel-arrow {
@@ -1458,8 +1469,7 @@ img {
 
     .pack-carousel-item {
         flex:
-            0 0
-            155px;
+            0 0 155px;
 
         min-width: 155px;
 
@@ -1468,6 +1478,7 @@ img {
 
     .pack-carousel-image-wrap {
         width: 58px;
+
         height: 58px;
     }
 
@@ -1481,9 +1492,7 @@ img {
 
     .modal-info {
         padding:
-            17px
-            17px
-            20px;
+            17px 17px 20px;
     }
 
     .modal-info-top {
@@ -1503,7 +1512,18 @@ img {
     }
 }
 
+
 @media (max-width: 390px) {
+
+    .epic-link {
+        max-width: 135px;
+
+        overflow: hidden;
+
+        white-space: nowrap;
+
+        text-overflow: ellipsis;
+    }
 
     .shop-grid {
         grid-template-columns:
