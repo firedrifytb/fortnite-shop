@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -29,17 +31,21 @@
     >
 
     <title>Fortnite Shop</title>
+
 </head>
 
 <body>
 
+
 <header class="site-header">
+
     <div class="header-inner">
 
         <a
             class="brand"
             href="./"
         >
+
             <span class="brand-main">
                 FORTNITE
             </span>
@@ -47,7 +53,9 @@
             <span class="brand-sub">
                 SHOP
             </span>
+
         </a>
+
 
         <div class="header-actions">
 
@@ -71,9 +79,12 @@
         </div>
 
     </div>
+
 </header>
 
+
 <main>
+
 
     <section class="hero">
 
@@ -88,11 +99,12 @@
             </h1>
 
             <p class="hero-description">
-                Découvre les objets actuellement disponibles
-                dans la boutique Fortnite.
+                Découvre les objets actuellement
+                disponibles dans la boutique Fortnite.
             </p>
 
             <div class="shop-meta">
+
                 <span id="shop-date">
                     Boutique actuelle
                 </span>
@@ -103,18 +115,22 @@
                 >
                     Chargement…
                 </span>
+
             </div>
 
         </div>
 
     </section>
 
+
     <section
         id="shop"
         class="shop-container"
     ></section>
 
+
 </main>
+
 
 <footer class="site-footer">
 
@@ -133,9 +149,10 @@
 </footer>
 
 
-<!-- ========================= -->
-<!-- MODAL FULLSCREEN -->
-<!-- ========================= -->
+
+<!-- ===================================================== -->
+<!-- MODAL -->
+<!-- ===================================================== -->
 
 <div
     id="item-modal"
@@ -145,12 +162,14 @@
 
     <div class="modal-backdrop"></div>
 
+
     <div
         class="modal-content"
         role="dialog"
         aria-modal="true"
         aria-label="Aperçu de l'objet"
     >
+
 
         <button
             id="modal-close"
@@ -162,6 +181,10 @@
         </button>
 
 
+        <!-- ================================================= -->
+        <!-- IMAGE / VIDÉO PRINCIPALE -->
+        <!-- ================================================= -->
+
         <div class="modal-media">
 
             <div
@@ -170,14 +193,22 @@
             >
 
                 <div class="preview-slide">
+
                     <img
                         id="preview-image"
                         src=""
                         alt=""
                     >
+
                 </div>
 
-                <div class="preview-slide preview-video-slide">
+
+                <div
+                    class="
+                        preview-slide
+                        preview-video-slide
+                    "
+                >
 
                     <video
                         id="preview-video"
@@ -185,20 +216,24 @@
                         playsinline
                         controls
                     >
+
                         <source
                             id="preview-video-source"
                             src=""
                         >
+
                     </video>
 
                 </div>
 
             </div>
 
+
             <div
                 id="preview-status"
                 class="preview-status"
             ></div>
+
 
             <div
                 id="preview-dots"
@@ -207,6 +242,55 @@
 
         </div>
 
+
+
+        <!-- ================================================= -->
+        <!-- CARROUSEL DES OBJETS DU PACK -->
+        <!-- ================================================= -->
+
+        <div
+            id="pack-carousel"
+            class="pack-carousel"
+        >
+
+            <button
+                id="pack-carousel-prev"
+                class="pack-carousel-arrow pack-carousel-prev"
+                type="button"
+                aria-label="Objet précédent"
+            >
+                ‹
+            </button>
+
+
+            <div
+                class="pack-carousel-window"
+            >
+
+                <div
+                    id="pack-carousel-track"
+                    class="pack-carousel-track"
+                ></div>
+
+            </div>
+
+
+            <button
+                id="pack-carousel-next"
+                class="pack-carousel-arrow pack-carousel-next"
+                type="button"
+                aria-label="Objet suivant"
+            >
+                ›
+            </button>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- INFORMATIONS -->
+        <!-- ================================================= -->
 
         <div class="modal-info">
 
@@ -225,12 +309,14 @@
 
                 </div>
 
+
                 <div
                     id="modal-price"
                     class="modal-price"
                 ></div>
 
             </div>
+
 
             <p
                 id="modal-description"
@@ -247,4 +333,5 @@
 <script src="app.js"></script>
 
 </body>
+
 </html>
