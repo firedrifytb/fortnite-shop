@@ -1741,3 +1741,154 @@ img {
     }
 
 }
+/* =========================================================
+   SUPER PACK — GRAND BANDEAU
+   ========================================================= */
+
+.shop-card.tile-pack {
+    grid-column: 1 / -1;
+    grid-row: auto;
+
+    width: 100%;
+
+    aspect-ratio: 3 / 1;
+
+    min-height: 360px;
+    max-height: 520px;
+
+    border-radius: 10px;
+}
+
+.shop-card.tile-pack .card-image-wrapper {
+    inset: 0;
+}
+
+.shop-card.tile-pack .card-image {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+
+    transform: scale(1.001);
+}
+
+.shop-card.tile-pack:hover .card-image {
+    transform: scale(1.035);
+}
+
+.shop-card.tile-pack .card-gradient {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.78) 0%,
+            rgba(0, 0, 0, 0.42) 34%,
+            rgba(0, 0, 0, 0.08) 68%,
+            rgba(0, 0, 0, 0.20) 100%
+        ),
+        linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.02) 0%,
+            rgba(0, 0, 0, 0.02) 45%,
+            rgba(0, 0, 0, 0.58) 100%
+        );
+}
+
+.shop-card.tile-pack .card-content-overlay {
+    justify-content: flex-end;
+
+    max-width: 720px;
+
+    padding: 34px 38px;
+}
+
+.shop-card.tile-pack .card-type {
+    margin-bottom: 8px;
+
+    font-size: 11px;
+
+    letter-spacing: 0.16em;
+}
+
+.shop-card.tile-pack .card-content-overlay h3 {
+    margin-bottom: 10px;
+
+    font-size: clamp(28px, 4vw, 52px);
+
+    line-height: 0.98;
+
+    letter-spacing: -0.045em;
+}
+
+.shop-card.tile-pack .card-price {
+    font-size: clamp(14px, 1.5vw, 18px);
+}
+
+.shop-card.tile-pack .card-old-price {
+    font-size: clamp(11px, 1.1vw, 14px);
+}
+
+.shop-card.tile-pack .card-badges {
+    top: 18px;
+    left: 18px;
+    right: 18px;
+}
+
+.shop-card.tile-pack .discount-badge,
+.shop-card.tile-pack .bundle-badge {
+    min-height: 30px;
+
+    padding: 0 11px;
+
+    border-radius: 5px;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   SUPER PACK — MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .shop-card.tile-pack {
+        aspect-ratio: 1.65 / 1;
+
+        min-height: 300px;
+        max-height: none;
+
+        border-radius: 8px;
+    }
+
+    .shop-card.tile-pack .card-gradient {
+        background:
+            linear-gradient(
+                90deg,
+                rgba(0, 0, 0, 0.78) 0%,
+                rgba(0, 0, 0, 0.35) 65%,
+                rgba(0, 0, 0, 0.12) 100%
+            ),
+            linear-gradient(
+                180deg,
+                rgba(0, 0, 0, 0) 35%,
+                rgba(0, 0, 0, 0.82) 100%
+            );
+    }
+
+    .shop-card.tile-pack .card-content-overlay {
+        max-width: 100%;
+
+        padding: 22px;
+    }
+
+    .shop-card.tile-pack .card-content-overlay h3 {
+        font-size: clamp(24px, 8vw, 36px);
+    }
+
+    .shop-card.tile-pack .card-badges {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+    }
+}
