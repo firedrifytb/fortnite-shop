@@ -1,7 +1,7 @@
 /* =========================================================
    FORTNITE SHOP
    Interface inchangée
-   Chargement robuste de la boutique
+   Packs : pleine largeur + image de regroupement
    ========================================================= */
 
 const SHOP_APIS = [
@@ -106,26 +106,12 @@ function getShopEntries(json) {
     return [];
   }
 
-  /*
-    Fortnite-Datamining actuel :
-
-    {
-      data: {
-        entries: [...]
-      }
-    }
-  */
-
   if (
     json.data &&
     Array.isArray(json.data.entries)
   ) {
     return json.data.entries;
   }
-
-  /*
-    Fortnite API classique
-  */
 
   if (
     json.data &&
@@ -148,18 +134,9 @@ function getShopEntries(json) {
     }
   }
 
-  /*
-    Certains formats mettent directement
-    entries à la racine.
-  */
-
   if (Array.isArray(json.entries)) {
     return json.entries;
   }
-
-  /*
-    Format directement tableau.
-  */
 
   if (Array.isArray(json)) {
     return json;
@@ -178,25 +155,13 @@ function getEntryItems(entry) {
     return [];
   }
 
-  /*
-    Nouveau Fortnite-Datamining
-  */
-
   if (Array.isArray(entry.brItems)) {
     return entry.brItems;
   }
 
-  /*
-    Ancien format
-  */
-
   if (Array.isArray(entry.items)) {
     return entry.items;
   }
-
-  /*
-    Format alternatif
-  */
 
   if (Array.isArray(entry.itemGrants)) {
     return entry.itemGrants;
@@ -218,8 +183,77 @@ function isPackEntry(entry) {
 
   return (
     items.length > 1 ||
-    Boolean(entry?.bundle)
+    Boolean(entry?.bundle) ||
+    Boolean(entry?.bundleName) ||
+    Boolean(entry?.bundleDisplayName)
   );
+}
+
+
+/* =========================================================
+   IMAGE DE REGROUPEMENT DU PACK
+   ========================================================= */
+
+function getPackImage(entry) {
+  if (!entry) {
+    return "";
+  }
+
+  /*
+    C'est le visuel de regroupement Fortnite.
+
+    Pour les gros packs, on privilégie TOUJOURS
+    le RenderImage du newDisplayAsset.
+  */
+
+  const renderImages =
+    entry.newDisplayAsset?.renderImages;
+
+  if (Array.isArray(renderImages)) {
+    for (const render of renderImages) {
+      const image =
+        render?.image;
+
+      if (
+        typeof image === "string" &&
+        image.trim()
+      ) {
+        return image.trim();
+      }
+    }
+  }
+
+  /*
+    Ancien format : Background du material instance
+  */
+
+  const background =
+    entry.newDisplayAsset
+      ?.materialInstances?.[0]
+      ?.images?.Background;
+
+  if (
+    typeof background === "string" &&
+    background.trim()
+  ) {
+    return background.trim();
+  }
+
+  /*
+    Autre ancien format de DisplayAsset
+  */
+
+  const displayAsset =
+    entry.displayAssets?.[0]?.url;
+
+  if (
+    typeof displayAsset === "string" &&
+    displayAsset.trim()
+  ) {
+    return displayAsset.trim();
+  }
+
+  return "";
 }
 
 
@@ -233,7 +267,20 @@ function getEntryImage(entry) {
   }
 
   /*
-    PRIORITÉ 1
+    SI C'EST UN PACK :
+    priorité absolue au visuel regroupé.
+  */
+
+  if (isPackEntry(entry)) {
+    const packImage =
+      getPackImage(entry);
+
+    if (packImage) {
+      return packImage;
+    }
+  }
+
+  /*
     Nouveau format Datamining
   */
 
@@ -250,8 +297,7 @@ function getEntryImage(entry) {
   }
 
   /*
-    PRIORITÉ 2
-    Ancien Background
+    Background
   */
 
   const background =
@@ -267,7 +313,7 @@ function getEntryImage(entry) {
   }
 
   /*
-    PRIORITÉ 3
+    Display Asset
   */
 
   const displayAsset =
@@ -281,8 +327,7 @@ function getEntryImage(entry) {
   }
 
   /*
-    PRIORITÉ 4
-    brItems
+    Item individuel
   */
 
   const item =
@@ -298,10 +343,6 @@ function getEntryImage(entry) {
     return icon.trim();
   }
 
-  /*
-    PRIORITÉ 5
-  */
-
   const featured =
     item?.images?.featured;
 
@@ -311,10 +352,6 @@ function getEntryImage(entry) {
   ) {
     return featured.trim();
   }
-
-  /*
-    PRIORITÉ 6
-  */
 
   const smallIcon =
     item?.images?.smallIcon;
@@ -354,10 +391,12 @@ function getEntryName(entry) {
     getEntryItems(entry)[0];
 
   return (
-    item?.name ||
     entry?.bundle?.name ||
+    entry?.bundleDisplayName ||
+    entry?.bundleName ||
     entry?.title ||
     entry?.displayName ||
+    item?.name ||
     entry?.name ||
     "Objet Fortnite"
   );
@@ -569,7 +608,21 @@ function getTileSize(entry) {
 }
 
 
+/*
+  IMPORTANT :
+
+  Un pack de plusieurs objets devient
+  automatiquement un SUPER PACK horizontal.
+
+  On garde les autres cartes avec leur
+  taille normale.
+*/
+
 function getTileClass(entry) {
+  if (isPackEntry(entry)) {
+    return "tile-pack";
+  }
+
   const tile =
     String(getTileSize(entry))
       .toLowerCase()
@@ -734,15 +787,6 @@ function extractShopItem(entry) {
   const name =
     getEntryName(entry);
 
-  /*
-    IMPORTANT :
-    On ne jette pas une offre juste parce
-    qu'une image manque.
-
-    Une image de fallback est générée
-    depuis brItems si nécessaire.
-  */
-
   if (!name) {
     return null;
   }
@@ -842,6 +886,11 @@ function createCard(item, key) {
         ].join(";")
       : "";
 
+  /*
+    Pour un pack, item.image est déjà
+    l'image de regroupement.
+  */
+
   const image =
     item.image ||
     getItemImage(item.items?.[0]);
@@ -859,6 +908,7 @@ function createCard(item, key) {
       <div class="card-background"></div>
 
       <div class="card-image-wrapper">
+
         ${
           image
             ? `
@@ -874,6 +924,7 @@ function createCard(item, key) {
               </div>
             `
         }
+
       </div>
 
       <div class="card-gradient"></div>
@@ -908,7 +959,11 @@ function createCard(item, key) {
           item.itemType
             ? `
               <div class="card-type">
-                ${escapeHtml(item.itemType)}
+                ${escapeHtml(
+                  item.isBundle
+                    ? "Pack"
+                    : item.itemType
+                )}
               </div>
             `
             : ""
@@ -1164,10 +1219,6 @@ async function loadShop() {
 
   try {
 
-    /*
-      On essaie les sources une par une.
-    */
-
     for (
       let sourceIndex = 0;
       sourceIndex < SHOP_APIS.length;
@@ -1222,10 +1273,6 @@ async function loadShop() {
           );
         }
 
-        /*
-          SUCCÈS
-        */
-
         renderShop(items);
 
         if (shopStatus) {
@@ -1251,10 +1298,6 @@ async function loadShop() {
           error;
       }
     }
-
-    /*
-      Toutes les sources ont échoué.
-    */
 
     throw (
       lastError ||
