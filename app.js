@@ -1,10 +1,11 @@
 /* =========================================================
    FORTNITE SHOP
-   Layout dynamique + sections + packs + modale
+   Nouvelle source de données
+   Interface inchangée
    ========================================================= */
 
 const SHOP_API =
-  "https://fortnite-api.com/v2/shop?language=fr";
+  "https://raw.githubusercontent.com/Fortnite-Datamining/Fortnite-Datamining/main/data/shop/current.json";
 
 
 /* =========================================================
@@ -136,6 +137,64 @@ function formatPrice(value) {
 
 
 /* =========================================================
+   COMPATIBILITÉ NOUVEAU FORMAT
+   ========================================================= */
+
+function getShopEntries(json) {
+  if (!json) {
+    return [];
+  }
+
+  /*
+     Plusieurs formes possibles sont acceptées
+     pour éviter de casser le site si la structure
+     change légèrement.
+  */
+
+  if (
+    Array.isArray(json)
+  ) {
+    return json;
+  }
+
+  if (
+    Array.isArray(json.entries)
+  ) {
+    return json.entries;
+  }
+
+  if (
+    Array.isArray(json.data)
+  ) {
+    return json.data;
+  }
+
+  if (
+    json.data &&
+    Array.isArray(json.data.entries)
+  ) {
+    return json.data.entries;
+  }
+
+  if (
+    json.shop &&
+    Array.isArray(json.shop.entries)
+  ) {
+    return json.shop.entries;
+  }
+
+  if (
+    json.data?.shop &&
+    Array.isArray(json.data.shop.entries)
+  ) {
+    return json.data.shop.entries;
+  }
+
+  return [];
+}
+
+
+/* =========================================================
    ITEMS
    ========================================================= */
 
@@ -148,6 +207,20 @@ function getEntryItems(entry) {
     Array.isArray(entry.items)
   ) {
     return entry.items;
+  }
+
+  /*
+     Certains formats peuvent utiliser
+     "item" pour une offre simple.
+  */
+
+  if (
+    entry.item &&
+    typeof entry.item === "object"
+  ) {
+    return [
+      entry.item
+    ];
   }
 
   return [];
@@ -235,6 +308,25 @@ function getEntryImage(entry) {
     return imageD.trim();
   }
 
+
+  /*
+     Compatibilité avec les données où
+     l'image peut être directement sur l'offre.
+  */
+
+  const imageE =
+    entry.image ||
+    entry.images?.icon ||
+    entry.images?.featured;
+
+  if (
+    typeof imageE === "string" &&
+    imageE.trim()
+  ) {
+    return imageE.trim();
+  }
+
+
   return "";
 }
 
@@ -247,6 +339,8 @@ function getItemImage(item) {
   return (
     item.images?.icon ||
     item.images?.featured ||
+    item.images?.background ||
+    item.image ||
     ""
   );
 }
@@ -285,6 +379,18 @@ function getEntryName(entry) {
     return bundleName.trim();
   }
 
+  const directName =
+    entry.name ||
+    entry.displayName ||
+    entry.title;
+
+  if (
+    typeof directName === "string" &&
+    directName.trim()
+  ) {
+    return directName.trim();
+  }
+
   return "";
 }
 
@@ -321,7 +427,8 @@ function getEntryFinalPrice(entry) {
     entry.prices?.finalPrice,
     entry.price?.finalPrice,
     entry.bundle?.finalPrice,
-    entry.bundle?.price?.finalPrice
+    entry.bundle?.price?.finalPrice,
+    entry.price
   ];
 
   for (
@@ -389,6 +496,9 @@ function getBundleRegularPrice(entry) {
       ) ??
       getNumber(
         item?.finalPrice
+      ) ??
+      getNumber(
+        item?.price
       );
 
     if (price !== null) {
@@ -796,7 +906,8 @@ function extractShopItem(entry) {
 
   if (
     !items.length &&
-    !entry.bundle
+    !entry.bundle &&
+    !entry.item
   ) {
     return null;
   }
@@ -816,7 +927,7 @@ function extractShopItem(entry) {
   }
 
   const firstItem =
-    items[0] || null;
+    items[0] || entry.item || null;
 
   return {
     id:
@@ -1186,13 +1297,25 @@ async function loadShop() {
 
   try {
 
+    const controller =
+      new AbortController();
+
+    const timeout =
+      setTimeout(
+        () => controller.abort(),
+        15000
+      );
+
     const response =
       await fetch(
         SHOP_API,
         {
-          cache: "no-store"
+          cache: "no-store",
+          signal: controller.signal
         }
       );
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       throw new Error(
@@ -1203,14 +1326,25 @@ async function loadShop() {
     const json =
       await response.json();
 
+    console.log(
+      "Fortnite Shop JSON :",
+      json
+    );
+
     const entries =
-      json?.data?.entries || [];
+      getShopEntries(json);
+
+    console.log(
+      "Offres détectées :",
+      entries.length
+    );
 
     if (
-      !Array.isArray(entries)
+      !Array.isArray(entries) ||
+      entries.length === 0
     ) {
       throw new Error(
-        "Réponse API invalide."
+        "Aucune offre trouvée dans la réponse de la source."
       );
     }
 
@@ -1220,6 +1354,11 @@ async function loadShop() {
           extractShopItem
         )
         .filter(Boolean);
+
+    console.log(
+      "Offres affichables :",
+      items.length
+    );
 
     renderShop(items);
 
@@ -1243,12 +1382,13 @@ async function loadShop() {
     if (shopGrid) {
       shopGrid.innerHTML = `
         <div class="empty-shop error-shop">
+
           <h2>
             Impossible de charger la boutique Fortnite.
           </h2>
 
           <p>
-            Vérifie ta connexion puis réessaie.
+            La source de données n'a pas renvoyé les offres.
           </p>
 
           <button
@@ -1258,6 +1398,7 @@ async function loadShop() {
           >
             Réessayer
           </button>
+
         </div>
       `;
 
@@ -1756,12 +1897,14 @@ function renderPackCarousel(item) {
               </span>
 
               <div class="pack-carousel-image-wrap">
+
                 <img
                   class="pack-carousel-image"
                   src="${escapeHtml(image)}"
                   alt="${escapeHtml(name)}"
                   loading="lazy"
                 >
+
               </div>
 
               <div class="pack-carousel-info">
@@ -1832,7 +1975,8 @@ function renderPackCarousel(item) {
             modalPrice.textContent =
               formatPrice(
                 selected?.price?.finalPrice ??
-                selected?.finalPrice
+                selected?.finalPrice ??
+                selected?.price
               );
           }
 
