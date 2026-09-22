@@ -1,6 +1,6 @@
 /* =========================================================
    FORTNITE SHOP
-   Nouvelle source de données
+   Source : Fortnite-Datamining
    Interface inchangée
    ========================================================= */
 
@@ -9,62 +9,34 @@ const SHOP_API =
 
 
 /* =========================================================
-   ÉLÉMENTS DOM
+   DOM
    ========================================================= */
 
-const shopGrid =
-  document.getElementById("shop");
+const shopGrid = document.getElementById("shop");
+const shopStatus = document.getElementById("shop-status");
+const refreshBtn = document.getElementById("refresh-shop");
 
-const shopStatus =
-  document.getElementById("shop-status");
+const itemModal = document.getElementById("item-modal");
+const modalMedia = document.querySelector(".modal-media");
+const previewTrack = document.getElementById("preview-track");
 
-const refreshBtn =
-  document.getElementById("refresh-shop");
+const modalImage = document.getElementById("preview-image");
+const modalVideo = document.getElementById("preview-video");
+const videoSource = document.getElementById("preview-video-source");
 
-const itemModal =
-  document.getElementById("item-modal");
+const carouselDots = document.getElementById("preview-dots");
 
-const modalMedia =
-  document.querySelector(".modal-media");
+const modalTitle = document.getElementById("modal-name");
+const modalDescription = document.getElementById("modal-description");
+const modalPrice = document.getElementById("modal-price");
+const modalClose = document.getElementById("modal-close");
 
-const previewTrack =
-  document.getElementById("preview-track");
-
-const modalImage =
-  document.getElementById("preview-image");
-
-const modalVideo =
-  document.getElementById("preview-video");
-
-const videoSource =
-  document.getElementById("preview-video-source");
-
-const carouselDots =
-  document.getElementById("preview-dots");
-
-const modalTitle =
-  document.getElementById("modal-name");
-
-const modalDescription =
-  document.getElementById("modal-description");
-
-const modalPrice =
-  document.getElementById("modal-price");
-
-const modalClose =
-  document.getElementById("modal-close");
-
-const packCarousel =
-  document.getElementById("pack-carousel");
-
+const packCarousel = document.getElementById("pack-carousel");
 const packItemsContainer =
   document.getElementById("pack-carousel-track");
 
-const packPrev =
-  document.getElementById("pack-carousel-prev");
-
-const packNext =
-  document.getElementById("pack-carousel-next");
+const packPrev = document.getElementById("pack-carousel-prev");
+const packNext = document.getElementById("pack-carousel-next");
 
 
 /* =========================================================
@@ -72,21 +44,13 @@ const packNext =
    ========================================================= */
 
 let allShopItems = [];
+const shopItemsByKey = new Map();
 
-const shopItemsByKey =
-  new Map();
+let currentModalItem = null;
+let currentPreviewIndex = 0;
 
-let currentModalItem =
-  null;
-
-let currentPreviewIndex =
-  0;
-
-let modalTouchStartX =
-  0;
-
-let modalTouchStartY =
-  0;
+let modalTouchStartX = 0;
+let modalTouchStartY = 0;
 
 
 /* =========================================================
@@ -112,8 +76,7 @@ function getNumber(value) {
     return null;
   }
 
-  const number =
-    Number(value);
+  const number = Number(value);
 
   return Number.isFinite(number)
     ? number
@@ -122,51 +85,23 @@ function getNumber(value) {
 
 
 function formatPrice(value) {
-  const number =
-    getNumber(value);
+  const number = getNumber(value);
 
   if (number === null) {
     return "";
   }
 
-  return (
-    number.toLocaleString("fr-FR") +
-    " V-Bucks"
-  );
+  return number.toLocaleString("fr-FR") + " V-Bucks";
 }
 
 
 /* =========================================================
-   COMPATIBILITÉ NOUVEAU FORMAT
+   ENTRÉES DE LA BOUTIQUE
    ========================================================= */
 
 function getShopEntries(json) {
   if (!json) {
     return [];
-  }
-
-  /*
-     Plusieurs formes possibles sont acceptées
-     pour éviter de casser le site si la structure
-     change légèrement.
-  */
-
-  if (
-    Array.isArray(json)
-  ) {
-    return json;
-  }
-
-  if (
-    Array.isArray(json.entries)
-  ) {
-    return json.entries;
-  }
-
-  if (
-    Array.isArray(json.data)
-  ) {
-    return json.data;
   }
 
   if (
@@ -176,18 +111,12 @@ function getShopEntries(json) {
     return json.data.entries;
   }
 
-  if (
-    json.shop &&
-    Array.isArray(json.shop.entries)
-  ) {
-    return json.shop.entries;
+  if (Array.isArray(json.entries)) {
+    return json.entries;
   }
 
-  if (
-    json.data?.shop &&
-    Array.isArray(json.data.shop.entries)
-  ) {
-    return json.data.shop.entries;
+  if (Array.isArray(json)) {
+    return json;
   }
 
   return [];
@@ -195,7 +124,8 @@ function getShopEntries(json) {
 
 
 /* =========================================================
-   ITEMS
+   OBJETS D'UNE OFFRE
+   NOUVEAU FORMAT : brItems
    ========================================================= */
 
 function getEntryItems(entry) {
@@ -203,52 +133,35 @@ function getEntryItems(entry) {
     return [];
   }
 
-  if (
-    Array.isArray(entry.items)
-  ) {
+  if (Array.isArray(entry.brItems)) {
+    return entry.brItems;
+  }
+
+  /* Compatibilité éventuelle */
+  if (Array.isArray(entry.items)) {
     return entry.items;
   }
 
-  /*
-     Certains formats peuvent utiliser
-     "item" pour une offre simple.
-  */
-
-  if (
-    entry.item &&
-    typeof entry.item === "object"
-  ) {
-    return [
-      entry.item
-    ];
+  if (entry.item && typeof entry.item === "object") {
+    return [entry.item];
   }
 
   return [];
 }
 
 
-/* =========================================================
-   PACK
-   ========================================================= */
-
 function isPackEntry(entry) {
-  if (!entry) {
-    return false;
-  }
-
-  const items =
-    getEntryItems(entry);
+  const items = getEntryItems(entry);
 
   return (
     items.length > 1 ||
-    Boolean(entry.bundle)
+    Boolean(entry?.bundle)
   );
 }
 
 
 /* =========================================================
    IMAGE PRINCIPALE
-   ORDRE STRICT
    ========================================================= */
 
 function getEntryImage(entry) {
@@ -256,76 +169,74 @@ function getEntryImage(entry) {
     return "";
   }
 
-  const imageA =
-    entry
-      .newDisplayAsset
+  /*
+    NOUVEAU FORMAT :
+    NewDisplayAsset -> renderImages
+  */
+
+  const renderImage =
+    entry.newDisplayAsset
+      ?.renderImages?.[0]
+      ?.image;
+
+  if (
+    typeof renderImage === "string" &&
+    renderImage.trim()
+  ) {
+    return renderImage.trim();
+  }
+
+  /*
+    Ancien format éventuel
+  */
+
+  const background =
+    entry.newDisplayAsset
       ?.materialInstances?.[0]
       ?.images?.Background;
 
   if (
-    typeof imageA === "string" &&
-    imageA.trim()
+    typeof background === "string" &&
+    background.trim()
   ) {
-    return imageA.trim();
+    return background.trim();
   }
 
-
-  const imageB =
-    entry
-      .displayAssets?.[0]
-      ?.url;
+  const displayAsset =
+    entry.displayAssets?.[0]?.url;
 
   if (
-    typeof imageB === "string" &&
-    imageB.trim()
+    typeof displayAsset === "string" &&
+    displayAsset.trim()
   ) {
-    return imageB.trim();
+    return displayAsset.trim();
   }
-
-
-  const imageC =
-    entry
-      .items?.[0]
-      ?.images?.icon;
-
-  if (
-    typeof imageC === "string" &&
-    imageC.trim()
-  ) {
-    return imageC.trim();
-  }
-
-
-  const imageD =
-    entry
-      .items?.[0]
-      ?.images?.featured;
-
-  if (
-    typeof imageD === "string" &&
-    imageD.trim()
-  ) {
-    return imageD.trim();
-  }
-
 
   /*
-     Compatibilité avec les données où
-     l'image peut être directement sur l'offre.
+    Fallback Fortnite API
   */
 
-  const imageE =
-    entry.image ||
-    entry.images?.icon ||
-    entry.images?.featured;
+  const icon =
+    entry.brItems?.[0]?.images?.icon ||
+    entry.items?.[0]?.images?.icon;
 
   if (
-    typeof imageE === "string" &&
-    imageE.trim()
+    typeof icon === "string" &&
+    icon.trim()
   ) {
-    return imageE.trim();
+    return icon.trim();
   }
 
+  const featured =
+    entry.brItems?.[0]?.images?.featured ||
+    entry.items?.[0]?.images?.featured;
+
+  if (
+    typeof featured === "string" &&
+    featured.trim()
+  ) {
+    return featured.trim();
+  }
 
   return "";
 }
@@ -337,9 +248,9 @@ function getItemImage(item) {
   }
 
   return (
-    item.images?.icon ||
     item.images?.featured ||
-    item.images?.background ||
+    item.images?.icon ||
+    item.images?.smallIcon ||
     item.image ||
     ""
   );
@@ -351,47 +262,17 @@ function getItemImage(item) {
    ========================================================= */
 
 function getEntryName(entry) {
-  if (!entry) {
-    return "";
-  }
+  const item =
+    getEntryItems(entry)[0];
 
-  const itemName =
-    entry
-      .items?.[0]
-      ?.name;
-
-  if (
-    typeof itemName === "string" &&
-    itemName.trim()
-  ) {
-    return itemName.trim();
-  }
-
-  const bundleName =
-    entry
-      .bundle
-      ?.name;
-
-  if (
-    typeof bundleName === "string" &&
-    bundleName.trim()
-  ) {
-    return bundleName.trim();
-  }
-
-  const directName =
-    entry.name ||
-    entry.displayName ||
-    entry.title;
-
-  if (
-    typeof directName === "string" &&
-    directName.trim()
-  ) {
-    return directName.trim();
-  }
-
-  return "";
+  return (
+    item?.name ||
+    entry?.bundle?.name ||
+    entry?.name ||
+    entry?.displayName ||
+    entry?.title ||
+    "Objet Fortnite"
+  );
 }
 
 
@@ -400,14 +281,13 @@ function getEntryName(entry) {
    ========================================================= */
 
 function getEntryDescription(entry) {
-  if (!entry) {
-    return "";
-  }
+  const item =
+    getEntryItems(entry)[0];
 
   return (
-    entry.description ||
-    entry.bundle?.description ||
-    entry.items?.[0]?.description ||
+    entry?.description ||
+    entry?.bundle?.description ||
+    item?.description ||
     ""
   );
 }
@@ -418,67 +298,29 @@ function getEntryDescription(entry) {
    ========================================================= */
 
 function getEntryFinalPrice(entry) {
-  if (!entry) {
-    return null;
-  }
-
-  const candidates = [
-    entry.finalPrice,
-    entry.prices?.finalPrice,
-    entry.price?.finalPrice,
-    entry.bundle?.finalPrice,
-    entry.bundle?.price?.finalPrice,
-    entry.price
-  ];
-
-  for (
-    const value
-    of candidates
-  ) {
-    const number =
-      getNumber(value);
-
-    if (number !== null) {
-      return number;
-    }
-  }
-
-  return null;
+  return (
+    getNumber(entry?.finalPrice) ??
+    getNumber(entry?.prices?.finalPrice) ??
+    getNumber(entry?.price?.finalPrice) ??
+    getNumber(entry?.bundle?.finalPrice) ??
+    null
+  );
 }
 
 
 function getEntryRegularPrice(entry) {
-  if (!entry) {
-    return null;
-  }
-
-  const candidates = [
-    entry.regularPrice,
-    entry.prices?.regularPrice,
-    entry.price?.regularPrice,
-    entry.bundle?.regularPrice,
-    entry.bundle?.price?.regularPrice
-  ];
-
-  for (
-    const value
-    of candidates
-  ) {
-    const number =
-      getNumber(value);
-
-    if (number !== null) {
-      return number;
-    }
-  }
-
-  return null;
+  return (
+    getNumber(entry?.regularPrice) ??
+    getNumber(entry?.prices?.regularPrice) ??
+    getNumber(entry?.price?.regularPrice) ??
+    getNumber(entry?.bundle?.regularPrice) ??
+    null
+  );
 }
 
 
 function getBundleRegularPrice(entry) {
-  const items =
-    getEntryItems(entry);
+  const items = getEntryItems(entry);
 
   if (!items.length) {
     return null;
@@ -486,29 +328,18 @@ function getBundleRegularPrice(entry) {
 
   let total = 0;
 
-  for (
-    const item
-    of items
-  ) {
+  for (const item of items) {
     const price =
-      getNumber(
-        item?.price?.finalPrice
-      ) ??
-      getNumber(
-        item?.finalPrice
-      ) ??
-      getNumber(
-        item?.price
-      );
+      getNumber(item?.finalPrice) ??
+      getNumber(item?.price?.finalPrice) ??
+      getNumber(item?.price);
 
     if (price !== null) {
       total += price;
     }
   }
 
-  return total > 0
-    ? total
-    : null;
+  return total > 0 ? total : null;
 }
 
 
@@ -536,10 +367,9 @@ function getEntryDiscount(entry) {
   }
 
   return Math.round(
-    (
-      (regularPrice - finalPrice) /
-      regularPrice
-    ) * 100
+    ((regularPrice - finalPrice) /
+      regularPrice) *
+      100
   );
 }
 
@@ -549,15 +379,11 @@ function getEntryDiscount(entry) {
    ========================================================= */
 
 function getItemType(item) {
-  if (!item) {
-    return "";
-  }
-
   return (
-    item.type?.displayName ||
-    item.type?.name ||
-    item.type?.value ||
-    item.type ||
+    item?.type?.displayValue ||
+    item?.type?.displayName ||
+    item?.type?.value ||
+    item?.type ||
     ""
   );
 }
@@ -567,46 +393,27 @@ function getRarityKey(item) {
   return String(
     item?.rarity?.value ||
     item?.rarity?.name ||
-    item?.rarity?.displayName ||
-    item?.rarity ||
+    item?.rarity?.displayValue ||
     ""
   ).toLowerCase();
 }
 
 
 function getRarityDisplay(item) {
-  const rarity =
-    getRarityKey(item);
-
-  const map = {
-    common: "Commun",
-    uncommon: "Atypique",
-    rare: "Rare",
-    epic: "Épique",
-    legendary: "Légendaire",
-    mythic: "Mythique",
-    marvel: "Marvel",
-    icon: "Icône"
-  };
-
   return (
-    map[rarity] ||
-    item?.rarity?.displayName ||
+    item?.rarity?.displayValue ||
     item?.rarity?.name ||
+    item?.rarity?.value ||
     ""
   );
 }
 
 
 function getSetName(item) {
-  if (!item) {
-    return "";
-  }
-
   return (
-    item.set?.displayName ||
-    item.set?.name ||
-    item.set?.value ||
+    item?.set?.value ||
+    item?.set?.name ||
+    item?.set?.displayName ||
     ""
   );
 }
@@ -614,6 +421,7 @@ function getSetName(item) {
 
 /* =========================================================
    SECTION
+   NOUVEAU FORMAT : layout.name
    ========================================================= */
 
 function getSectionName(entry) {
@@ -621,52 +429,46 @@ function getSectionName(entry) {
     return "Boutique";
   }
 
-  const section =
-    entry.section;
+  /*
+    Exemple réel :
+
+    layout: {
+      name: "FNCS",
+      category: "...",
+      ...
+    }
+  */
+
+  const layoutName =
+    entry.layout?.name;
 
   if (
-    typeof section === "string" &&
-    section.trim()
+    typeof layoutName === "string" &&
+    layoutName.trim()
   ) {
-    return section.trim();
+    return layoutName.trim();
   }
 
-  const sectionName =
-    section?.displayName ||
-    section?.name ||
-    section?.title;
+  const layoutCategory =
+    entry.layout?.category;
 
   if (
-    typeof sectionName === "string" &&
-    sectionName.trim()
+    typeof layoutCategory === "string" &&
+    layoutCategory.trim()
   ) {
-    return sectionName.trim();
+    return layoutCategory.trim();
   }
 
   const series =
     entry.series?.displayName ||
-    entry.series?.name;
+    entry.series?.name ||
+    entry.brItems?.[0]?.series?.value;
 
   if (
     typeof series === "string" &&
     series.trim()
   ) {
     return series.trim();
-  }
-
-  const itemSeries =
-    entry
-      .items?.[0]
-      ?.series?.displayName ||
-    entry
-      .items?.[0]
-      ?.series?.name;
-
-  if (
-    typeof itemSeries === "string" &&
-    itemSeries.trim()
-  ) {
-    return itemSeries.trim();
   }
 
   return "Boutique";
@@ -678,32 +480,9 @@ function getSectionName(entry) {
    ========================================================= */
 
 function getTileSize(entry) {
-  if (!entry) {
-    return "";
-  }
-
-  const tile =
-    entry.tileSize;
-
-  if (
-    typeof tile === "string"
-  ) {
-    return tile;
-  }
-
-  if (
-    tile &&
-    typeof tile === "object"
-  ) {
-    return (
-      tile.name ||
-      tile.value ||
-      ""
-    );
-  }
-
   return (
-    entry.items?.[0]?.tileSize ||
+    entry?.tileSize ||
+    entry?.layout?.tileSize ||
     ""
   );
 }
@@ -711,9 +490,7 @@ function getTileSize(entry) {
 
 function getTileClass(entry) {
   const tile =
-    String(
-      getTileSize(entry)
-    )
+    String(getTileSize(entry))
       .toLowerCase()
       .replace(/[\s-]/g, "_");
 
@@ -742,20 +519,54 @@ function getTileClass(entry) {
    ========================================================= */
 
 function isValidCssColor(value) {
+  return (
+    typeof value === "string" &&
+    (
+      /^#[0-9a-fA-F]{3,8}$/.test(value) ||
+      /^rgba?\(/i.test(value) ||
+      /^hsla?\(/i.test(value)
+    )
+  );
+}
+
+
+function convertFortniteColor(value) {
   if (
-    typeof value !== "string"
+    typeof value !== "string" ||
+    !value.trim()
   ) {
-    return false;
+    return null;
   }
 
-  const color =
+  let color =
     value.trim();
 
-  return Boolean(
-    /^#[0-9a-fA-F]{3,8}$/.test(color) ||
-    /^rgba?\(/i.test(color) ||
-    /^hsla?\(/i.test(color)
-  );
+  /*
+    Le JSON utilise par exemple :
+
+    008b91ff
+
+    Les deux derniers caractères
+    correspondent à l'alpha.
+  */
+
+  if (
+    /^[0-9a-fA-F]{8}$/.test(color)
+  ) {
+    color =
+      "#" + color.slice(0, 6);
+  }
+
+  if (
+    /^[0-9a-fA-F]{6}$/.test(color)
+  ) {
+    color =
+      "#" + color;
+  }
+
+  return isValidCssColor(color)
+    ? color
+    : null;
 }
 
 
@@ -764,15 +575,13 @@ function collectColors(source, colors) {
     return;
   }
 
-  if (
-    Array.isArray(source)
-  ) {
-    for (
-      const color
-      of source
-    ) {
+  if (Array.isArray(source)) {
+    for (const value of source) {
+      const color =
+        convertFortniteColor(value);
+
       if (
-        isValidCssColor(color) &&
+        color &&
         !colors.includes(color)
       ) {
         colors.push(color);
@@ -782,9 +591,7 @@ function collectColors(source, colors) {
     return;
   }
 
-  if (
-    typeof source !== "object"
-  ) {
+  if (typeof source !== "object") {
     return;
   }
 
@@ -798,12 +605,12 @@ function collectColors(source, colors) {
     source.backgroundColor
   ];
 
-  for (
-    const color
-    of values
-  ) {
+  for (const value of values) {
+    const color =
+      convertFortniteColor(value);
+
     if (
-      isValidCssColor(color) &&
+      color &&
       !colors.includes(color)
     ) {
       colors.push(color);
@@ -826,69 +633,15 @@ function getEntryColors(entry) {
   );
 
   collectColors(
-    entry?.background,
+    entry?.brItems?.[0]?.series?.colors,
     colors
   );
 
-  collectColors(
-    entry?.items?.[0]?.colors,
-    colors
-  );
-
-  collectColors(
-    entry?.items?.[0]?.series?.colors,
-    colors
-  );
-
-  collectColors(
-    entry?.items?.[0]?.background,
-    colors
-  );
-
-  if (colors.length >= 2) {
+  if (colors.length) {
     return colors.slice(0, 3);
   }
 
-  const seriesName =
-    String(
-      entry?.series?.displayName ||
-      entry?.series?.name ||
-      entry?.items?.[0]?.series?.displayName ||
-      entry?.items?.[0]?.series?.name ||
-      ""
-    ).toLowerCase();
-
-  if (
-    seriesName.includes("kingdom hearts")
-  ) {
-    return [
-      "#071936",
-      "#163f7a",
-      "#8c6cff"
-    ];
-  }
-
-  if (
-    seriesName.includes("disney")
-  ) {
-    return [
-      "#061a4d",
-      "#0b4da2",
-      "#36a9ff"
-    ];
-  }
-
-  if (
-    seriesName.includes("dc")
-  ) {
-    return [
-      "#07101f",
-      "#173f68",
-      "#2e78a9"
-    ];
-  }
-
-  return colors.slice(0, 3);
+  return [];
 }
 
 
@@ -897,44 +650,31 @@ function getEntryColors(entry) {
    ========================================================= */
 
 function extractShopItem(entry) {
-  if (!entry) {
-    return null;
-  }
-
   const items =
     getEntryItems(entry);
 
-  if (
-    !items.length &&
-    !entry.bundle &&
-    !entry.item
-  ) {
-    return null;
-  }
-
-  const image =
-    getEntryImage(entry);
-
-  if (!image) {
-    return null;
-  }
-
-  const name =
-    getEntryName(entry);
-
-  if (!name) {
+  if (!items.length) {
     return null;
   }
 
   const firstItem =
-    items[0] || entry.item || null;
+    items[0];
+
+  const image =
+    getEntryImage(entry);
+
+  const name =
+    getEntryName(entry);
+
+  if (!image || !name) {
+    return null;
+  }
 
   return {
     id:
       entry.offerId ||
-      entry.id ||
-      firstItem?.id ||
-      `${name}-${Math.random()}`,
+      firstItem.id ||
+      name,
 
     name,
 
@@ -965,8 +705,7 @@ function extractShopItem(entry) {
       getSetName(firstItem),
 
     isBundle:
-      items.length > 1 ||
-      Boolean(entry.bundle),
+      isPackEntry(entry),
 
     itemCount:
       items.length,
@@ -988,10 +727,8 @@ function extractShopItem(entry) {
       getEntryColors(entry),
 
     seriesName:
-      entry.series?.displayName ||
-      entry.series?.name ||
-      firstItem?.series?.displayName ||
-      firstItem?.series?.name ||
+      firstItem?.series?.value ||
+      entry?.series?.value ||
       ""
   };
 }
@@ -1008,9 +745,7 @@ function createCard(item, key) {
   const oldPrice =
     item.regularPrice !== null &&
     item.regularPrice !== item.price
-      ? formatPrice(
-          item.regularPrice
-        )
+      ? formatPrice(item.regularPrice)
       : "";
 
   const discount =
@@ -1125,7 +860,7 @@ function createCard(item, key) {
 
 
 /* =========================================================
-   SECTION
+   SECTIONS
    ========================================================= */
 
 function createSection(title, items) {
@@ -1198,10 +933,7 @@ function renderShop(items) {
   const groups =
     new Map();
 
-  for (
-    const item
-    of items
-  ) {
+  for (const item of items) {
     const title =
       item.sectionName ||
       "Boutique";
@@ -1220,10 +952,7 @@ function renderShop(items) {
 
   let html = "";
 
-  for (
-    const [title, groupItems]
-    of groups
-  ) {
+  for (const [title, groupItems] of groups) {
     html +=
       createSection(
         title,
@@ -1255,9 +984,7 @@ function renderShop(items) {
 
       card.addEventListener(
         "click",
-        () => {
-          openModal(item);
-        }
+        () => openModal(item)
       );
 
       card.addEventListener(
@@ -1269,7 +996,6 @@ function renderShop(items) {
             event.key === " "
           ) {
             event.preventDefault();
-
             openModal(item);
           }
 
@@ -1291,12 +1017,10 @@ async function loadShop() {
   }
 
   if (refreshBtn) {
-    refreshBtn.disabled =
-      true;
+    refreshBtn.disabled = true;
   }
 
   try {
-
     const controller =
       new AbortController();
 
@@ -1339,26 +1063,27 @@ async function loadShop() {
       entries.length
     );
 
-    if (
-      !Array.isArray(entries) ||
-      entries.length === 0
-    ) {
+    if (!entries.length) {
       throw new Error(
-        "Aucune offre trouvée dans la réponse de la source."
+        "Aucune offre trouvée."
       );
     }
 
     const items =
       entries
-        .map(
-          extractShopItem
-        )
+        .map(extractShopItem)
         .filter(Boolean);
 
     console.log(
       "Offres affichables :",
       items.length
     );
+
+    if (!items.length) {
+      throw new Error(
+        "Les offres existent mais aucune n'a pu être affichée."
+      );
+    }
 
     renderShop(items);
 
@@ -1413,8 +1138,7 @@ async function loadShop() {
   } finally {
 
     if (refreshBtn) {
-      refreshBtn.disabled =
-        false;
+      refreshBtn.disabled = false;
     }
 
   }
@@ -1426,46 +1150,45 @@ async function loadShop() {
    ========================================================= */
 
 function preloadImage(src) {
-  return new Promise(
-    (resolve) => {
+  return new Promise((resolve) => {
 
-      if (!src) {
-        resolve(false);
-        return;
-      }
-
-      const image =
-        new Image();
-
-      let finished = false;
-
-      const finish =
-        (success) => {
-
-          if (finished) {
-            return;
-          }
-
-          finished = true;
-
-          resolve(success);
-        };
-
-      image.onload =
-        () => finish(true);
-
-      image.onerror =
-        () => finish(false);
-
-      image.src =
-        src;
-
-      setTimeout(
-        () => finish(false),
-        4000
-      );
+    if (!src) {
+      resolve(false);
+      return;
     }
-  );
+
+    const image =
+      new Image();
+
+    let finished = false;
+
+    const finish =
+      (success) => {
+
+        if (finished) {
+          return;
+        }
+
+        finished = true;
+        resolve(success);
+
+      };
+
+    image.onload =
+      () => finish(true);
+
+    image.onerror =
+      () => finish(false);
+
+    image.src =
+      src;
+
+    setTimeout(
+      () => finish(false),
+      4000
+    );
+
+  });
 }
 
 
@@ -1497,10 +1220,6 @@ function getRarityGradient(item) {
     return "linear-gradient(135deg,#593400,#b87500,#ffd15c)";
   }
 
-  if (rarity.includes("marvel")) {
-    return "linear-gradient(135deg,#4b0707,#b51d1d,#ff4a4a)";
-  }
-
   if (rarity.includes("icon")) {
     return "linear-gradient(135deg,#075b5c,#00a6a6,#63eeee)";
   }
@@ -1530,16 +1249,6 @@ function getModalBackground(entry, item) {
         135deg,
         ${colors[0]},
         ${colors[1]}
-      )
-    `;
-  }
-
-  if (colors.length === 1) {
-    return `
-      linear-gradient(
-        135deg,
-        ${colors[0]},
-        ${colors[0]}
       )
     `;
   }
@@ -1587,7 +1296,7 @@ function applyModalBackground(entry, item) {
 
 
 /* =========================================================
-   MODALE — INFOS
+   MODALE
    ========================================================= */
 
 function updateModalInfo(item) {
@@ -1611,10 +1320,6 @@ function updateModalInfo(item) {
   }
 }
 
-
-/* =========================================================
-   IMAGE MODALE
-   ========================================================= */
 
 function setModalImage(item) {
   if (!modalImage) {
@@ -1641,63 +1346,6 @@ function setModalImage(item) {
    VIDÉO
    ========================================================= */
 
-function getVideoUrl(item) {
-  const entry =
-    item?.entry;
-
-  const firstItem =
-    item?.items?.[0];
-
-  const candidates = [
-    entry?.video,
-    entry?.videoUrl,
-    entry?.videos?.[0]?.url,
-    entry?.videos?.[0],
-    entry?.displayAssets?.[0]?.video,
-    entry?.displayAssets?.[0]?.videoUrl,
-
-    firstItem?.video,
-    firstItem?.videoUrl,
-    firstItem?.videos?.[0]?.url,
-    firstItem?.videos?.[0]
-  ];
-
-  for (
-    const candidate
-    of candidates
-  ) {
-
-    if (
-      typeof candidate === "string" &&
-      candidate.trim()
-    ) {
-      return candidate.trim();
-    }
-
-    if (
-      candidate &&
-      typeof candidate === "object"
-    ) {
-
-      const url =
-        candidate.url ||
-        candidate.src ||
-        candidate.video;
-
-      if (
-        typeof url === "string" &&
-        url.trim()
-      ) {
-        return url.trim();
-      }
-
-    }
-  }
-
-  return "";
-}
-
-
 function resetVideo() {
   if (!modalVideo) {
     return;
@@ -1705,14 +1353,10 @@ function resetVideo() {
 
   modalVideo.pause();
 
-  modalVideo.removeAttribute(
-    "src"
-  );
+  modalVideo.removeAttribute("src");
 
   if (videoSource) {
-    videoSource.removeAttribute(
-      "src"
-    );
+    videoSource.removeAttribute("src");
   }
 
   modalVideo.load();
@@ -1722,29 +1366,17 @@ function resetVideo() {
 }
 
 
-function loadModalVideo(item) {
-  if (
-    !modalVideo ||
-    !videoSource
-  ) {
-    return;
-  }
+function loadModalVideo() {
+  /*
+    On ne tente PAS d'utiliser showcaseVideo
+    comme une URL MP4.
 
-  const url =
-    getVideoUrl(item);
+    Il s'agit d'un identifiant de vidéo,
+    pas d'une source compatible avec
+    <video>.
+  */
 
-  if (!url) {
-    resetVideo();
-    return;
-  }
-
-  videoSource.src =
-    url;
-
-  modalVideo.style.display =
-    "block";
-
-  modalVideo.load();
+  resetVideo();
 }
 
 
@@ -1782,21 +1414,15 @@ function renderCarouselDots() {
   `;
 
   carouselDots
-    .querySelectorAll(
-      ".preview-dot"
-    )
+    .querySelectorAll(".preview-dot")
     .forEach((dot) => {
 
       dot.addEventListener(
         "click",
         () => {
-
           setPreview(
-            Number(
-              dot.dataset.slide
-            )
+            Number(dot.dataset.slide)
           );
-
         }
       );
 
@@ -1815,13 +1441,8 @@ function setPreview(index) {
       `translateX(-${currentPreviewIndex * 50}%)`;
   }
 
-  if (
-    currentPreviewIndex === 1 &&
-    currentModalItem
-  ) {
-    loadModalVideo(
-      currentModalItem
-    );
+  if (currentPreviewIndex === 1) {
+    loadModalVideo();
   }
 
   renderCarouselDots();
@@ -1849,8 +1470,10 @@ function renderPackCarousel(item) {
       "visible"
     );
 
-    packItemsContainer.innerHTML =
-      "";
+    if (packItemsContainer) {
+      packItemsContainer.innerHTML =
+        "";
+    }
 
     return;
   }
@@ -1859,76 +1482,71 @@ function renderPackCarousel(item) {
     "visible"
   );
 
+  if (!packItemsContainer) {
+    return;
+  }
+
   packItemsContainer.innerHTML =
     items
-      .map(
-        (packItem, index) => {
+      .map((packItem, index) => {
 
-          const image =
-            getItemImage(
-              packItem
-            );
+        const image =
+          getItemImage(packItem);
 
-          const name =
-            packItem?.name ||
-            "";
+        const name =
+          packItem?.name || "";
 
-          if (
-            !image ||
-            !name
-          ) {
-            return "";
-          }
-
-          const type =
-            getItemType(
-              packItem
-            );
-
-          return `
-            <button
-              type="button"
-              class="pack-carousel-item"
-              data-pack-index="${index}"
-            >
-
-              <span class="pack-carousel-number">
-                ${index + 1}/${items.length}
-              </span>
-
-              <div class="pack-carousel-image-wrap">
-
-                <img
-                  class="pack-carousel-image"
-                  src="${escapeHtml(image)}"
-                  alt="${escapeHtml(name)}"
-                  loading="lazy"
-                >
-
-              </div>
-
-              <div class="pack-carousel-info">
-
-                <strong>
-                  ${escapeHtml(name)}
-                </strong>
-
-                ${
-                  type
-                    ? `
-                      <small>
-                        ${escapeHtml(type)}
-                      </small>
-                    `
-                    : ""
-                }
-
-              </div>
-
-            </button>
-          `;
+        if (!image || !name) {
+          return "";
         }
-      )
+
+        const type =
+          getItemType(packItem);
+
+        return `
+          <button
+            type="button"
+            class="pack-carousel-item"
+            data-pack-index="${index}"
+          >
+
+            <span class="pack-carousel-number">
+              ${index + 1}/${items.length}
+            </span>
+
+            <div class="pack-carousel-image-wrap">
+
+              <img
+                class="pack-carousel-image"
+                src="${escapeHtml(image)}"
+                alt="${escapeHtml(name)}"
+                loading="lazy"
+              >
+
+            </div>
+
+            <div class="pack-carousel-info">
+
+              <strong>
+                ${escapeHtml(name)}
+              </strong>
+
+              ${
+                type
+                  ? `
+                    <small>
+                      ${escapeHtml(type)}
+                    </small>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          </button>
+        `;
+
+      })
       .join("");
 
   packItemsContainer
@@ -1953,15 +1571,6 @@ function renderPackCarousel(item) {
             return;
           }
 
-          const selectedImage =
-            getItemImage(
-              selected
-            );
-
-          if (!selectedImage) {
-            return;
-          }
-
           setModalImage(
             selected
           );
@@ -1974,9 +1583,7 @@ function renderPackCarousel(item) {
           if (modalPrice) {
             modalPrice.textContent =
               formatPrice(
-                selected?.price?.finalPrice ??
-                selected?.finalPrice ??
-                selected?.price
+                selected.finalPrice
               );
           }
 
@@ -2003,14 +1610,11 @@ function renderPackCarousel(item) {
 
 
 /* =========================================================
-   OUVERTURE
+   OUVERTURE MODALE
    ========================================================= */
 
 async function openModal(item) {
-  if (
-    !item ||
-    !itemModal
-  ) {
+  if (!item || !itemModal) {
     return;
   }
 
@@ -2026,9 +1630,7 @@ async function openModal(item) {
     };
 
   const image =
-    getItemImage(
-      modalItem
-    ) ||
+    getItemImage(modalItem) ||
     item.image;
 
   if (!image) {
@@ -2058,9 +1660,7 @@ async function openModal(item) {
     image
   );
 
-  if (
-    currentModalItem !== item
-  ) {
+  if (currentModalItem !== item) {
     return;
   }
 
@@ -2088,10 +1688,6 @@ async function openModal(item) {
 
   document.body.classList.add(
     "modal-open"
-  );
-
-  loadModalVideo(
-    item
   );
 }
 
@@ -2128,16 +1724,13 @@ function closeModal() {
 }
 
 
-if (modalClose) {
-  modalClose.addEventListener(
-    "click",
-    closeModal
-  );
-}
+modalClose?.addEventListener(
+  "click",
+  closeModal
+);
 
 
 if (itemModal) {
-
   const backdrop =
     itemModal.querySelector(
       ".modal-backdrop"
@@ -2147,7 +1740,6 @@ if (itemModal) {
     "click",
     closeModal
   );
-
 }
 
 
@@ -2157,9 +1749,7 @@ document.addEventListener(
 
     if (
       event.key === "Escape" &&
-      itemModal?.classList.contains(
-        "open"
-      )
+      itemModal?.classList.contains("open")
     ) {
       closeModal();
     }
@@ -2192,9 +1782,7 @@ if (modalMedia) {
         touch.clientY;
 
     },
-    {
-      passive: true
-    }
+    { passive: true }
   );
 
 
@@ -2218,14 +1806,8 @@ if (modalMedia) {
         modalTouchStartY;
 
       if (
-        Math.abs(deltaX) < 45
-      ) {
-        return;
-      }
-
-      if (
-        Math.abs(deltaX) <
-        Math.abs(deltaY)
+        Math.abs(deltaX) < 45 ||
+        Math.abs(deltaX) < Math.abs(deltaY)
       ) {
         return;
       }
@@ -2237,9 +1819,7 @@ if (modalMedia) {
       }
 
     },
-    {
-      passive: true
-    }
+    { passive: true }
   );
 
 }
@@ -2253,7 +1833,7 @@ packPrev?.addEventListener(
   "click",
   () => {
 
-    packItemsContainer.scrollBy({
+    packItemsContainer?.scrollBy({
       left: -220,
       behavior: "smooth"
     });
@@ -2266,7 +1846,7 @@ packNext?.addEventListener(
   "click",
   () => {
 
-    packItemsContainer.scrollBy({
+    packItemsContainer?.scrollBy({
       left: 220,
       behavior: "smooth"
     });
