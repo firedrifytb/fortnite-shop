@@ -576,7 +576,7 @@ main {
 }
 
 /* =========================================================
-   GROUPES / PACKS
+   SHOP GROUPS
    ========================================================= */
 
 #shop {
@@ -619,32 +619,32 @@ main {
 }
 
 .shop-group-heading h3 {
-    display: flex;
-
-    align-items: center;
-
-    min-width: 0;
+    position: relative;
 
     font-size: 17px;
 
     font-weight: 900;
 
     letter-spacing: -0.3px;
+
+    padding-left: 12px;
 }
 
 .shop-group-heading h3::before {
     content: "";
 
-    display: inline-block;
+    position: absolute;
 
-    flex: 0 0 auto;
+    left: 0;
+    top: 50%;
 
     width: 4px;
     height: 18px;
 
-    margin-right: 9px;
-
     border-radius: 999px;
+
+    transform:
+        translateY(-50%);
 
     background:
         linear-gradient(
@@ -655,10 +655,8 @@ main {
 }
 
 .shop-group-heading span {
-    flex: 0 0 auto;
-
     color:
-        rgba(255,255,255,0.35);
+        rgba(255, 255, 255, 0.35);
 
     font-size: 10px;
 
@@ -1041,10 +1039,6 @@ main {
         #000;
 }
 
-/* =========================================================
-   SLIDE IMAGE
-   ========================================================= */
-
 .preview-image-slide {
     background:
         #000;
@@ -1072,10 +1066,6 @@ main {
     -webkit-user-drag: none;
 }
 
-/* =========================================================
-   SLIDE VIDEO
-   ========================================================= */
-
 .preview-video-slide {
     background:
         #000;
@@ -1101,10 +1091,6 @@ main {
     user-select: none;
 }
 
-/* =========================================================
-   GRADIENT
-   ========================================================= */
-
 .modal-gradient {
     position: absolute;
 
@@ -1123,10 +1109,6 @@ main {
             rgba(0, 0, 0, 0.88) 100%
         );
 }
-
-/* =========================================================
-   FALLBACK
-   ========================================================= */
 
 .video-fallback {
     position: absolute;
@@ -1167,10 +1149,6 @@ main {
         rgba(255, 255, 255, 0.2);
 }
 
-/* =========================================================
-   LABEL
-   ========================================================= */
-
 .preview-status {
     position: absolute;
 
@@ -1206,10 +1184,6 @@ main {
 
     letter-spacing: 1.4px;
 }
-
-/* =========================================================
-   POINTS
-   ========================================================= */
 
 .carousel-dots {
     position: absolute;
@@ -1261,10 +1235,6 @@ main {
     transform:
         scale(1.05);
 }
-
-/* =========================================================
-   INFORMATIONS
-   ========================================================= */
 
 .modal-info {
     position: absolute;
@@ -1355,10 +1325,6 @@ main {
     line-height: 1.5;
 }
 
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
 footer {
     width:
         min(
@@ -1400,10 +1366,6 @@ footer {
 footer p {
     font-size: 10px;
 }
-
-/* =========================================================
-   BOUTON POLITIQUE DE CONFIDENTIALITÉ
-   ========================================================= */
 
 .privacy-link {
     display: inline-flex;
@@ -1552,7 +1514,7 @@ footer p {
     }
 
     .shop-group-heading {
-        margin-bottom: 11px;
+        margin-bottom: 10px;
     }
 
     .shop-group-heading h3 {
@@ -1562,8 +1524,6 @@ footer p {
     .shop-group-heading h3::before {
         width: 3px;
         height: 15px;
-
-        margin-right: 7px;
     }
 
     .shop-group-heading span {
