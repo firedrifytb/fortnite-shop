@@ -86,14 +86,19 @@ let activePointerId = null;
 // =========================================================
 
 function updateDate() {
-    const now = new Date();
+
+    const now =
+        new Date();
 
     dateElement.textContent =
-        now.toLocaleDateString("fr-FR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric"
-        });
+        now.toLocaleDateString(
+            "fr-FR",
+            {
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            }
+        );
 }
 
 // =========================================================
@@ -124,6 +129,7 @@ async function loadShop() {
             );
 
         if (!response.ok) {
+
             throw new Error(
                 `Erreur HTTP ${response.status}`
             );
@@ -143,6 +149,7 @@ async function loadShop() {
             !Array.isArray(entries) ||
             entries.length === 0
         ) {
+
             throw new Error(
                 "Aucun objet trouvé."
             );
@@ -187,11 +194,20 @@ function renderShop(entries) {
 
     shopElement.innerHTML = "";
 
-    const packGroups = new Map();
-    const musicItems = [];
-    const categoryGroups = new Map();
-    const setGroups = new Map();
-    const otherItems = [];
+    const bundleGroups =
+        new Map();
+
+    const musicItems =
+        [];
+
+    const categoryGroups =
+        new Map();
+
+    const setGroups =
+        new Map();
+
+    const otherItems =
+        [];
 
     entries.forEach(
         (entry, index) => {
@@ -199,37 +215,54 @@ function renderShop(entries) {
             const item =
                 extractShopItem(entry);
 
-            if (!item) return;
+            if (!item) {
+                return;
+            }
 
             /*
-             * PRIORITÉ 1
-             * Vrais packs / bundles détectables
-             * dans l'offre de boutique.
+             * =====================================================
+             * PRIORITÉ 1 : VRAIS BUNDLES
+             * =====================================================
+             *
+             * Une offre bundle reste UNE SEULE CARTE.
+             *
+             * Tous les objets sont conservés dans item.items.
              */
-            const packName =
-                getPackName(entry, item);
 
-            if (packName) {
+            if (item.isBundle) {
 
-                if (!packGroups.has(packName)) {
-                    packGroups.set(
-                        packName,
+                const bundleName =
+                    item.name ||
+                    "Pack Fortnite";
+
+                if (
+                    !bundleGroups.has(
+                        bundleName
+                    )
+                ) {
+
+                    bundleGroups.set(
+                        bundleName,
                         []
                     );
                 }
 
-                packGroups.get(packName).push({
-                    item,
-                    originalIndex: index
-                });
+                bundleGroups
+                    .get(bundleName)
+                    .push({
+                        item,
+                        originalIndex: index
+                    });
 
                 return;
             }
 
             /*
-             * PRIORITÉ 2
-             * Toutes les musiques ensemble.
+             * =====================================================
+             * PRIORITÉ 2 : MUSIQUES
+             * =====================================================
              */
+
             if (
                 item.category === "track" ||
                 item.type === "Musique"
@@ -244,53 +277,74 @@ function renderShop(entries) {
             }
 
             /*
-             * PRIORITÉ 3
-             * Catégories classiques.
+             * =====================================================
+             * PRIORITÉ 3 : CATÉGORIES
+             * =====================================================
              */
+
             const category =
                 getCategoryGroup(item);
 
             if (category) {
 
-                if (!categoryGroups.has(category)) {
+                if (
+                    !categoryGroups.has(
+                        category
+                    )
+                ) {
+
                     categoryGroups.set(
                         category,
                         []
                     );
                 }
 
-                categoryGroups.get(category).push({
-                    item,
-                    originalIndex: index
-                });
+                categoryGroups
+                    .get(category)
+                    .push({
+                        item,
+                        originalIndex: index
+                    });
 
                 return;
             }
 
             /*
-             * PRIORITÉ 4
-             * Sets Fortnite.
+             * =====================================================
+             * PRIORITÉ 4 : SETS
+             * =====================================================
              */
+
             if (item.set) {
 
-                if (!setGroups.has(item.set)) {
+                if (
+                    !setGroups.has(
+                        item.set
+                    )
+                ) {
+
                     setGroups.set(
                         item.set,
                         []
                     );
                 }
 
-                setGroups.get(item.set).push({
-                    item,
-                    originalIndex: index
-                });
+                setGroups
+                    .get(item.set)
+                    .push({
+                        item,
+                        originalIndex: index
+                    });
 
                 return;
             }
 
             /*
+             * =====================================================
              * DERNIER RECOURS
+             * =====================================================
              */
+
             otherItems.push({
                 item,
                 originalIndex: index
@@ -301,27 +355,37 @@ function renderShop(entries) {
     let groupIndex = 0;
 
     /*
+     * =====================================================
      * PACKS
+     * =====================================================
      */
+
     for (
-        const [packName, groupItems]
-        of packGroups
+        const [
+            bundleName,
+            bundleItems
+        ] of bundleGroups
     ) {
 
         appendShopGroup(
-            `📦 ${packName}`,
-            groupItems,
+            `📦 ${bundleName}`,
+            bundleItems,
             groupIndex,
-            "pack"
+            "bundle"
         );
 
         groupIndex++;
     }
 
     /*
+     * =====================================================
      * MUSIQUES
+     * =====================================================
      */
-    if (musicItems.length > 0) {
+
+    if (
+        musicItems.length > 0
+    ) {
 
         appendShopGroup(
             "🎵 Musiques",
@@ -334,9 +398,13 @@ function renderShop(entries) {
     }
 
     /*
+     * =====================================================
      * CATÉGORIES
+     * =====================================================
      */
+
     const categoryOrder = [
+
         "Tenues",
         "Pioches",
         "Planeurs",
@@ -359,13 +427,12 @@ function renderShop(entries) {
                 categoryName
             )
         ) {
+
             continue;
         }
 
         appendShopGroup(
-            getCategoryEmoji(categoryName) +
-            " " +
-            categoryName,
+            `${getCategoryEmoji(categoryName)} ${categoryName}`,
             categoryGroups.get(
                 categoryName
             ),
@@ -377,16 +444,21 @@ function renderShop(entries) {
     }
 
     /*
-     * AUTRES SETS
+     * =====================================================
+     * SETS
+     * =====================================================
      */
+
     for (
-        const [setName, groupItems]
-        of setGroups
+        const [
+            setName,
+            setItems
+        ] of setGroups
     ) {
 
         appendShopGroup(
             `✨ ${setName}`,
-            groupItems,
+            setItems,
             groupIndex,
             "set"
         );
@@ -395,9 +467,14 @@ function renderShop(entries) {
     }
 
     /*
-     * AUTRES OBJETS
+     * =====================================================
+     * AUTRES
+     * =====================================================
      */
-    if (otherItems.length > 0) {
+
+    if (
+        otherItems.length > 0
+    ) {
 
         appendShopGroup(
             "Autres objets",
@@ -409,7 +486,7 @@ function renderShop(entries) {
 }
 
 // =========================================================
-// AJOUTER UN GROUPE
+// AJOUTER GROUPE
 // =========================================================
 
 function appendShopGroup(
@@ -420,7 +497,9 @@ function appendShopGroup(
 ) {
 
     const section =
-        document.createElement("section");
+        document.createElement(
+            "section"
+        );
 
     section.className =
         "shop-group";
@@ -429,41 +508,60 @@ function appendShopGroup(
         groupType;
 
     section.style.animationDelay =
-        `${Math.min(groupIndex * 40, 400)}ms`;
+        `${Math.min(
+            groupIndex * 40,
+            400
+        )}ms`;
 
     const heading =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     heading.className =
         "shop-group-heading";
 
     const title =
-        document.createElement("h3");
+        document.createElement(
+            "h3"
+        );
 
     title.textContent =
         groupName;
 
     const count =
-        document.createElement("span");
+        document.createElement(
+            "span"
+        );
 
     count.textContent =
         `${groupItems.length} ${
             groupItems.length > 1
-                ? "objets"
-                : "objet"
+                ? "offres"
+                : "offre"
         }`;
 
-    heading.appendChild(title);
-    heading.appendChild(count);
+    heading.appendChild(
+        title
+    );
+
+    heading.appendChild(
+        count
+    );
 
     const grid =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     grid.className =
         "shop-group-grid";
 
     groupItems.forEach(
-        ({ item, originalIndex }) => {
+        ({
+            item,
+            originalIndex
+        }) => {
 
             grid.appendChild(
                 createCard(
@@ -474,178 +572,528 @@ function appendShopGroup(
         }
     );
 
-    section.appendChild(heading);
-    section.appendChild(grid);
+    section.appendChild(
+        heading
+    );
 
-    shopElement.appendChild(section);
+    section.appendChild(
+        grid
+    );
+
+    shopElement.appendChild(
+        section
+    );
 }
 
 // =========================================================
-// DÉTECTER UN VRAI PACK
+// EXTRACTION OBJET / BUNDLE
 // =========================================================
 
-function getPackName(entry, item) {
+function extractShopItem(entry) {
 
     if (!entry) {
-        return "";
+        return null;
     }
 
     /*
-     * Certaines réponses peuvent contenir
-     * directement un bundle.
+     * =====================================================
+     * TOUS LES OBJETS DE L'OFFRE
+     * =====================================================
      */
-    const bundle =
-        entry.bundle ||
-        entry.bundleData ||
-        entry.bundledItems ||
-        entry.bundleInfo ||
+
+    let items = [];
+    let itemCategory = "";
+
+    if (
+        Array.isArray(entry.items) &&
+        entry.items.length > 0
+    ) {
+
+        items =
+            entry.items;
+
+        itemCategory =
+            "item";
+
+    } else if (
+        Array.isArray(entry.brItems) &&
+        entry.brItems.length > 0
+    ) {
+
+        items =
+            entry.brItems;
+
+        itemCategory =
+            "br";
+
+    } else if (
+        Array.isArray(entry.tracks) &&
+        entry.tracks.length > 0
+    ) {
+
+        items =
+            entry.tracks;
+
+        itemCategory =
+            "track";
+
+    } else if (
+        Array.isArray(entry.instruments) &&
+        entry.instruments.length > 0
+    ) {
+
+        items =
+            entry.instruments;
+
+        itemCategory =
+            "instrument";
+
+    } else if (
+        entry.items &&
+        typeof entry.items === "object"
+    ) {
+
+        items = [
+            entry.items
+        ];
+
+        itemCategory =
+            "item";
+
+    } else if (
+        entry.brItems &&
+        typeof entry.brItems === "object"
+    ) {
+
+        items = [
+            entry.brItems
+        ];
+
+        itemCategory =
+            "br";
+
+    } else {
+
+        return null;
+    }
+
+    if (
+        items.length === 0
+    ) {
+
+        return null;
+    }
+
+    /*
+     * Premier objet uniquement utilisé
+     * comme référence pour les infos générales.
+     *
+     * Le tableau complet reste dans "items".
+     */
+
+    const firstItem =
+        items[0];
+
+    /*
+     * =====================================================
+     * ID
+     * =====================================================
+     */
+
+    const id =
+        entry?.offerId ||
+        entry?.id ||
+        firstItem?.id ||
         null;
 
-    if (bundle) {
+    /*
+     * =====================================================
+     * NOM
+     * =====================================================
+     */
 
-        const bundleName =
-            getObjectText(
-                bundle,
-                [
-                    "name",
-                    "displayName",
-                    "title",
-                    "text",
-                    "value"
-                ]
-            );
-
-        if (bundleName) {
-            return bundleName;
-        }
-    }
+    const name =
+        entry?.bundle?.name ||
+        entry?.bundle?.displayName ||
+        entry?.bundle?.title ||
+        entry?.displayName ||
+        entry?.name ||
+        firstItem?.name ||
+        firstItem?.title ||
+        "Objet Fortnite";
 
     /*
-     * Détection de noms présents directement
-     * dans l'offre.
+     * =====================================================
+     * DESCRIPTION
+     * =====================================================
      */
-    const directPackName =
-        getObjectText(
-            entry,
-            [
-                "bundleName",
-                "packName",
-                "offerName",
-                "displayName"
-            ]
+
+    const description =
+        entry?.bundle?.description ||
+        entry?.description ||
+        firstItem?.description ||
+        "";
+
+    /*
+     * =====================================================
+     * IMAGE DU BUNDLE
+     * =====================================================
+     *
+     * On cherche d'abord les images propres au bundle.
+     * Seulement ensuite on prend celle d'un objet.
+     */
+
+    const bundleImage =
+        entry?.bundle?.image ||
+        entry?.bundle?.images?.featured ||
+        entry?.bundle?.images?.icon ||
+        entry?.bundle?.images?.background ||
+        entry?.bundle?.images?.full_background ||
+        entry?.newDisplayAsset?.renderImages?.[0]?.image ||
+        entry?.newDisplayAsset?.renderImages?.[0]?.url ||
+        entry?.displayAsset?.renderImages?.[0]?.image ||
+        entry?.displayAsset?.renderImages?.[0]?.url ||
+        null;
+
+    const firstItemImage =
+        firstItem?.images?.featured ||
+        firstItem?.images?.icon ||
+        firstItem?.images?.smallIcon ||
+        firstItem?.images?.full_background ||
+        firstItem?.images?.background ||
+        firstItem?.albumArt ||
+        firstItem?.albumArtUrl ||
+        null;
+
+    const image =
+        bundleImage ||
+        firstItemImage ||
+        null;
+
+    /*
+     * =====================================================
+     * PRIX
+     * =====================================================
+     */
+
+    const regularPrice =
+        Number(
+            entry?.regularPrice ??
+            entry?.price?.regularPrice ??
+            entry?.bundle?.regularPrice ??
+            0
+        );
+
+    const price =
+        Number(
+            entry?.finalPrice ??
+            entry?.price?.finalPrice ??
+            entry?.bundle?.finalPrice ??
+            firstItem?.price ??
+            0
         );
 
     /*
-     * On évite de transformer chaque offre
-     * normale en "pack".
+     * =====================================================
+     * RÉDUCTION
+     * =====================================================
      */
-    if (
-        directPackName &&
+
+    const discount =
+        Math.max(
+            0,
+            regularPrice - price
+        );
+
+    /*
+     * =====================================================
+     * DÉTECTION BUNDLE
+     * =====================================================
+     */
+
+    const hasBundleObject =
+        !!(
+            entry?.bundle &&
+            typeof entry.bundle === "object"
+        );
+
+    const explicitBundle =
+        entry?.isBundle === true ||
+        entry?.isPack === true ||
+        entry?.offerType === "bundle" ||
+        entry?.offerKind === "bundle";
+
+    /*
+     * IMPORTANT :
+     *
+     * On ne considère pas simplement "items.length > 1"
+     * comme un bundle dans tous les cas, car certaines
+     * offres peuvent contenir plusieurs objets sans être
+     * un pack commercial.
+     */
+
+    const isBundle =
+        hasBundleObject ||
+        explicitBundle ||
         (
-            entry.bundle ||
-            entry.bundleName ||
-            entry.packName ||
-            entry.isBundle === true ||
-            entry.isPack === true
+            Array.isArray(
+                entry?.items
+            ) &&
+            entry.items.length > 1 &&
+            (
+                regularPrice > price ||
+                entry?.bundle != null
+            )
+        );
+
+    /*
+     * =====================================================
+     * RARETÉ
+     * =====================================================
+     */
+
+    const rarity =
+        firstItem?.rarity?.displayValue ||
+        firstItem?.rarity?.value ||
+        entry?.rarity?.displayValue ||
+        entry?.rarity?.value ||
+        "";
+
+    /*
+     * =====================================================
+     * TYPE
+     * =====================================================
+     */
+
+    let type = "";
+
+    if (
+        itemCategory === "track" ||
+        (
+            Array.isArray(
+                entry.tracks
+            ) &&
+            entry.tracks.length > 0
         )
     ) {
 
-        return directPackName;
+        type =
+            "Musique";
+
+    } else if (
+        itemCategory === "instrument"
+    ) {
+
+        type =
+            "Instrument";
+
+    } else {
+
+        const rawType =
+            firstItem?.type?.displayValue ||
+            firstItem?.type?.value ||
+            firstItem?.displayType ||
+            entry?.type?.displayValue ||
+            entry?.type?.value ||
+            entry?.displayType ||
+            "";
+
+        type =
+            normalizeItemType(
+                rawType
+            );
     }
 
     /*
-     * Certaines structures peuvent indiquer
-     * explicitement qu'il s'agit d'un bundle.
+     * =====================================================
+     * SERIES
+     * =====================================================
      */
-    const flags = [
-        entry.isBundle,
-        entry.isPack,
-        entry.bundleType,
-        entry.offerType,
-        entry.kind
-    ];
 
-    const looksLikeBundle =
-        flags.some(
-            value =>
-                value === true ||
-                (
-                    typeof value === "string" &&
-                    /bundle|pack/i.test(value)
-                )
-        );
+    const series =
+        firstItem?.series?.name ||
+        firstItem?.series?.value ||
+        "";
 
-    if (
-        looksLikeBundle &&
-        directPackName
-    ) {
+    /*
+     * =====================================================
+     * SET
+     * =====================================================
+     */
 
-        return directPackName;
-    }
+    const set =
+        firstItem?.set?.value ||
+        firstItem?.set?.name ||
+        firstItem?.set?.displayValue ||
+        firstItem?.set?.text ||
+        entry?.set?.value ||
+        entry?.set?.name ||
+        entry?.set?.displayValue ||
+        entry?.set?.text ||
+        "";
 
-    return "";
+    return {
+
+        id,
+
+        name,
+
+        description,
+
+        image,
+
+        price,
+
+        regularPrice,
+
+        discount,
+
+        rarity,
+
+        type,
+
+        series,
+
+        set,
+
+        /*
+         * =================================================
+         * IMPORTANT
+         * =================================================
+         *
+         * Tous les objets de l'offre.
+         */
+
+        items,
+
+        isBundle,
+
+        /*
+         * Données brutes conservées pour pouvoir
+         * exploiter d'autres champs plus tard.
+         */
+
+        raw: entry,
+
+        cosmetic: firstItem,
+
+        category: itemCategory
+    };
 }
 
 // =========================================================
-// TEXTE D'OBJET
+// NORMALISER LE TYPE
 // =========================================================
 
-function getObjectText(
-    object,
-    keys
+function normalizeItemType(
+    rawType
 ) {
 
-    if (
-        !object ||
-        typeof object !== "object"
-    ) {
+    if (!rawType) {
         return "";
     }
 
-    for (
-        const key of keys
+    const value =
+        String(rawType)
+            .trim()
+            .toLowerCase();
+
+    if (
+        value.includes("music") ||
+        value.includes("musique") ||
+        value.includes("jam track") ||
+        value.includes("track")
     ) {
 
-        const value =
-            object?.[key];
-
-        if (
-            typeof value === "string" &&
-            value.trim()
-        ) {
-
-            return value.trim();
-        }
-
-        if (
-            value &&
-            typeof value === "object"
-        ) {
-
-            const nested =
-                value.value ||
-                value.name ||
-                value.displayValue ||
-                value.text;
-
-            if (
-                typeof nested === "string" &&
-                nested.trim()
-            ) {
-
-                return nested.trim();
-            }
-        }
+        return "Musique";
     }
 
-    return "";
+    if (
+        value === "outfit" ||
+        value.includes("tenue")
+    ) {
+
+        return "Tenue";
+    }
+
+    if (
+        value === "pickaxe" ||
+        value.includes("pioche") ||
+        value.includes("harvesting tool")
+    ) {
+
+        return "Pioche";
+    }
+
+    if (
+        value === "glider" ||
+        value.includes("planeur")
+    ) {
+
+        return "Planeur";
+    }
+
+    if (
+        value === "emote" ||
+        value.includes("emote") ||
+        value.includes("danse")
+    ) {
+
+        return "Emote";
+    }
+
+    if (
+        value === "wrap" ||
+        value.includes("wrap") ||
+        value.includes("revêtement")
+    ) {
+
+        return "Revêtement";
+    }
+
+    if (
+        value === "backpack" ||
+        value === "back bling" ||
+        value.includes("dos")
+    ) {
+
+        return "Dos";
+    }
+
+    if (
+        value.includes("spray") ||
+        value.includes("graffiti")
+    ) {
+
+        return "Aérosol";
+    }
+
+    if (
+        value.includes("loading screen") ||
+        value.includes("écran de chargement")
+    ) {
+
+        return "Écran de chargement";
+    }
+
+    if (
+        value.includes("banner") ||
+        value.includes("bannière")
+    ) {
+
+        return "Bannière";
+    }
+
+    return rawType;
 }
 
 // =========================================================
-// GROUPE DE CATÉGORIE
+// GROUPE CATÉGORIE
 // =========================================================
 
-function getCategoryGroup(item) {
+function getCategoryGroup(
+    item
+) {
 
     if (!item) {
         return "";
@@ -655,10 +1103,13 @@ function getCategoryGroup(item) {
         item.category === "instrument" ||
         item.type === "Instrument"
     ) {
+
         return "Instruments";
     }
 
-    switch (item.type) {
+    switch (
+        item.type
+    ) {
 
         case "Tenue":
             return "Tenues";
@@ -693,340 +1144,125 @@ function getCategoryGroup(item) {
 }
 
 // =========================================================
-// EMOJIS CATÉGORIES
+// EMOJIS
 // =========================================================
 
-function getCategoryEmoji(category) {
+function getCategoryEmoji(
+    category
+) {
 
     const emojis = {
 
         "Tenues": "👕",
+
         "Pioches": "⛏️",
+
         "Planeurs": "🪂",
+
         "Dos": "🎒",
+
         "Emotes": "🕺",
+
         "Revêtements": "🎨",
+
         "Aérosols": "🖌️",
+
         "Écrans de chargement": "🖼️",
+
         "Bannières": "🏳️",
+
         "Instruments": "🎸"
     };
 
-    return emojis[category] || "✨";
-}
-
-// =========================================================
-// EXTRACTION OBJET
-// =========================================================
-
-function extractShopItem(entry) {
-
-    if (!entry) return null;
-
-    let item = null;
-    let itemCategory = "";
-
-    if (
-        Array.isArray(entry.brItems) &&
-        entry.brItems.length > 0
-    ) {
-
-        item =
-            entry.brItems[0];
-
-        itemCategory =
-            "br";
-
-    } else if (
-        Array.isArray(entry.items) &&
-        entry.items.length > 0
-    ) {
-
-        item =
-            entry.items[0];
-
-        itemCategory =
-            "item";
-
-    } else if (
-        Array.isArray(entry.tracks) &&
-        entry.tracks.length > 0
-    ) {
-
-        item =
-            entry.tracks[0];
-
-        itemCategory =
-            "track";
-
-    } else if (
-        Array.isArray(entry.instruments) &&
-        entry.instruments.length > 0
-    ) {
-
-        item =
-            entry.instruments[0];
-
-        itemCategory =
-            "instrument";
-
-    } else if (
-        entry.brItems &&
-        typeof entry.brItems === "object"
-    ) {
-
-        item =
-            entry.brItems;
-
-        itemCategory =
-            "br";
-
-    } else if (
-        entry.items &&
-        typeof entry.items === "object"
-    ) {
-
-        item =
-            entry.items;
-
-        itemCategory =
-            "item";
-    }
-
-    if (!item) return null;
-
-    const id =
-        item?.id ||
-        entry?.id ||
-        entry?.offerId ||
-        null;
-
-    const name =
-        item?.name ||
-        item?.title ||
-        entry?.displayName ||
-        entry?.name ||
-        "Objet Fortnite";
-
-    const description =
-        item?.description ||
-        entry?.description ||
-        "";
-
-    const image =
-        item?.images?.featured ||
-        item?.images?.icon ||
-        item?.images?.smallIcon ||
-        item?.images?.full_background ||
-        item?.images?.background ||
-        item?.albumArt ||
-        item?.albumArtUrl ||
-        entry?.newDisplayAsset?.renderImages?.[0]?.image ||
-        entry?.bundle?.image ||
-        entry?.tracks?.[0]?.albumArt ||
-        entry?.tracks?.[0]?.images?.icon ||
-        null;
-
-    const price =
-        entry?.finalPrice ??
-        entry?.regularPrice ??
-        entry?.price?.finalPrice ??
-        item?.price ??
-        0;
-
-    const rarity =
-        item?.rarity?.displayValue ||
-        item?.rarity?.value ||
-        entry?.rarity?.displayValue ||
-        entry?.rarity?.value ||
-        "";
-
-    let type = "";
-
-    if (
-        itemCategory === "track" ||
-        (
-            Array.isArray(entry.tracks) &&
-            entry.tracks.length > 0
-        )
-    ) {
-
-        type = "Musique";
-
-    } else if (
-        itemCategory === "instrument"
-    ) {
-
-        type = "Instrument";
-
-    } else {
-
-        const rawType =
-            item?.type?.displayValue ||
-            item?.type?.value ||
-            item?.displayType ||
-            entry?.type?.displayValue ||
-            entry?.type?.value ||
-            entry?.displayType ||
-            "";
-
-        type =
-            normalizeItemType(
-                rawType
-            );
-    }
-
-    const series =
-        item?.series?.name ||
-        item?.series?.value ||
-        "";
-
-    const set =
-        item?.set?.value ||
-        item?.set?.name ||
-        item?.set?.displayValue ||
-        item?.set?.text ||
-        entry?.set?.value ||
-        entry?.set?.name ||
-        entry?.set?.displayValue ||
-        entry?.set?.text ||
-        "";
-
-    return {
-
-        id,
-        name,
-        description,
-        image,
-        price,
-        rarity,
-        type,
-        series,
-        set,
-
-        raw: entry,
-        cosmetic: item,
-        category: itemCategory
-    };
-}
-
-// =========================================================
-// NORMALISER LE TYPE
-// =========================================================
-
-function normalizeItemType(rawType) {
-
-    if (!rawType) return "";
-
-    const value =
-        String(rawType)
-            .trim()
-            .toLowerCase();
-
-    if (
-        value.includes("music") ||
-        value.includes("musique") ||
-        value.includes("jam track") ||
-        value.includes("track")
-    ) {
-        return "Musique";
-    }
-
-    if (
-        value === "outfit" ||
-        value.includes("tenue")
-    ) {
-        return "Tenue";
-    }
-
-    if (
-        value === "pickaxe" ||
-        value.includes("pioche") ||
-        value.includes("harvesting tool")
-    ) {
-        return "Pioche";
-    }
-
-    if (
-        value === "glider" ||
-        value.includes("planeur")
-    ) {
-        return "Planeur";
-    }
-
-    if (
-        value === "emote" ||
-        value.includes("emote") ||
-        value.includes("danse")
-    ) {
-        return "Emote";
-    }
-
-    if (
-        value === "wrap" ||
-        value.includes("wrap") ||
-        value.includes("revêtement")
-    ) {
-        return "Revêtement";
-    }
-
-    if (
-        value === "backpack" ||
-        value === "back bling" ||
-        value.includes("dos")
-    ) {
-        return "Dos";
-    }
-
-    if (
-        value.includes("spray") ||
-        value.includes("graffiti")
-    ) {
-        return "Aérosol";
-    }
-
-    if (
-        value.includes("loading screen") ||
-        value.includes("écran de chargement")
-    ) {
-        return "Écran de chargement";
-    }
-
-    if (
-        value.includes("banner") ||
-        value.includes("bannière")
-    ) {
-        return "Bannière";
-    }
-
-    return rawType;
+    return (
+        emojis[category] ||
+        "✨"
+    );
 }
 
 // =========================================================
 // CARTE
 // =========================================================
 
-function createCard(item, index) {
+function createCard(
+    item,
+    index
+) {
 
     const card =
-        document.createElement("article");
+        document.createElement(
+            "article"
+        );
 
     card.className =
         "card";
 
+    if (
+        item.isBundle
+    ) {
+
+        card.classList.add(
+            "bundle-card"
+        );
+    }
+
     card.style.animationDelay =
-        `${Math.min(index * 35, 500)}ms`;
+        `${Math.min(
+            index * 35,
+            500
+        )}ms`;
 
     const imageContainer =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     imageContainer.className =
         "card-image";
 
-    if (item.image) {
+    /*
+     * =====================================================
+     * BADGE RÉDUCTION
+     * =====================================================
+     */
+
+    if (
+        item.isBundle &&
+        item.discount > 0
+    ) {
+
+        const discountBadge =
+            document.createElement(
+                "div"
+            );
+
+        discountBadge.className =
+            "bundle-discount";
+
+        discountBadge.textContent =
+            `${formatPrice(
+                item.discount
+            )} V-BUCKS DE RÉDUC.`;
+
+        imageContainer.appendChild(
+            discountBadge
+        );
+    }
+
+    /*
+     * =====================================================
+     * IMAGE
+     * =====================================================
+     */
+
+    if (
+        item.image
+    ) {
 
         const image =
-            document.createElement("img");
+            document.createElement(
+                "img"
+            );
 
         image.src =
             item.image;
@@ -1050,54 +1286,183 @@ function createCard(item, index) {
             image.remove();
         };
 
-        imageContainer.appendChild(image);
+        imageContainer.appendChild(
+            image
+        );
+
+    } else {
+
+        const fallback =
+            document.createElement(
+                "div"
+            );
+
+        fallback.className =
+            "no-image";
+
+        fallback.textContent =
+            "FORTNITE";
+
+        imageContainer.appendChild(
+            fallback
+        );
     }
 
+    /*
+     * =====================================================
+     * CONTENU DE CARTE
+     * =====================================================
+     */
+
     const overlay =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     overlay.className =
         "card-overlay";
 
     const info =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     info.className =
         "card-info";
 
     const name =
-        document.createElement("h3");
+        document.createElement(
+            "h3"
+        );
 
     name.textContent =
         item.name;
 
     const bottom =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     bottom.className =
         "card-bottom";
 
     const price =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     price.className =
         "price";
 
-    price.innerHTML = `
-        ${formatPrice(item.price)}
-        <span class="vbucks-symbol">V</span>
-    `;
+    /*
+     * =====================================================
+     * PRIX BUNDLE
+     * =====================================================
+     */
 
-    bottom.appendChild(price);
+    if (
+        item.isBundle &&
+        item.regularPrice > item.price
+    ) {
 
-    info.appendChild(name);
-    info.appendChild(bottom);
+        price.innerHTML = `
 
-    overlay.appendChild(info);
+            <span class="old-price">
 
-    imageContainer.appendChild(overlay);
+                ${formatPrice(
+                    item.regularPrice
+                )}
 
-    card.appendChild(imageContainer);
+                <span class="vbucks-symbol">
+                    V
+                </span>
+
+            </span>
+
+            <span class="bundle-price">
+
+                ${formatPrice(
+                    item.price
+                )}
+
+                <span class="vbucks-symbol">
+                    V
+                </span>
+
+            </span>
+
+        `;
+
+    } else {
+
+        price.innerHTML = `
+
+            ${formatPrice(
+                item.price
+            )}
+
+            <span class="vbucks-symbol">
+                V
+            </span>
+
+        `;
+    }
+
+    /*
+     * Nombre d'objets dans le pack
+     */
+
+    if (
+        item.isBundle &&
+        Array.isArray(item.items) &&
+        item.items.length > 0
+    ) {
+
+        const itemCount =
+            document.createElement(
+                "span"
+            );
+
+        itemCount.className =
+            "bundle-item-count";
+
+        itemCount.textContent =
+            `${item.items.length} objets`;
+
+        bottom.appendChild(
+            itemCount
+        );
+    }
+
+    bottom.appendChild(
+        price
+    );
+
+    info.appendChild(
+        name
+    );
+
+    info.appendChild(
+        bottom
+    );
+
+    overlay.appendChild(
+        info
+    );
+
+    imageContainer.appendChild(
+        overlay
+    );
+
+    card.appendChild(
+        imageContainer
+    );
+
+    /*
+     * =====================================================
+     * CLICK
+     * =====================================================
+     */
 
     card.addEventListener(
         "click",
@@ -1111,13 +1476,16 @@ function createCard(item, index) {
 // PRIX
 // =========================================================
 
-function formatPrice(price) {
+function formatPrice(
+    price
+) {
 
     if (
         price === null ||
         price === undefined ||
         price === ""
     ) {
+
         return "—";
     }
 
@@ -1127,6 +1495,7 @@ function formatPrice(price) {
     if (
         Number.isNaN(number)
     ) {
+
         return String(price);
     }
 
@@ -1139,7 +1508,9 @@ function formatPrice(price) {
 // OUVRIR MODALE
 // =========================================================
 
-async function openModal(item) {
+async function openModal(
+    item
+) {
 
     currentItem =
         item;
@@ -1178,42 +1549,120 @@ async function openModal(item) {
     modalName.textContent =
         item.name;
 
-    modalPrice.innerHTML = `
-        ${formatPrice(item.price)}
-        <span class="vbucks-symbol">V</span>
-    `;
+    /*
+     * =====================================================
+     * PRIX MODALE
+     * =====================================================
+     */
+
+    if (
+        item.isBundle &&
+        item.regularPrice > item.price
+    ) {
+
+        modalPrice.innerHTML = `
+
+            <span class="old-price">
+
+                ${formatPrice(
+                    item.regularPrice
+                )}
+
+                <span class="vbucks-symbol">
+                    V
+                </span>
+
+            </span>
+
+            <span class="bundle-price">
+
+                ${formatPrice(
+                    item.price
+                )}
+
+                <span class="vbucks-symbol">
+                    V
+                </span>
+
+            </span>
+
+        `;
+
+    } else {
+
+        modalPrice.innerHTML = `
+
+            ${formatPrice(
+                item.price
+            )}
+
+            <span class="vbucks-symbol">
+                V
+            </span>
+
+        `;
+    }
 
     modalDescription.textContent =
-        item.description || "";
+        item.description ||
+        "";
 
     const extraParts = [];
 
-    if (item.type) {
+    if (
+        item.isBundle &&
+        Array.isArray(item.items)
+    ) {
+
+        extraParts.push(
+            `${item.items.length} objets dans le pack`
+        );
+    }
+
+    if (
+        item.type
+    ) {
+
         extraParts.push(
             item.type
         );
     }
 
-    if (item.rarity) {
+    if (
+        item.rarity
+    ) {
+
         extraParts.push(
             item.rarity
         );
     }
 
-    if (item.series) {
+    if (
+        item.series
+    ) {
+
         extraParts.push(
             item.series
         );
     }
 
     modalExtraInfo.textContent =
-        extraParts.join(" • ");
+        extraParts.join(
+            " • "
+        );
+
+    /*
+     * =====================================================
+     * IMAGE
+     * =====================================================
+     */
 
     modalImage.style.display =
         "block";
 
     modalImage.src =
-        item.image || "";
+        item.image ||
+        "";
 
     modalImage.alt =
         item.name;
@@ -1233,6 +1682,12 @@ async function openModal(item) {
         false
     );
 
+    /*
+     * =====================================================
+     * PAS D'ID
+     * =====================================================
+     */
+
     if (!item.id) {
 
         showVideoFallback();
@@ -1244,6 +1699,12 @@ async function openModal(item) {
 
         return;
     }
+
+    /*
+     * =====================================================
+     * MUSIQUE / INSTRUMENT
+     * =====================================================
+     */
 
     if (
         item.category === "track" ||
@@ -1269,8 +1730,11 @@ async function openModal(item) {
 
         if (
             currentItem !== item ||
-            !modal.classList.contains("open")
+            !modal.classList.contains(
+                "open"
+            )
         ) {
+
             return;
         }
 
@@ -1279,7 +1743,9 @@ async function openModal(item) {
                 cosmetic
             );
 
-        if (videoUrl) {
+        if (
+            videoUrl
+        ) {
 
             hasVideo =
                 true;
@@ -1308,7 +1774,9 @@ async function openModal(item) {
             false
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         console.warn(
             "Impossible de récupérer la vidéo :",
@@ -1371,7 +1839,10 @@ function closeModal() {
 
 function resetVideo() {
 
-    if (!modalVideo) {
+    if (
+        !modalVideo
+    ) {
+
         return;
     }
 
@@ -1404,7 +1875,9 @@ function resetVideo() {
 // RÉCUPÉRATION COSMÉTIQUE
 // =========================================================
 
-async function fetchCosmetic(id) {
+async function fetchCosmetic(
+    id
+) {
 
     const url =
         `${COSMETIC_API}?language=fr&id=${encodeURIComponent(id)}`;
@@ -1417,7 +1890,9 @@ async function fetchCosmetic(id) {
             }
         );
 
-    if (!response.ok) {
+    if (
+        !response.ok
+    ) {
 
         throw new Error(
             `Erreur cosmétique HTTP ${response.status}`
@@ -1438,7 +1913,9 @@ async function fetchCosmetic(id) {
 // TROUVER UNE VRAIE VIDÉO DIRECTE
 // =========================================================
 
-function findDirectVideo(cosmetic) {
+function findDirectVideo(
+    cosmetic
+) {
 
     if (!cosmetic) {
         return null;
@@ -1478,7 +1955,8 @@ function findDirectVideo(cosmetic) {
     ];
 
     for (
-        const candidate of directCandidates
+        const candidate
+        of directCandidates
     ) {
 
         const found =
@@ -1486,7 +1964,10 @@ function findDirectVideo(cosmetic) {
                 candidate
             );
 
-        if (found) {
+        if (
+            found
+        ) {
+
             return found;
         }
     }
@@ -1496,7 +1977,10 @@ function findDirectVideo(cosmetic) {
             cosmetic
         );
 
-    if (recursiveResult) {
+    if (
+        recursiveResult
+    ) {
+
         return recursiveResult;
     }
 
@@ -1507,7 +1991,9 @@ function findDirectVideo(cosmetic) {
 // EXTRAIRE URL DIRECTE
 // =========================================================
 
-function extractDirectVideoUrl(value) {
+function extractDirectVideoUrl(
+    value
+) {
 
     if (
         typeof value === "string"
@@ -1521,6 +2007,7 @@ function extractDirectVideoUrl(value) {
                 url
             )
         ) {
+
             return url;
         }
 
@@ -1545,11 +2032,13 @@ function extractDirectVideoUrl(value) {
         ];
 
         for (
-            const key of possibleKeys
+            const key
+            of possibleKeys
         ) {
 
             if (
-                typeof value[key] === "string"
+                typeof value[key] ===
+                "string"
             ) {
 
                 const found =
@@ -1560,6 +2049,7 @@ function extractDirectVideoUrl(value) {
                         found
                     )
                 ) {
+
                     return found;
                 }
             }
@@ -1570,7 +2060,7 @@ function extractDirectVideoUrl(value) {
 }
 
 // =========================================================
-// RECHERCHE RÉCURSIVE D'UNE VIDÉO
+// RECHERCHE RÉCURSIVE VIDÉO
 // =========================================================
 
 function findVideoUrlDeep(
@@ -1583,6 +2073,7 @@ function findVideoUrlDeep(
         value === null ||
         value === undefined
     ) {
+
         return null;
     }
 
@@ -1590,7 +2081,9 @@ function findVideoUrlDeep(
         typeof value === "string"
     ) {
 
-        return isDirectVideoUrl(value)
+        return isDirectVideoUrl(
+            value
+        )
             ? value.trim()
             : null;
     }
@@ -1598,6 +2091,7 @@ function findVideoUrlDeep(
     if (
         typeof value !== "object"
     ) {
+
         return null;
     }
 
@@ -1606,7 +2100,8 @@ function findVideoUrlDeep(
     ) {
 
         for (
-            const child of value
+            const child
+            of value
         ) {
 
             const found =
@@ -1615,7 +2110,10 @@ function findVideoUrlDeep(
                     depth + 1
                 );
 
-            if (found) {
+            if (
+                found
+            ) {
+
                 return found;
             }
         }
@@ -1624,8 +2122,10 @@ function findVideoUrlDeep(
     }
 
     for (
-        const [key, child]
-        of Object.entries(value)
+        const [
+            key,
+            child
+        ] of Object.entries(value)
     ) {
 
         const lowerKey =
@@ -1633,19 +2133,32 @@ function findVideoUrlDeep(
                 .toLowerCase();
 
         const looksLikeVideo =
-            lowerKey.includes("video") ||
-            lowerKey.includes("movie") ||
-            lowerKey.includes("preview") ||
-            lowerKey.includes("media");
+            lowerKey.includes(
+                "video"
+            ) ||
+            lowerKey.includes(
+                "movie"
+            ) ||
+            lowerKey.includes(
+                "preview"
+            ) ||
+            lowerKey.includes(
+                "media"
+            );
 
-        if (looksLikeVideo) {
+        if (
+            looksLikeVideo
+        ) {
 
             const found =
                 extractDirectVideoUrl(
                     child
                 );
 
-            if (found) {
+            if (
+                found
+            ) {
+
                 return found;
             }
         }
@@ -1661,7 +2174,10 @@ function findVideoUrlDeep(
                     depth + 1
                 );
 
-            if (found) {
+            if (
+                found
+            ) {
+
                 return found;
             }
         }
@@ -1674,11 +2190,14 @@ function findVideoUrlDeep(
 // VÉRIFIER URL VIDÉO
 // =========================================================
 
-function isDirectVideoUrl(value) {
+function isDirectVideoUrl(
+    value
+) {
 
     if (
         typeof value !== "string"
     ) {
+
         return false;
     }
 
@@ -1691,6 +2210,7 @@ function isDirectVideoUrl(value) {
             url.protocol !== "https:" &&
             url.protocol !== "http:"
         ) {
+
             return false;
         }
 
@@ -1720,16 +2240,21 @@ function isDirectVideoUrl(value) {
 }
 
 // =========================================================
-// CHARGER VIDÉO DIRECTE
+// CHARGER VIDÉO
 // =========================================================
 
-function loadDirectVideo(url) {
+function loadDirectVideo(
+    url
+) {
 
     resetVideo();
 
     if (
-        !isDirectVideoUrl(url)
+        !isDirectVideoUrl(
+            url
+        )
     ) {
+
         return;
     }
 
@@ -1761,7 +2286,8 @@ function loadDirectVideo(url) {
 
     if (
         playPromise &&
-        typeof playPromise.catch === "function"
+        typeof playPromise.catch ===
+        "function"
     ) {
 
         playPromise.catch(
@@ -1798,7 +2324,8 @@ function showVideoFallback() {
 
 function createDots() {
 
-    carouselDots.innerHTML = "";
+    carouselDots.innerHTML =
+        "";
 
     for (
         let i = 0;
@@ -1853,7 +2380,9 @@ function createDots() {
 // CHANGER SLIDE
 // =========================================================
 
-function goToSlide(index) {
+function goToSlide(
+    index
+) {
 
     const nextSlide =
         Math.max(
@@ -1908,7 +2437,10 @@ function updateSlide(
         );
 
     dots.forEach(
-        (dot, dotIndex) => {
+        (
+            dot,
+            dotIndex
+        ) => {
 
             dot.classList.toggle(
                 "active",
@@ -1983,6 +2515,7 @@ function playCurrentVideo() {
         !hasVideo ||
         !currentVideoUrl
     ) {
+
         return;
     }
 
@@ -1997,7 +2530,8 @@ function playCurrentVideo() {
 
     if (
         promise &&
-        typeof promise.catch === "function"
+        typeof promise.catch ===
+        "function"
     ) {
 
         promise.catch(
@@ -2014,7 +2548,8 @@ function pauseCurrentVideo() {
 
     if (
         modalVideo &&
-        typeof modalVideo.pause === "function"
+        typeof modalVideo.pause ===
+        "function"
     ) {
 
         modalVideo.pause();
@@ -2025,17 +2560,24 @@ function pauseCurrentVideo() {
 // POINTER DOWN
 // =========================================================
 
-function handlePointerDown(event) {
+function handlePointerDown(
+    event
+) {
 
     if (
-        !modal.classList.contains("open")
+        !modal.classList.contains(
+            "open"
+        )
     ) {
+
         return;
     }
 
     if (
-        event.pointerType === "mouse"
+        event.pointerType ===
+        "mouse"
     ) {
+
         return;
     }
 
@@ -2078,12 +2620,16 @@ function handlePointerDown(event) {
 // POINTER MOVE
 // =========================================================
 
-function handlePointerMove(event) {
+function handlePointerMove(
+    event
+) {
 
     if (
         !isDragging ||
-        event.pointerId !== activePointerId
+        event.pointerId !==
+        activePointerId
     ) {
+
         return;
     }
 
@@ -2109,6 +2655,7 @@ function handlePointerMove(event) {
             Math.abs(deltaX) < 8 &&
             Math.abs(deltaY) < 8
         ) {
+
             return;
         }
 
@@ -2144,6 +2691,7 @@ function handlePointerMove(event) {
     if (
         width <= 0
     ) {
+
         return;
     }
 
@@ -2182,12 +2730,16 @@ function handlePointerMove(event) {
 // POINTER UP
 // =========================================================
 
-function handlePointerUp(event) {
+function handlePointerUp(
+    event
+) {
 
     if (
         !isDragging ||
-        event.pointerId !== activePointerId
+        event.pointerId !==
+        activePointerId
     ) {
+
         return;
     }
 
@@ -2240,11 +2792,15 @@ function handlePointerUp(event) {
 // POINTER CANCEL
 // =========================================================
 
-function handlePointerCancel(event) {
+function handlePointerCancel(
+    event
+) {
 
     if (
-        event.pointerId !== activePointerId
+        event.pointerId !==
+        activePointerId
     ) {
+
         return;
     }
 
@@ -2264,11 +2820,16 @@ function handlePointerCancel(event) {
 // CLAVIER
 // =========================================================
 
-function handleKeyDown(event) {
+function handleKeyDown(
+    event
+) {
 
     if (
-        !modal.classList.contains("open")
+        !modal.classList.contains(
+            "open"
+        )
     ) {
+
         return;
     }
 
@@ -2316,7 +2877,9 @@ const modalBackdrop =
         ".modal-backdrop"
     );
 
-if (modalBackdrop) {
+if (
+    modalBackdrop
+) {
 
     modalBackdrop.addEventListener(
         "click",
@@ -2330,7 +2893,7 @@ document.addEventListener(
 );
 
 // =========================================================
-// SWIPE POINTER EVENTS
+// SWIPE
 // =========================================================
 
 modalMedia.addEventListener(
