@@ -8,11 +8,8 @@
 
 html {
     scroll-behavior: smooth;
-
     background: #080808;
-
     overflow-x: hidden;
-
     overscroll-behavior-x: none;
 }
 
@@ -24,9 +21,7 @@ body {
 
 body {
     margin: 0;
-
     min-height: 100dvh;
-
     display: flex;
     flex-direction: column;
 
@@ -49,7 +44,6 @@ body {
         sans-serif;
 
     overflow-x: hidden;
-
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -59,9 +53,7 @@ body.modal-open {
 
 main {
     flex: 1;
-
     min-width: 0;
-
     overflow-x: hidden;
 }
 
@@ -76,7 +68,6 @@ button {
 
 img {
     display: block;
-
     max-width: 100%;
 }
 
@@ -87,9 +78,7 @@ img {
 
 .site-header {
     position: sticky;
-
     top: 0;
-
     z-index: 50;
 
     border-bottom:
@@ -111,13 +100,10 @@ img {
         );
 
     min-height: 76px;
-
     margin: auto;
 
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 20px;
@@ -125,17 +111,13 @@ img {
 
 .brand {
     display: flex;
-
     align-items: baseline;
-
     gap: 8px;
 
     color: #ffffff;
-
     text-decoration: none;
 
     font-weight: 900;
-
     letter-spacing: -0.04em;
 }
 
@@ -145,26 +127,20 @@ img {
 
 .brand-sub {
     font-size: 13px;
-
     opacity: 0.55;
-
     letter-spacing: 0.14em;
 }
 
 .header-actions {
     display: flex;
-
     align-items: center;
-
     gap: 10px;
 }
 
 .epic-link,
 .refresh-btn {
     min-height: 42px;
-
-    padding:
-        0 16px;
+    padding: 0 16px;
 
     border:
         1px solid
@@ -182,7 +158,6 @@ img {
 
 .epic-link {
     display: inline-flex;
-
     align-items: center;
 
     color:
@@ -210,7 +185,6 @@ img {
 
 .refresh-btn:disabled {
     opacity: 0.5;
-
     cursor: wait;
 }
 
@@ -244,7 +218,6 @@ img {
         rgba(255,255,255,0.48);
 
     font-size: 12px;
-
     font-weight: 800;
 
     letter-spacing: 0.18em;
@@ -261,7 +234,6 @@ img {
         );
 
     line-height: 0.95;
-
     letter-spacing: -0.055em;
 }
 
@@ -275,15 +247,12 @@ img {
         rgba(255,255,255,0.62);
 
     font-size: 17px;
-
     line-height: 1.6;
 }
 
 .shop-meta {
     display: flex;
-
     align-items: center;
-
     flex-wrap: wrap;
 
     gap: 10px;
@@ -291,7 +260,6 @@ img {
 
 .shop-meta span {
     display: inline-flex;
-
     align-items: center;
 
     min-height: 34px;
@@ -336,9 +304,7 @@ img {
 
 .shop-section-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 18px;
@@ -350,7 +316,6 @@ img {
     min-width: 0;
 
     display: flex;
-
     align-items: center;
 
     gap: 16px;
@@ -369,17 +334,14 @@ img {
         );
 
     line-height: 0.95;
-
     font-weight: 900;
 
     letter-spacing: -0.055em;
-
     text-transform: uppercase;
 }
 
 .shop-section-line {
     width: 80px;
-
     height: 2px;
 
     background:
@@ -397,11 +359,9 @@ img {
         rgba(255,255,255,0.4);
 
     font-size: 11px;
-
     font-weight: 800;
 
     text-transform: uppercase;
-
     letter-spacing: 0.08em;
 }
 
@@ -431,7 +391,6 @@ img {
 
 .shop-card.tile-square {
     grid-column: span 1;
-
     grid-row: span 1;
 
     aspect-ratio: 1 / 1;
@@ -439,7 +398,6 @@ img {
 
 .shop-card.tile-portrait {
     grid-column: span 1;
-
     grid-row: span 2;
 
     aspect-ratio: 1 / 1.45;
@@ -447,7 +405,6 @@ img {
 
 .shop-card.tile-large {
     grid-column: 1 / -1;
-
     grid-row: span 1;
 
     aspect-ratio: 2.7 / 1;
@@ -462,7 +419,6 @@ img {
     position: relative;
 
     min-width: 0;
-
     min-height: 0;
 
     overflow: hidden;
@@ -514,9 +470,7 @@ img {
 
 .card-background {
     position: absolute;
-
     inset: 0;
-
     z-index: 0;
 
     background:
@@ -540,9 +494,7 @@ img {
 
 .card-image-wrapper {
     position: absolute;
-
     inset: 0;
-
     z-index: 1;
 
     overflow: hidden;
@@ -550,11 +502,9 @@ img {
 
 .card-image {
     width: 100%;
-
     height: 100%;
 
     object-fit: cover;
-
     object-position: center;
 
     transition:
@@ -568,8 +518,7 @@ img {
 }
 
 .shop-card:hover .card-image {
-    transform:
-        scale(1.045);
+    transform: scale(1.045);
 }
 
 
@@ -579,9 +528,7 @@ img {
 
 .card-gradient {
     position: absolute;
-
     inset: 0;
-
     z-index: 2;
 
     pointer-events: none;
@@ -605,15 +552,12 @@ img {
     position: absolute;
 
     top: 11px;
-
     left: 11px;
-
     right: 11px;
 
     z-index: 5;
 
     display: flex;
-
     align-items: flex-start;
 
     gap: 7px;
@@ -624,9 +568,7 @@ img {
 .discount-badge,
 .bundle-badge {
     display: inline-flex;
-
     align-items: center;
-
     justify-content: center;
 
     min-height: 27px;
@@ -646,7 +588,6 @@ img {
     color: #ffffff;
 
     font-size: 10px;
-
     font-weight: 900;
 
     letter-spacing: 0.04em;
@@ -671,15 +612,11 @@ img {
 
 .card-content-overlay {
     position: absolute;
-
     inset: 0;
-
     z-index: 4;
 
     display: flex;
-
     flex-direction: column;
-
     justify-content: flex-end;
 
     padding: 18px;
@@ -694,11 +631,9 @@ img {
         rgba(255,255,255,0.68);
 
     font-size: 9px;
-
     font-weight: 900;
 
     text-transform: uppercase;
-
     letter-spacing: 0.12em;
 
     text-shadow:
@@ -722,13 +657,11 @@ img {
         );
 
     line-height: 1.08;
-
     font-weight: 900;
 
     letter-spacing: -0.025em;
 
     white-space: nowrap;
-
     text-overflow: ellipsis;
 
     text-shadow:
@@ -738,9 +671,7 @@ img {
 
 .card-price-row {
     display: flex;
-
     align-items: center;
-
     flex-wrap: wrap;
 
     gap: 8px;
@@ -825,7 +756,6 @@ img {
 
 .error-shop h2 {
     margin-top: 0;
-
     color: #ffffff;
 }
 
@@ -853,23 +783,18 @@ img {
 
 .item-modal {
     position: fixed;
-
     inset: 0;
 
     z-index: 100;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     padding: 20px;
 
     opacity: 0;
-
     visibility: hidden;
-
     pointer-events: none;
 
     transition:
@@ -879,15 +804,12 @@ img {
 
 .item-modal.open {
     opacity: 1;
-
     visibility: visible;
-
     pointer-events: auto;
 }
 
 .modal-backdrop {
     position: absolute;
-
     inset: 0;
 
     background:
@@ -899,7 +821,6 @@ img {
 
 .modal-content {
     position: relative;
-
     z-index: 1;
 
     width:
@@ -913,7 +834,6 @@ img {
     overflow: hidden;
 
     display: flex;
-
     flex-direction: column;
 
     border:
@@ -946,17 +866,14 @@ img {
     position: absolute;
 
     top: 14px;
-
     right: 14px;
 
     z-index: 30;
 
     width: 42px;
-
     height: 42px;
 
     display: grid;
-
     place-items: center;
 
     padding: 0;
@@ -973,7 +890,6 @@ img {
     color: #ffffff;
 
     font-size: 27px;
-
     line-height: 1;
 
     backdrop-filter:
@@ -1000,7 +916,6 @@ img {
 
 .preview-track {
     width: 200%;
-
     height: 100%;
 
     display: flex;
@@ -1024,13 +939,11 @@ img {
         0 0 50%;
 
     width: 50%;
-
     height: 100%;
 
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
     overflow: hidden;
@@ -1042,7 +955,6 @@ img {
 .preview-slide img,
 .preview-video-slide video {
     width: 100%;
-
     height: 100%;
 
     object-fit: contain;
@@ -1062,7 +974,6 @@ img {
     position: absolute;
 
     left: 50%;
-
     bottom: 15px;
 
     z-index: 10;
@@ -1071,7 +982,6 @@ img {
         translateX(-50%);
 
     display: flex;
-
     align-items: center;
 
     gap: 8px;
@@ -1090,13 +1000,11 @@ img {
 
 .preview-dot {
     width: 7px;
-
     height: 7px;
 
     padding: 0;
 
     border: 0;
-
     border-radius: 50%;
 
     background:
@@ -1148,13 +1056,11 @@ img {
 
 .pack-carousel-window {
     width: 100%;
-
     overflow: hidden;
 }
 
 .pack-carousel-track {
     display: flex;
-
     align-items: stretch;
 
     gap: 10px;
@@ -1177,7 +1083,6 @@ img {
         0 0 190px;
 
     min-width: 190px;
-
     min-height: 82px;
 
     display: grid;
@@ -1214,7 +1119,6 @@ img {
     position: absolute;
 
     top: 6px;
-
     left: 6px;
 
     z-index: 3;
@@ -1231,13 +1135,11 @@ img {
         rgba(255,255,255,0.8);
 
     font-size: 8px;
-
     font-weight: 800;
 }
 
 .pack-carousel-image-wrap {
     width: 64px;
-
     height: 64px;
 
     align-self: center;
@@ -1252,7 +1154,6 @@ img {
 
 .pack-carousel-image {
     width: 100%;
-
     height: 100%;
 
     object-fit: cover;
@@ -1264,7 +1165,6 @@ img {
     align-self: center;
 
     display: flex;
-
     flex-direction: column;
 
     gap: 4px;
@@ -1279,11 +1179,9 @@ img {
         rgba(255,255,255,0.95);
 
     font-size: 12px;
-
     font-weight: 800;
 
     white-space: nowrap;
-
     text-overflow: ellipsis;
 }
 
@@ -1294,13 +1192,11 @@ img {
         rgba(255,255,255,0.42);
 
     font-size: 9px;
-
     font-weight: 700;
 
     text-transform: uppercase;
 
     white-space: nowrap;
-
     text-overflow: ellipsis;
 }
 
@@ -1308,18 +1204,15 @@ img {
     position: absolute;
 
     top: 50%;
-
     z-index: 5;
 
     transform:
         translateY(-50%);
 
     width: 34px;
-
     height: 34px;
 
     display: grid;
-
     place-items: center;
 
     padding: 0;
@@ -1360,7 +1253,6 @@ img {
     display: flex;
 
     align-items: flex-start;
-
     justify-content: space-between;
 
     gap: 20px;
@@ -1374,11 +1266,9 @@ img {
         rgba(255,255,255,0.4);
 
     font-size: 11px;
-
     font-weight: 800;
 
     text-transform: uppercase;
-
     letter-spacing: 0.1em;
 }
 
@@ -1400,7 +1290,6 @@ img {
     color: #ffffff;
 
     font-size: 15px;
-
     font-weight: 800;
 
     text-align: right;
@@ -1416,7 +1305,6 @@ img {
         rgba(255,255,255,0.55);
 
     font-size: 14px;
-
     line-height: 1.55;
 }
 
@@ -1451,7 +1339,6 @@ img {
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
 
     gap: 20px;
@@ -1519,7 +1406,6 @@ img {
         overflow: hidden;
 
         white-space: nowrap;
-
         text-overflow: ellipsis;
 
         padding:
@@ -1600,7 +1486,6 @@ img {
 
     .card-content-overlay h3 {
         font-size: 13px;
-
         margin-bottom: 4px;
     }
 
@@ -1623,9 +1508,7 @@ img {
 
     .card-badges {
         top: 7px;
-
         left: 7px;
-
         right: 7px;
     }
 
@@ -1662,13 +1545,11 @@ img {
 
     .pack-carousel-item {
         flex-basis: 155px;
-
         min-width: 155px;
     }
 
     .pack-carousel-image-wrap {
         width: 58px;
-
         height: 58px;
     }
 
@@ -1679,7 +1560,6 @@ img {
 
     .modal-info-top {
         flex-direction: column;
-
         gap: 10px;
     }
 
@@ -1689,7 +1569,6 @@ img {
 
     .footer-inner {
         flex-direction: column;
-
         align-items: flex-start;
     }
 
@@ -1741,6 +1620,8 @@ img {
     }
 
 }
+
+
 /* =========================================================
    SUPER PACK — GRAND BANDEAU
    ========================================================= */
@@ -1806,26 +1687,39 @@ img {
     margin-bottom: 8px;
 
     font-size: 11px;
-
     letter-spacing: 0.16em;
 }
 
 .shop-card.tile-pack .card-content-overlay h3 {
     margin-bottom: 10px;
 
-    font-size: clamp(28px, 4vw, 52px);
+    font-size:
+        clamp(
+            28px,
+            4vw,
+            52px
+        );
 
     line-height: 0.98;
-
     letter-spacing: -0.045em;
 }
 
 .shop-card.tile-pack .card-price {
-    font-size: clamp(14px, 1.5vw, 18px);
+    font-size:
+        clamp(
+            14px,
+            1.5vw,
+            18px
+        );
 }
 
 .shop-card.tile-pack .card-old-price {
-    font-size: clamp(11px, 1.1vw, 14px);
+    font-size:
+        clamp(
+            11px,
+            1.1vw,
+            14px
+        );
 }
 
 .shop-card.tile-pack .card-badges {
@@ -1838,7 +1732,8 @@ img {
 .shop-card.tile-pack .bundle-badge {
     min-height: 30px;
 
-    padding: 0 11px;
+    padding:
+        0 11px;
 
     border-radius: 5px;
 
@@ -1883,7 +1778,12 @@ img {
     }
 
     .shop-card.tile-pack .card-content-overlay h3 {
-        font-size: clamp(24px, 8vw, 36px);
+        font-size:
+            clamp(
+                24px,
+                8vw,
+                36px
+            );
     }
 
     .shop-card.tile-pack .card-badges {
@@ -1891,4 +1791,5 @@ img {
         left: 12px;
         right: 12px;
     }
+
 }
